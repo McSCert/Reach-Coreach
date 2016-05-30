@@ -77,12 +77,17 @@ classdef ReachCoreachRef < handle
             
             %get line from the port, and then get the destination blocks
             line=get_param(port, 'line');
+            object.ReachedObjects(end+1)=line;
             nextBlocks=get_param(line, 'DstBlockHandle');
             
             for i=1:length(nextBlocks)
+                %add block to list of reached objects
+                object.ReachedObjects(end+1)=nextBlocks(i);
                 %get blocktype for switch case
                 blockType=get_param(nextBlocks(i), 'BlockType');
                 
+                %switch statement that handles the reaching of blocks
+                %differently.
                 switch blockType
                     case 'Goto'
                         
@@ -104,6 +109,31 @@ classdef ReachCoreachRef < handle
                         
                 end
             end
+        end
+        
+        function froms=findFromsInScope(block)
+            %function for finding all of the from blocks for a
+            %corresponding goto
+            tag=get_param(block, 'GotoTag');
+            scopedTags=find_system(bdroot(block), 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+            level=get_param(block, 'parent');
+            if isempty(scopedTags)
+                froms=find_system(level, 'SearchDepth', 1, 'BlockType', 'From', 'GotoTag', tag);
+                return
+            end
+            correctScope='asdf';
+            for i=1:length(scopedTags)
+                tagParent=get_param(scopedTags(i), 'parent');
+                
+                aboveCheck=strfind(level, tagParent);
+                if (aboveCheck(1)==1)
+                    
+                end
+            end
+        end
+        
+        function reads=findReadsInScope(block)
+            
         end
     end
 
