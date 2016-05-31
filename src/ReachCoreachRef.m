@@ -117,19 +117,40 @@ classdef ReachCoreachRef < handle
             tag=get_param(block, 'GotoTag');
             scopedTags=find_system(bdroot(block), 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
             level=get_param(block, 'parent');
+            %if there are no corresponding tags, goto is assumed to be
+            %local, and all local froms corresponding to the tag are found
             if isempty(scopedTags)
                 froms=find_system(level, 'SearchDepth', 1, 'BlockType', 'From', 'GotoTag', tag);
                 return
             end
-            correctScope='asdf';
+            
+            %declaration of the level of the goto being split into
+            %subsystem name tokens
+            levelSplit=regexp(currentLevel, 'split', '/');
+            
+            %currentLevel is the current assumed level of the scope of the
+            %goto
+            currentLevel=level;
+            
             for i=1:length(scopedTags)
-                tagParent=get_param(scopedTags(i), 'parent');
-                
-                aboveCheck=strfind(level, tagParent);
-                if (aboveCheck(1)==1)
-                    
+                %get level of subsystem for visibility tag
+                tagScope=get_param(scopedTags(i), 'parent');
+                tagScopeSplit=regexp(tagScope, 'split', '/');
+                intersect=intersect(tagScopeSplit, levelSplit);
+                %check if the visibility tag is above the goto in subsystem
+                %hierarchy
+                if (length(intersect)==length(tagScope))
+                    currentLevelSplit=regexp(currentLevel, 'split', '/');
+                    %if it's the closest to the goto, note that as the correct
+                    %scope for the visibility block
+                    if length(currentLevelSplit)<length(tagScopeSplit)
+                        currentLevel=tagScope;
+                    end
                 end
             end
+            %FIX THIS, might find froms that have are too low in hierarchy
+            %under another visibility tag
+            froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
         end
         
         function reads=findReadsInScope(block)
