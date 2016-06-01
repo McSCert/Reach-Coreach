@@ -131,6 +131,7 @@ classdef ReachCoreachRef < handle
             %currentLevel is the current assumed level of the scope of the
             %goto
             currentLevel=level;
+            currentLimit='';
             
             for i=1:length(scopedTags)
                 %get level of subsystem for visibility tag
@@ -146,11 +147,18 @@ classdef ReachCoreachRef < handle
                     if length(currentLevelSplit)<length(tagScopeSplit)
                         currentLevel=tagScope;
                     end
+                %if a visibility tag is below the level of the goto in
+                %subsystem hierarchy
+                elseif (length(intersect)==length(levelSplit)
+                    currentLimitSplit=regexp(currentLevel, 'split', '/');
+                    if length(currentLimitSplit)<length(tagScopeSplit)
+                        currentLimit=tagScope;
+                    end
                 end
             end
-            %FIX THIS, might find froms that have are too low in hierarchy
-            %under another visibility tag
             froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
+            fromsToExclude=find_system(currentLimit, 'BlockType', 'From', 'GotoTag', tag);
+            froms=setdiff(froms, fromsToExclude);
         end
         
         function reads=findReadsInScope(block)
