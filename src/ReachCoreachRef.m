@@ -161,7 +161,23 @@ classdef ReachCoreachRef < handle
             froms=setdiff(froms, fromsToExclude);
         end
         
+        function goto=findGotoInScope(block)
+            
+        end
+        
         function reads=findReadsInScope(block)
+            
+        end
+        
+        function writes=findWritesInScope(block)
+            
+        end
+        
+        function selector=findSelectorForBus(busCreator)
+            
+        end
+        
+        function creator=findCreatorForSelector(busSelector)
             
         end
     end
