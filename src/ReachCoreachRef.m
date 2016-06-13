@@ -136,12 +136,12 @@ classdef ReachCoreachRef < handle
             for i=1:length(scopedTags)
                 %get level of subsystem for visibility tag
                 tagScope=get_param(scopedTags(i), 'parent');
-                tagScopeSplit=regexp(tagScope, 'split', '/');
-                intersect=intersect(tagScopeSplit, levelSplit);
+                tagScopeSplit=regexp(tagScope, '/', 'split');
+                inter=intersect(tagScopeSplit, levelSplit);
                 %check if the visibility tag is above the goto in subsystem
                 %hierarchy
-                if (length(intersect)==length(tagScope))
-                    currentLevelSplit=regexp(currentLevel, 'split', '/');
+                if (length(inter)==length(tagScopeSplit))
+                    currentLevelSplit=regexp(currentLevel, '/', 'split');
                     %if it's the closest to the goto, note that as the correct
                     %scope for the visibility block
                     if length(currentLevelSplit)<length(tagScopeSplit)
@@ -149,19 +149,55 @@ classdef ReachCoreachRef < handle
                     end
                 %if a visibility tag is below the level of the goto in
                 %subsystem hierarchy
-                elseif (length(intersect)==length(levelSplit)
-                    currentLimitSplit=regexp(currentLevel, 'split', '/');
+                elseif (length(inter)==length(levelSplit))
+                    currentLimitSplit=regexp(currentLevel, '/', 'split');
                     if length(currentLimitSplit)<length(tagScopeSplit)
                         currentLimit=tagScope;
                     end
                 end
             end
+            %get all froms within the scope of the tag selected goto
+            %belongs to
             froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
             fromsToExclude=find_system(currentLimit, 'BlockType', 'From', 'GotoTag', tag);
             froms=setdiff(froms, fromsToExclude);
         end
         
         function goto=findGotoInScope(block)
+            tag=get_param(block, 'GotoTag');
+            goto=find_system(get_param(block, 'parent'), 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
+            if ~isempty(goto)
+                return
+            end
+            scopedTags=find_system(bdroot(block), 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+            level=get_param(block, 'parent');
+            levelSplit=regexp(level, '/', 'split');
+            
+            currentLevel=level;
+            currentLimit='';
+            
+            for i=1:length(scopedTags)
+                tagScope=get_param(scopedTags{i}, 'parent');
+                tagScopeSplit=regexp(tagScope, '/', 'split');
+                inter=intersect(tagScopeSplit, levelSplit);
+                
+                if (length(inter)==length(tagScopeSplit))
+                    currentLevelSplit=regexp(currentLevel, '/', 'split');
+                    %if it's the closest to the goto, note that as the correct
+                    %scope for the visibility block
+                    if length(currentLevelSplit)<length(tagScopeSplit)
+                        currentLevel=tagScope;
+                    end
+                    %if a visibility tag is below the level of the goto in
+                    %subsystem hierarchy
+                elseif (length(inter)==length(levelSplit))
+                    currentLimitSplit=regexp(currentLevel, '/', 'split');
+                    if length(currentLimitSplit)<length(tagScopeSplit)
+                        currentLimit=tagScope;
+                    end
+                end
+            end
+            
             
         end
         
