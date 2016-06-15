@@ -10,6 +10,8 @@ classdef ReachCoreachRef < handle
         PortsToTraverseCo
         TraversedPorts
         TraversedPortsCo
+        ObjectsToReach
+        ObjectsToCoreach
         Color
         BGColor
     end
@@ -85,17 +87,43 @@ classdef ReachCoreachRef < handle
                 object.ReachedObjects(end+1)=nextBlocks(i);
                 %get blocktype for switch case
                 blockType=get_param(nextBlocks(i), 'BlockType');
-                
                 %switch statement that handles the reaching of blocks
                 %differently.
                 switch blockType
                     case 'Goto'
+                        froms=findFromsInScope(nextBlocks{i});
+                        for j=1:length(froms)
+                            object.ReachedObjects(end+1)=froms(j);
+                            outport=get_param(froms(j), 'PortHandles');
+                            outport=outport.Outport;
+                            object.PortsToTraverse(end+1)=outport;
+                        end
                         
                     case 'DataStoreWrite'
-                        
+                        reads=findDataStoreReads(nextBlocks{i});
+                        for j=1:length(reads)
+                            object.ReachedObjects(end+1)=reads(j);
+                            outport=get_param(reads(j), 'PortHandles');
+                            outport=outport.Outport;
+                            object.PortsToTraverse(end+1)=outport;
+                        end
                     case 'SubSystem'
-                        
+                        dstPorts=get_param(line, 'DstPortHandle');
+                        for j=1:length(dstPorts)
+                            portNum=get_param(dstPorts(y), 'PortNumber');
+                            inport=find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', portNum);
+                            object.ReachedObjects(end+1)=get_param(inport, 'Handle');
+                            outport=get_param(inport, 'PortHandles');
+                            outport=outport.Outport;
+                            object.PortsToTraverse(end+1)=outport;
+                        end
                     case 'Outport'
+                        portNum=get_param(nextBlocks(i), 'Port');
+                        parent=get_param(nextBlocks(i), 'parent');
+                        port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                            'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
+                        object.ReachedObjects=parent;
+                        object.PortsToTraverse(end+1)=port;
                         
                     case 'WhileIterator'
                         
@@ -124,14 +152,14 @@ classdef ReachCoreachRef < handle
                 return
             end
             
-            %declaration of the level of the goto being split into
-            %subsystem name tokens
-            levelSplit=regexp(currentLevel, 'split', '/');
-            
             %currentLevel is the current assumed level of the scope of the
             %goto
             currentLevel=level;
             currentLimit='';
+            
+            %declaration of the level of the goto being split into
+            %subsystem name tokens
+            levelSplit=regexp(currentLevel, 'split', '/');
             
             for i=1:length(scopedTags)
                 %get level of subsystem for visibility tag
@@ -197,6 +225,12 @@ classdef ReachCoreachRef < handle
                     end
                 end
             end
+            
+            % Get the corresponding gotos for a given from that's in the
+            % correct scope.
+            goto=find_system(currentLevel, 'BlockType', 'Goto', 'GotoTag', tag);
+            gotosToExclude=find_system(currentLimit, 'BlockType', 'Goto', 'GotoTag', tag);
+            goto=setdiff(goto, gotosToExclude);
             
             
         end
