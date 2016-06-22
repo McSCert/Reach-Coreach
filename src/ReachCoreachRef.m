@@ -155,12 +155,48 @@ classdef ReachCoreachRef < handle
             
         end
         
-        function selector=findSelectorForBus(busCreator)
-            
+        function dest=traverseBusForward(block, signal)
+            %go until you hit a bus creator, then return (?)
+            portConnectivity=get_param(block, 'PortConnectivity');
+            dstBlocks=portConnectivity.DstBlock;
+            next=dstBlocks(1);
+            blockType=get_param(next, 'BlockType');
+            switch blockType
+                case 'BusCreator'
+                    
+                case 'BusSelector'
+                    
+                case 'Goto'
+                    
+                case 'SubSystem'
+                    
+                case 'Outport'
+                    
+                otherwise
+                    
+            end
         end
         
-        function creator=findCreatorForSelector(busSelector)
-            
+        function source=findCreatorForSelector(block, signal)
+            portConnectivity=get_param(block, 'PortConnectivity');
+            srcBlocks=portConnectivity.SrcBlock;
+            next=srcBlocks(1);
+            blockType=get_param(next, 'BlockType');
+            switch blockType
+                case 'BusSelector'
+                    
+                case 'BusCreator'
+                    
+                case 'From'
+                    
+                case 'SubSystem'
+                    
+                case 'Inport'
+                    
+                otherwise
+                    
+            end
+        end
         end
     end
 
