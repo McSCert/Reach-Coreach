@@ -163,8 +163,26 @@ classdef ReachCoreachRef < handle
             blockType=get_param(next, 'BlockType');
             switch blockType
                 case 'BusCreator'
-                    
+                    blockLines=get_param(block, 'LineHandles');
+                    nextLines=get_param(next, 'LineHandles');
+                    line=intersect(blockLines, nextLines);
+                    signalName=get_param(line, 'Name');
+                    if strcmp(signalName, '')
+                        signalName=['signal'];
+                        intermediate=traverseBusForward(next, signalName);
+                        dest=[];
+                        for i=1:length(intermediate)
+                            dest=traverseBlockForward(intermediate(i), signal);
+                        end
+                    else
+                        intermediate=traverseBusForward(next, signalName);
+                        dest=[];
+                        for i=1:length(intermediate)
+                            dest=traverseBlockForward(intermediate(i), signal);
+                        end
+                    end
                 case 'BusSelector'
+                    %base case for recursion
                     
                 case 'Goto'
                     
@@ -177,7 +195,7 @@ classdef ReachCoreachRef < handle
             end
         end
         
-        function source=findCreatorForSelector(block, signal)
+        function source=traverseBusBackwards(block, signal)
             portConnectivity=get_param(block, 'PortConnectivity');
             srcBlocks=portConnectivity.SrcBlock;
             next=srcBlocks(1);
@@ -196,7 +214,6 @@ classdef ReachCoreachRef < handle
                 otherwise
                     
             end
-        end
         end
     end
 
