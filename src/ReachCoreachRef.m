@@ -35,9 +35,7 @@ classdef ReachCoreachRef < handle
         
         function hiliteObjects(object)
             %color hilite all of the reached/coreached blocks
-            for i=1:length(object.ReachedObjects)
-                hilite_system(object.ReachedObjects(i));
-            end
+            hilite_system(object.ReachedObjects);
             
             for i=1:length(object.CoreachedObjects)
                 hilite_system(object.CoreachedObjects(i));
@@ -60,6 +58,7 @@ classdef ReachCoreachRef < handle
         function reachAll(object, selection)
             %get all the outports from the selected blocks
             for i=1:length(selection)
+                object.ReachedObjects(end+1)=get_param(selection{i}, 'handle');
                 ports=get_param(selection{i}, 'PortHandles');
                 object.PortsToTraverse=[object.PortsToTraverse ports.Outport];
             end
@@ -69,6 +68,7 @@ classdef ReachCoreachRef < handle
                 object.PortsToTraverse(end)=[];
                 reach(object, port)
             end
+            object.hiliteObjects();
         end
         
         function reach(object, port)
@@ -94,10 +94,10 @@ classdef ReachCoreachRef < handle
                 %differently.
                 switch blockType
                     case 'Goto'
-                        froms=findFromsInScope(nextBlocks{i});
+                        froms=findFromsInScope(nextBlocks(i));
                         for j=1:length(froms)
-                            object.ReachedObjects(end+1)=froms(j);
-                            outport=get_param(froms(j), 'PortHandles');
+                            object.ReachedObjects(end+1)=get_param(froms{j}, 'handle');
+                            outport=get_param(froms{j}, 'PortHandles');
                             outport=outport.Outport;
                             object.PortsToTraverse(end+1)=outport;
                         end
@@ -113,8 +113,8 @@ classdef ReachCoreachRef < handle
                     case 'SubSystem'
                         dstPorts=get_param(line, 'DstPortHandle');
                         for j=1:length(dstPorts)
-                            portNum=get_param(dstPorts(y), 'PortNumber');
-                            inport=find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', portNum);
+                            portNum=get_param(dstPorts(j), 'PortNumber');
+                            inport=find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', num2str(portNum));
                             object.ReachedObjects(end+1)=get_param(inport, 'Handle');
                             outport=get_param(inport, 'PortHandles');
                             outport=outport.Outport;
@@ -123,21 +123,35 @@ classdef ReachCoreachRef < handle
                     case 'Outport'
                         portNum=get_param(nextBlocks(i), 'Port');
                         parent=get_param(nextBlocks(i), 'parent');
-                        port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
-                            'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
-                        object.ReachedObjects=parent;
-                        object.PortsToTraverse(end+1)=port;
+                        if ~isempty(get_param(parent, 'parent'))
+                            port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
+                            object.ReachedObjects(end+1)=get_param(parent, 'handle');
+                            object.PortsToTraverse(end+1)=port;
+                        end
                         
                     case 'WhileIterator'
                         
                     case 'ForIterator'
                         
                     case 'BusSelector'
+                        blockLines=get_param(block, 'LineHandles');
+                        nextLines=get_param(nextBlocks(i), 'LineHandles');
+                        line=intersect(blockLines, nextLines);
+                        signalName=get_param(line, 'Name');
+                        if ~isempty(signalName)
+                            dstPort=get_param(line, 'DstPortHandle');
+                            portNum=get_param(dstPort, 'PortNumber');
+                            dest=traverseBusForwards(nextBlocks(i), ['signal' num2str(portNumber)]);
+                        else
+                            dest=traverseBusForwards(nextBlocks(i), signalName);
+                        end
+                    case 'BusCreator'
                         
                     case 'If'
                         
                     otherwise
-                        ports=get_param(nextBlocks{i}, 'PortHandles');
+                        ports=get_param(nextBlocks(i), 'PortHandles');
                         outports=ports.Outport;
                         for j=1:length(outports)
                             object.PortsToTraverse=outports(j);
@@ -153,46 +167,6 @@ classdef ReachCoreachRef < handle
         
         function writes=findWritesInScope(block)
             
-        end
-        
-        function dest=traverseBusForward(block, signal)
-            %go until you hit a bus creator, then return (?)
-            portConnectivity=get_param(block, 'PortConnectivity');
-            dstBlocks=portConnectivity.DstBlock;
-            next=dstBlocks(1);
-            blockType=get_param(next, 'BlockType');
-            switch blockType
-                case 'BusCreator'
-                    blockLines=get_param(block, 'LineHandles');
-                    nextLines=get_param(next, 'LineHandles');
-                    line=intersect(blockLines, nextLines);
-                    signalName=get_param(line, 'Name');
-                    if strcmp(signalName, '')
-                        signalName=['signal'];
-                        intermediate=traverseBusForward(next, signalName);
-                        dest=[];
-                        for i=1:length(intermediate)
-                            dest=traverseBlockForward(intermediate(i), signal);
-                        end
-                    else
-                        intermediate=traverseBusForward(next, signalName);
-                        dest=[];
-                        for i=1:length(intermediate)
-                            dest=traverseBlockForward(intermediate(i), signal);
-                        end
-                    end
-                case 'BusSelector'
-                    %base case for recursion
-                    
-                case 'Goto'
-                    
-                case 'SubSystem'
-                    
-                case 'Outport'
-                    
-                otherwise
-                    
-            end
         end
         
         function source=traverseBusBackwards(block, signal)
