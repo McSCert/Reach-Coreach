@@ -1,8 +1,12 @@
-function dest=traverseBusForwards(block, signal)
-    %go until you hit a bus creator, then return (?)
+function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, blockList)
+    %go until you hit a bus creator, then return the path taken there as
+    %well as the exiting port
+    blockList(end+1)=block;
     portConnectivity=get_param(block, 'PortConnectivity');
     dstBlocks=portConnectivity(end).DstBlock;
     next=dstBlocks(1);
+    portHandles=get_param(block, 'PortHandles');
+    path(end+1)=portHandles.Outport;
     blockType=get_param(next, 'BlockType');
     switch blockType
         case 'BusCreator'
@@ -40,6 +44,7 @@ function dest=traverseBusForwards(block, signal)
                 dest(end+1)=traverseBusForward(froms(i), signal);
             end
         case 'SubSystem'
+            blockList(end+1)=next;
             blockLines=get_param(block, 'LineHandles');
             nextLines=get_param(next, 'LineHandles');
             line=intersect(blockLines, nextLines);

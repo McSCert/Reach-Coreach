@@ -160,15 +160,6 @@ classdef ReachCoreachRef < handle
             end
         end
         
-        
-        function reads=findReadsInScope(block)
-            
-        end
-        
-        function writes=findWritesInScope(block)
-            
-        end
-        
         function source=traverseBusBackwards(block, signal)
             portConnectivity=get_param(block, 'PortConnectivity');
             srcBlocks=portConnectivity.SrcBlock;
