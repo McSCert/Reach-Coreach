@@ -10,8 +10,6 @@ classdef ReachCoreachRef < handle
         PortsToTraverseCo
         TraversedPorts
         TraversedPortsCo
-        ObjectsToReach
-        ObjectsToCoreach
         Color
         BGColor
     end
@@ -23,8 +21,6 @@ classdef ReachCoreachRef < handle
             object.RootSystemName=RootSystemName;
             object.ReachedObjects=[];
             object.CoreachedObjects=[];
-            object.ObjectsToReach=[];
-            object.ObjectsToCoreach=[];
         end
         
         function setColor(object, color1, color2)
@@ -51,8 +47,6 @@ classdef ReachCoreachRef < handle
             %clear reached/coreached blocks from selection
             object.ReachedObjects=[];
             object.CoreachedObjects=[];
-            object.ObjectsToReach=[];
-            object.ObjectsToCoreach=[];
         end
         
         function reachAll(object, selection)
@@ -76,6 +70,9 @@ classdef ReachCoreachRef < handle
             if isempty(setdiff(port, object.TraversedPorts))
                 return
             end
+            
+            %get block port belongs to
+            block=get_param(port, 'parent');
             
             %mark this port as traversed
             object.TraversedPorts(end+1)=port;
@@ -131,12 +128,14 @@ classdef ReachCoreachRef < handle
                         end
                         
                     case 'WhileIterator'
-                        
+                        %get errything
                     case 'ForIterator'
-                        
+                        %get errything
                     case 'BusSelector'
                         blockLines=get_param(block, 'LineHandles');
+                        blockLines=blockLines.Outport;
                         nextLines=get_param(nextBlocks(i), 'LineHandles');
+                        nextLines=nextLines.Inport;
                         line=intersect(blockLines, nextLines);
                         signalName=get_param(line, 'Name');
                         if ~isempty(signalName)
@@ -147,9 +146,45 @@ classdef ReachCoreachRef < handle
                             dest=traverseBusForwards(nextBlocks(i), signalName);
                         end
                     case 'BusCreator'
-                        
+                        blockLines=get_param(block, 'LineHandles');
+                        blockLines=blockLines.Outport;
+                        nextLines=get_param(nextBlocks(i), 'LineHandles');
+                        nextLines=nextLines.Inport;
+                        line=intersect(blockLines, nextLines);
+                        signalName=get_param(line, 'Name');
+                        if isempty(signalName)
+                            dstPort=get_param(line, 'DstPortHandle');
+                            portNum=get_param(dstPort, 'PortNumber');
+                            signalName=['signal' num2str(portNum)];
+                        end
+                        [~,path,blockList,exit]=traverseBusForwards(nextBlocks(i), signalName, [], []);
+                        object.TraversedPorts=[object.TraversedPorts path];
+                        object.ReachedObjects=[object.ReachedObjects blockList];
+                        object.portsToTraverse=[object.portsToTraverse exit];
                     case 'If'
-                        
+                        ports=get_param(nextBlocks(i), 'PortHandles');
+                        outports=ports.Outport;
+                        blockLines=get_param(block, 'LineHandles');
+                        blockLines=blockLines.Outport;
+                        nextLines=get_param(nextBlocks(i), 'LineHandles');
+                        nextLines=nextLines.Inport;
+                        line=intersect(blockLines, nextLines);
+                        dstPort=get_param(line, 'DstPortHandle');
+                        portNum=get_param(dstPort, 'PortNumber');
+                        cond=['u' num2str(portNum)];
+                        expressions=get_param(nextBlocks(i), 'ElseIfExpressions');
+                        if ~isempty(expressions)
+                            expressions=regexp(expressions, ',', 'split');
+                            expressions=[{get_param(nextBlocks(i), 'IfExpression')} expressions];
+                        else
+                            expressions={};
+                            expressions{end+1}=get_param(nextBlocks(i), 'IfExpression');
+                        end
+                        for j=1:length(expressions)
+                            if regexp(expressions{j}, cond)
+                                object.PortsToTraverse=outports(j);
+                            end
+                        end
                     otherwise
                         ports=get_param(nextBlocks(i), 'PortHandles');
                         outports=ports.Outport;
