@@ -1,4 +1,4 @@
-classdef ReachCoreachRef < handle
+classdef ReachCoreach < handle
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -129,8 +129,8 @@ classdef ReachCoreachRef < handle
                         
                     case 'WhileIterator'
                         %get errything
-                    case 'ForIterator'
-                        %get errything
+                        blocks=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                        ports=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
                     case 'BusSelector'
                         blockLines=get_param(block, 'LineHandles');
                         blockLines=blockLines.Outport;
