@@ -124,7 +124,7 @@ classdef ReachCoreach < handle
                         end
                         
                     case 'DataStoreWrite'
-                        reads=findDataStoreReads(nextBlocks{i});
+                        reads=findReadsInScope(nextBlocks{i});
                         for j=1:length(reads)
                             object.ReachedObjects(end+1)=reads(j);
                             outport=get_param(reads(j), 'PortHandles');
@@ -182,7 +182,7 @@ classdef ReachCoreach < handle
                         end
                         writes=find_system(system, 'BlockType', 'DataStoreWrite');
                         for j=1:length(writes)
-                            reads=findDataStoreReads(writes{j});
+                            reads=findReadsInScope(writes{j});
                             for k=1:length(reads)
                                 object.ReachedObjects(end+1)=reads(k);
                                 outport=get_param(reads(k), 'PortHandles');
@@ -275,7 +275,7 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end+1)=inport;
                         end
                     case 'DataStoreRead'
-                        writes=findDataStoreWrites(nextBlocks{i});
+                        writes=findWritesInScope(nextBlocks{i});
                         for j=1:length(writes)
                             object.CoreachedObjects(end+1)=writes(j);
                             inport=get_param(writes(j), 'PortHandles');
@@ -293,6 +293,14 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end+1)=inport;
                         end
                     case 'Inport'
+                        portNum=get_param(nextBlocks(i), 'Port');
+                        parent=get_param(nextBlocks(i), 'parent');
+                        if ~isempty(get_param(parent, 'parent'))
+                            port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', parent, 'PortType', 'Inport', 'PortNumber', str2num(portNum));
+                            object.CoreachedObjects(end+1)=get_param(parent, 'handle');
+                            object.PortsToTraverseCo(end+1)=port;
+                        end
                         
                     case {'WhileIterator', 'ForIterator'}
                         
@@ -301,10 +309,15 @@ classdef ReachCoreach < handle
                     case 'If'
                         
                     otherwise
-                        
+                        ports=get_param(nextBlocks(i), 'PortHandles');
+                        inports=ports.Inport;
+                        for j=1:length(inports)
+                            object.PortsToTraverseCo=inports(j);
+                        end   
                         
                 end
             end
         end
+    end
 end
 

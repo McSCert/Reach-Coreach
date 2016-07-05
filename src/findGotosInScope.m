@@ -1,4 +1,4 @@
-function goto=findGotoInScope(block)
+function goto=findGotosInScope(block)
 %find the corresponding goto to a from block
     tag=get_param(block, 'GotoTag');
     goto=find_system(get_param(block, 'parent'), 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
