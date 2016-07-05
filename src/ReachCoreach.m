@@ -16,7 +16,7 @@ classdef ReachCoreach < handle
     
     methods
         
-        function object = ReachCoreachRef(RootSystemName)
+        function object = ReachCoreach(RootSystemName)
             %initializing attributes
             object.RootSystemName=RootSystemName;
             object.ReachedObjects=[];
@@ -301,13 +301,33 @@ classdef ReachCoreach < handle
                             object.CoreachedObjects(end+1)=get_param(parent, 'handle');
                             object.PortsToTraverseCo(end+1)=port;
                         end
-                        
-                    case {'WhileIterator', 'ForIterator'}
-                        
                     case 'BusSelector'
                         
                     case 'If'
-                        
+                        blockLines=get_param(block, 'LineHandles');
+                        blockLines=blockLines.Outport;
+                        nextLines=get_param(nextBlocks(i), 'LineHandles');
+                        nextLines=nextLines.Inport;
+                        line=intersect(blockLines, nextLines);
+                        srcPort=get_param(line, 'SrcPortHandle');
+                        portNum=get_param(srcPort, 'PortNumber');
+                        expressions=get_param(nextBlocks(i), 'ElseIfExpressions');
+                        if ~isempty(expressions)
+                            expressions=regexp(expressions, ',', 'split');
+                            expressions=[{get_param(nextBlocks(i), 'IfExpression')} expressions];
+                        else
+                            expressions={};
+                            expressions{end+1}=get_param(nextBlocks(i), 'IfExpression');
+                        end
+                        if portNum>length(expressions)
+                            %else case
+                        else
+                            conditions=regexp(expressions{portNum}, 'u[1-9]+', 'match');
+                            cond=conditions{portNum};
+                            cond=cond(2:end);
+                            port=find_system(get_param(nextBlocks(i), 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', nextBlocks(i), 'PortType', 'Inport', 'PortNumber', str2num(cond));
+                        end
                     otherwise
                         ports=get_param(nextBlocks(i), 'PortHandles');
                         inports=ports.Inport;
@@ -315,6 +335,19 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo=inports(j);
                         end   
                         
+                end
+            end
+        end
+        
+        function iterators = findIterators(object)
+            iterators={};
+            candidates=find_system(model, 'BlockType', 'WhileIterator');
+            candidates=[candidates find_system(model, 'BlockType', 'ForIterator')];
+            for i=1:length(candidates)
+                system=get_param(candidates{i}, 'parent');
+                sysObjects=find_system(system, 'FindAll', 'on');
+                if ~isempty(intersect(sysObjects, object.CoreachedObjects))
+                    iterators{end+1}=candidates{i};
                 end
             end
         end
