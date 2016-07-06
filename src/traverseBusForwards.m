@@ -24,7 +24,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
                 dest=[];
                 exit=[];
                 for i=1:length(intermediate)
-                    [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForward(intermediate(i), signal, path, blockList);
+                    [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForwards(intermediate(i), signal, path, blockList);
                     dest=[dest tempDest];
                     exit=[exit tempExit];
                     blockList=[blockList tempBlockList];
@@ -35,7 +35,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
                 dest=[];
                 exit=[];
                 for i=1:length(intermediate)
-                    [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForward(intermediate(i), signal, path, blockList);
+                    [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForwards(intermediate(i), signal, path, blockList);
                     dest=[dest tempDest];
                     exit=[exit tempExit];
                     blockList=[blockList tempBlockList];
@@ -59,7 +59,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
             dest=[];
             exit=[];
             for i=1:length(froms)
-                [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForward(froms(i), signal, path, blockList);
+                [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForwards(froms(i), signal, path, blockList);
                 dest=[dest tempDest];
                 exit=[exit tempExit];
                 blockList=[blockList tempBlockList];
@@ -74,7 +74,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
             for j=1:length(dstPorts)
                 portNum=get_param(dstPorts(y), 'PortNumber');
                 inport=find_system(next, 'BlockType', 'Inport', 'Port', portNum);
-                [dest, path, blockList, exit]=traverseBusForward(inport, signal, path, blockList);
+                [dest, path, blockList, exit]=traverseBusForwards(inport, signal, path, blockList);
             end
         case 'Outport'
             portNum=get_param(next, 'Port');
@@ -84,8 +84,8 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
                 'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
             path(end+1)=port;
             connectedBlock=get_param(port, 'DstBlock');
-            [dest, path, blockList, exit]=traverseBusForward(connectedBlock, signal, path, blockList);
+            [dest, path, blockList, exit]=traverseBusForwards(connectedBlock, signal, path, blockList);
         otherwise
-            [dest, path, blockList, exit]=traverseBusForward(next, signal, path, blockList);
+            [dest, path, blockList, exit]=traverseBusForwards(next, signal, path, blockList);
     end
 end
