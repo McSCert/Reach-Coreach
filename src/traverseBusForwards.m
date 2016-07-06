@@ -72,7 +72,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
             line=intersect(blockLines, nextLines);
             dstPorts=get_param(line, 'DstPortHandle');
             for j=1:length(dstPorts)
-                portNum=get_param(dstPorts(y), 'PortNumber');
+                portNum=get_param(dstPorts(j), 'PortNumber');
                 inport=find_system(next, 'BlockType', 'Inport', 'Port', portNum);
                 [dest, path, blockList, exit]=traverseBusForwards(inport, signal, path, blockList);
             end
