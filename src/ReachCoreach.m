@@ -315,7 +315,16 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = port;
                         end
                     case 'BusSelector'
-                        
+                        blockLines = get_param(block, 'LineHandles');
+                        blockLines = blockLines.Outport;
+                        nextLines = get_param(nextBlocks(i), 'LineHandles');
+                        nextLines = nextLines.Inport;
+                        line = intersect(blockLines, nextLines);
+                        signal = get_param(line, 'Name');
+                        [~, path, blockList, exit]=traverseBusBackwards(next, signal, [], []);
+                        object.TraversedPortsCo=[objects.TraversedPortsCo path];
+                        object.CoreachedObjects=[objects.CoreachedObjects blockList];
+                        object.PortsToTraverseCo(end+1)=exit;
                     case 'If'
                         blockLines = get_param(block, 'LineHandles');
                         blockLines = blockLines.Outport;

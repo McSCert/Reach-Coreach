@@ -10,46 +10,29 @@ function [dest, path, blockList, exit]=traverseBusBackwards(block, signal, path,
     blockType=get_param(next, 'BlockType');
     switch blockType
         case 'BusSelector'
-            blockLines=get_param(block, 'LineHandles');
-            blockLines=blockLines.Outport;
-            nextLines=get_param(next, 'LineHandles');
-            nextLines=nextLines.Inport;
-            line=intersect(blockLines, nextLines);
-            signalName=get_param(line, 'Name');
-            if ~isempty(signalName)
-                dstPort=get_param(line, 'DstPortHandle');
-                portNum=get_param(dstPort, 'PortNumber');
-                signalName=['signal' num2str(portNum)];
-                intermediate=traverseBusForward(next, signalName);
-                dest=[];
-                exit=[];
-                for i=1:length(intermediate)
-                    [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForward(intermediate(i), signal, path, blockList);
-                    dest=[dest tempDest];
-                    exit=[exit tempExit];
-                    blockList=[blockList tempBlockList];
-                    path=[path, tempPath];
-                end
-            else
-                intermediate=traverseBusForward(next, signalName);
-                dest=[];
-                exit=[];
-                for i=1:length(intermediate)
-                    [tempDest, tempPath, tempBlockList, tempExit]=traverseBusForward(intermediate(i), signal, path, blockList);
-                    dest=[dest tempDest];
-                    exit=[exit tempExit];
-                    blockList=[blockList tempBlockList];
-                    path=[path, tempPath];
-                end
+            [intermediate,path,blockList,exit]=traverseBusBackwards(next, signal, path, blockList);
+            path=[path exit];
+            dest=[];
+            exit=[];
+            for i=1:length(intermediate)
+                [tempDest, tempPath, tempBlockList, tempExit]=traverseBusBackwards(intermediate(i), signal, path, blockList);
+                dest=[dest tempDest];
+                exit=[exit tempExit];
+                blockList=[blockList tempBlockList];
+                path=[path, tempPath];
             end
         case 'BusCreator'
             %base case for recursion
             blockList(end+1)=next;
-            outputs=get_param(next, 'OutputSignals');
-            outputs=regexp(outputs, ',', 'split');
-            portNum=find(strcmp(outputs(:), signal));
+            inputs=get_param(next, 'LineHandles');
+            inputs=inputs.Inport;
+            inputs=get_param(inputs, 'Name');
+            portNum=find(strcmp(signal, inputs);
+            if isempty(portNum)
+                portNum=regexp(signal, '[1-9]*$', 'match');
+            end
             dest=get_param(next, 'PortConnectivity');
-            dest=dest(1+portNum).DstBlock;
+            dest=dest(1+portNum).SrcBlock;
             exit=get_param(next, 'PortHandles');
             exit=exit.Outport;
             exit=exit(portNum);
