@@ -47,12 +47,15 @@ classdef ReachCoreach < handle
             allObjects = find_system(object.RootSystemName, 'FindAll', 'On', 'type', 'line');
             allObjects = [allObjects find_system(object.RootSystemName, 'FindAll', 'On', 'type', 'block')];
             toDelete = setdiff(allObjects, object.ReachedObjects);
+            delete_block(toDelete);
         end
         
         function clear(object)
             % Remove the reached/coreached blocks from selection.
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
+            object.TraversedPorts=[];
+            object.TraversedPortsCo=[];
         end
         
         function reachAll(object, selection)
@@ -89,13 +92,26 @@ classdef ReachCoreach < handle
                     object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                 end
             end
-            %coreach from each in the list of ports to traverse
-            while ~isempty(object.PortsToTraverseCo)
-                port = object.PortsToTraverseCo(end);
-                object.PortsToTraverseCo(end) = [];
-                coreach(object, port)
+            flag=true;
+            while flag
+                %coreach from each in the list of ports to traverse
+                while ~isempty(object.PortsToTraverseCo)
+                    port = object.PortsToTraverseCo(end);
+                    object.PortsToTraverseCo(end) = [];
+                    coreach(object, port)
+                end
+                object.hiliteObjects();
+                iterators=findIterators(object);
+                if ~isempty(iterators);
+                    for i=1:length(iterators)
+                        ports=get_param(iterators{i}, 'PortHandles');
+                        object.PortsToTraverseCo=[objects.PortsToTraverseCo, ports];
+                        object.CoreachedObjects(end+1)=get_param(iterators{i}, 'Handle');
+                    end
+                else
+                    flag=false;
+                end
             end
-            object.hiliteObjects();
         end
         
         function reach(object, port)
@@ -369,7 +385,9 @@ classdef ReachCoreach < handle
                 system = get_param(candidates{i}, 'parent');
                 sysObjects = find_system(system, 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
-                    iterators{end + 1} = candidates{i};
+                    if isempty(intersect(candidates{i}, object.CoreachedObjects)
+                        iterators{end + 1} = candidates{i};
+                    end
                 end
             end
         end
