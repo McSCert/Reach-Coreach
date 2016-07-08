@@ -150,7 +150,7 @@ classdef ReachCoreach < handle
                 %differently.
                 switch blockType
                     case 'Goto'
-                        froms = findFromsInScope(nextBlocks(i));
+                        froms = findFromsInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(froms)
                             object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
                             outport = get_param(froms{j}, 'PortHandles');
@@ -159,9 +159,9 @@ classdef ReachCoreach < handle
                         end
                         
                     case 'DataStoreWrite'
-                        reads = findReadsInScope(nextBlocks{i});
+                        reads = findReadsInScope(getfullname(nextBlocks{i}));
                         for j = 1:length(reads)
-                            object.ReachedObjects(end + 1) = reads(j);
+                            object.ReachedObjects(end + 1) = get_param(reads(j), 'Handle');
                             outport = get_param(reads(j), 'PortHandles');
                             outport = outport.Outport;
                             object.PortsToTraverse(end + 1) = outport;
@@ -304,7 +304,7 @@ classdef ReachCoreach < handle
                 %differently.
                 switch blockType
                     case 'From'
-                        gotos = findGotosInScope(nextBlocks(i));
+                        gotos = findGotosInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(gotos)
                             object.CoreachedObjects(end + 1) = get_param(gotos{j}, 'handle');
                             inport = get_param(gotos{j}, 'PortHandles');
@@ -312,9 +312,9 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
                     case 'DataStoreRead'
-                        writes = findWritesInScope(nextBlocks{i});
+                        writes = findWritesInScope(getfullname(nextBlocks{i}));
                         for j = 1:length(writes)
-                            object.CoreachedObjects(end + 1) = writes(j);
+                            object.CoreachedObjects(end + 1) = get_param(writes(j), 'Handle');
                             inport = get_param(writes(j), 'PortHandles');
                             inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
@@ -326,7 +326,7 @@ classdef ReachCoreach < handle
                             outport = find_system(nextBlocks(i), 'BlockType', 'Outport', 'Port', num2str(portNum));
                             object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
                             inport = get_param(outport, 'PortHandles');
-                            inport = inport.Outport;
+                            inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
                     case 'Inport'
