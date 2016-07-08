@@ -1,5 +1,7 @@
 function blocks=getInterfaceOut(subsystem)
     blocks={};
+    froms={};
+    reads={};
     gotos=find_system(subsystem, 'BlockType', 'Goto');
     for i=1:length(gotos)
         froms=findFromsInScope(gotos{i});
@@ -13,7 +15,7 @@ function blocks=getInterfaceOut(subsystem)
         name=getfullname(implicits{i});
         lcs=intersect(name, getfullname(subsystem));
         if ~strcmp(lcs, getfullname(subsystem))
-            blocks{end+1}=lcs;
+            blocks{end+1}=implicits{i};
         end
     end
 end
