@@ -64,12 +64,16 @@ classdef ReachCoreach < handle
             % Get all the outports from the selected blocks
             for i = 1:length(selection)
                 if strcmp(get_param(selection{i}, 'BlockType'), 'SubSystem')
-                    %???
-                else
-                    object.ReachedObjects(end + 1) = get_param(selection{i}, 'handle');
-                    ports = get_param(selection{i}, 'PortHandles');
-                    object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    outBlocks=getInterfaceOut(selection{i});
+                    for j=1:length(outBlocks)
+                        object.ReachedObjects(end + 1) = get_param(outBlocks{j}, 'handle');
+                        ports = get_param(outBlocks{j}, 'PortHandles');
+                        object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    end
                 end
+                object.ReachedObjects(end + 1) = get_param(selection{i}, 'handle');
+                ports = get_param(selection{i}, 'PortHandles');
+                object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
             end
             %reach from each in the list of ports to traverse
             while ~isempty(object.PortsToTraverse)
@@ -85,12 +89,16 @@ classdef ReachCoreach < handle
             
             for i = 1:length(selection)
                 if strcmp(get_param(selection{i}, 'BlockType'), 'SubSystem')
-                    %???
-                else
-                    object.CoreachedObjects(end + 1) = get_param(selection{i}, 'handle');
-                    ports = get_param(selection{i}, 'PortHandles');
-                    object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    inBlocks=getInterfaceIn(selection{i});
+                    for j=1:length(inBlocks)
+                        object.CoreachedObjects(end + 1) = get_param(inBlocks{j}, 'handle');
+                        ports = get_param(inBlocks{j}, 'PortHandles');
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    end
                 end
+                object.CoreachedObjects(end + 1) = get_param(selection{i}, 'handle');
+                ports = get_param(selection{i}, 'PortHandles');
+                object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
             end
             flag=true;
             while flag
