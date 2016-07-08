@@ -52,6 +52,8 @@ classdef ReachCoreach < handle
         
         function clear(object)
             % Remove the reached/coreached blocks from selection.
+            hilite_system(object.ReachedObjects, 'none');
+            hilite_system(object.CoreachedObjects, 'none');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             object.TraversedPorts=[];
