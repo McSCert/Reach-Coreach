@@ -62,7 +62,7 @@ function [dest, path, blockList, exit]=traverseBusBackwards(block, signal, path,
         case 'Inport'
             portNum=get_param(next, 'Port');
             parent=get_param(next, 'parent');
-            blockList(end+1)=parent;
+            blockList(end+1)=get_param(parent, 'Handle');
             port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
                 'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', portNum);
             path(end+1)=port;

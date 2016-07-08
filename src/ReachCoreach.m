@@ -241,7 +241,7 @@ classdef ReachCoreach < handle
                         [~,path,blockList,exit] = traverseBusForwards(nextBlocks(i), signalName, [], []);
                         object.TraversedPorts = [object.TraversedPorts path];
                         object.ReachedObjects = [object.ReachedObjects blockList];
-                        object.portsToTraverse = [object.portsToTraverse exit];
+                        object.PortsToTraverse = [object.PortsToTraverse exit];
                     case 'If'
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
@@ -270,7 +270,7 @@ classdef ReachCoreach < handle
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
                         for j = 1:length(outports)
-                            object.PortsToTraverse = outports(j);
+                            object.PortsToTraverse(end + 1) = outports(j);
                         end                     
                 end
             end
@@ -378,7 +378,7 @@ classdef ReachCoreach < handle
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         inports = ports.Inport;
                         for j = 1:length(inports)
-                            object.PortsToTraverseCo = inports(j);
+                            object.PortsToTraverseCo(end + 1) = inports(j);
                         end    
                 end
             end
