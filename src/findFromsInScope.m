@@ -4,50 +4,65 @@ function froms=findFromsInScope(block)
     tag=get_param(block, 'GotoTag');
     scopedTags=find_system(bdroot(block), 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
     level=get_param(block, 'parent');
+    tagVis=get_param(block, 'TagVisibility');
     %if there are no corresponding tags, goto is assumed to be
     %local, and all local froms corresponding to the tag are found
-    if isempty(scopedTags)
+    if strcmp(tagVis, 'local')
         froms=find_system(level, 'SearchDepth', 1, 'BlockType', 'From', 'GotoTag', tag);
         return
-    end
-
-    %currentLevel is the current assumed level of the scope of the
-    %goto
-    currentLevel=level;
-    currentLimit='';
-
-    %declaration of the level of the goto being split into
-    %subsystem name tokens
-    levelSplit=regexp(currentLevel, '/', 'split');
-
-    for i=1:length(scopedTags)
-        %get level of subsystem for visibility tag
-        tagScope=get_param(scopedTags{i}, 'parent');
-        tagScopeSplit=regexp(tagScope, '/', 'split');
-        inter=intersect(tagScopeSplit, levelSplit);
-        %check if the visibility tag is above the goto in subsystem
-        %hierarchy
-        if (length(inter)==length(tagScopeSplit))
-            currentLevelSplit=regexp(currentLevel, '/', 'split');
-            %if it's the closest to the goto, note that as the correct
-            %scope for the visibility block
-            if length(currentLevelSplit)<length(tagScopeSplit)
-                currentLevel=tagScope;
-            end
-            %if a visibility tag is below the level of the goto in
-            %subsystem hierarchy
-        elseif (length(inter)==length(levelSplit))
-            currentLimitSplit=regexp(currentLevel, '/', 'split');
-            if length(currentLimitSplit)<length(tagScopeSplit)
-                currentLimit=tagScope;
+    elseif strcmp(tagVis, 'scoped');
+        
+        %currentLevel is the current assumed level of the scope of the
+        %goto
+        currentLevel=level;
+        currentLimit='';
+        
+        %declaration of the level of the goto being split into
+        %subsystem name tokens
+        levelSplit=regexp(currentLevel, '/', 'split');
+        
+        for i=1:length(scopedTags)
+            %get level of subsystem for visibility tag
+            tagScope=get_param(scopedTags{i}, 'parent');
+            tagScopeSplit=regexp(tagScope, '/', 'split');
+            inter=intersect(tagScopeSplit, levelSplit);
+            %check if the visibility tag is above the goto in subsystem
+            %hierarchy
+            if (length(inter)==length(tagScopeSplit))
+                currentLevelSplit=regexp(currentLevel, '/', 'split');
+                %if it's the closest to the goto, note that as the correct
+                %scope for the visibility block
+                if length(currentLevelSplit)<length(tagScopeSplit)
+                    currentLevel=tagScope;
+                end
+                %if a visibility tag is below the level of the goto in
+                %subsystem hierarchy
+            elseif (length(inter)==length(levelSplit))
+                currentLimitSplit=regexp(currentLevel, '/', 'split');
+                if length(currentLimitSplit)<length(tagScopeSplit)
+                    currentLimit=tagScope;
+                end
             end
         end
-    end
-    %get all froms within the scope of the tag selected goto
-    %belongs to
-    froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
-    if ~isempty(currentLimit)
-        fromsToExclude=find_system(currentLimit, 'BlockType', 'From', 'GotoTag', tag);
+        %get all froms within the scope of the tag selected goto
+        %belongs to
+        froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
+        if ~isempty(currentLimit)
+            fromsToExclude=find_system(currentLimit, 'BlockType', 'From', 'GotoTag', tag);
+            froms=setdiff(froms, fromsToExclude);
+        end
+    else
+        fromsToExclude={};
+        for i=1:length(scopedTags)
+            fromsToExclude=[fromsToExclude find_system(get_param(scopedTags{i}, 'parent'), ...
+                'BlockType', 'From', 'GotoTag', tag)];
+        end
+        localGotos=find_system(bdroot(block), 'BlockType', 'Goto', 'TagVisibility', 'local');
+        for i=1:length(localGotos)
+            fromsToExclude=[fromsToExclude find_system(get_param(localGotos{i}, 'parent'), ...
+                'SearchDepth', 1, 'BlockType', 'From', 'GotoTag', tag)];
+        end
+        froms=find_system(bdroot(block), 'BlockType', 'From', 'GotoTag', tag);
         froms=setdiff(froms, fromsToExclude);
     end
 end
