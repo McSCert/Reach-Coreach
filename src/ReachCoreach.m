@@ -393,7 +393,7 @@ classdef ReachCoreach < handle
                 system = get_param(candidates{i}, 'parent');
                 sysObjects = find_system(system, 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
-                    if isempty(intersect(candidates{i}, object.CoreachedObjects)
+                    if isempty(intersect(candidates{i}, object.CoreachedObjects))
                         iterators{end + 1} = candidates{i};
                     end
                 end
