@@ -231,7 +231,6 @@ classdef ReachCoreach < handle
                         end
 
                     case 'BusCreator'
-                        line = get_param(port, 'line');
                         signalName = get_param(line, 'Name');
                         if isempty(signalName)
                             dstPort = get_param(line, 'DstPortHandle');
@@ -245,7 +244,6 @@ classdef ReachCoreach < handle
                     case 'If'
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
-                        line = get_param(port, 'line');
                         dstPort = get_param(line, 'DstPortHandle');
                         portNum = get_param(dstPort, 'PortNumber');
                         cond = ['u' num2str(portNum)];
@@ -335,7 +333,6 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = portSub;
                         end
                     case 'BusSelector'
-                        line = get_param(port, 'line');
                         portBus=get_param(line, 'SrcPortHandle');
                         portNum=get_param(portBus, 'PortNumber');
                         signal=get_param(nextBlocks(i), 'OutputSignals');
@@ -346,7 +343,6 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects=[object.CoreachedObjects blockList];
                         object.PortsToTraverseCo(end+1)=exit;
                     case 'If'
-                        line = get_param(port, 'line');
                         srcPort = get_param(line, 'SrcPortHandle');
                         portNum = get_param(srcPort, 'PortNumber');
                         expressions = get_param(nextBlocks(i), 'ElseIfExpressions');
