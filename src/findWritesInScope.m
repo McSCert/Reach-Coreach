@@ -5,7 +5,6 @@ function writes = findWritesInScope(block)
     dataStoreMems=find_system(bdroot(block), 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
     level=get_param(block, 'parent');
     currentLevel=level;
-    currentLimit='';
     
     %level of the data store write block being split into subsystem name
     %tokens
@@ -25,18 +24,12 @@ function writes = findWritesInScope(block)
             if length(currentLevelSplit)>length(memScopeSplit)
                 currentLevel=memScope;
             end
-        elseif (length(inter)==length(levelSplit))
-            currentLimitSplit=regexp(currentLevel, '/', 'split');
-            if length(currentLimitSplit)<length(memScopeSplit)
-                currentLimit=memScope;
-            end
         end
     end
     
-    writes=find_system(currentLevel, 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName);
-    if ~isempty(currentLimit)
-        writesToExclude=find_system(currentLimit, 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName);
-        writes=setdiff(writes, writesToExclude);
-    end
+    memBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+    writes=findReadWritesInScope(memBlock);
+    blocksToExclude=find_system(currentLevel, 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName);
+    writes=setdiff(writes, blocksToExclude);
 
 end

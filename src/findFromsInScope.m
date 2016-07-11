@@ -15,7 +15,6 @@ function froms=findFromsInScope(block)
         %currentLevel is the current assumed level of the scope of the
         %goto
         currentLevel=level;
-        currentLimit='';
         
         %declaration of the level of the goto being split into
         %subsystem name tokens
@@ -35,24 +34,14 @@ function froms=findFromsInScope(block)
                 if length(currentLevelSplit)<length(tagScopeSplit)
                     currentLevel=tagScope;
                 end
-                %if a visibility tag is below the level of the goto in
-                %subsystem hierarchy
-            elseif (length(inter)==length(levelSplit))
-                currentLimitSplit=regexp(currentLevel, '/', 'split');
-                if length(currentLimitSplit)<length(tagScopeSplit)
-                    currentLimit=tagScope;
-                end
             end
         end
         %get all froms within the scope of the tag selected goto
         %belongs to
-        froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
         visibilityBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
-        froms=[froms visibilityBlock];
-        if ~isempty(currentLimit)
-            fromsToExclude=find_system(currentLimit, 'BlockType', 'From', 'GotoTag', tag);
-            froms=setdiff(froms, fromsToExclude);
-        end
+        froms=findGotoFromsInScope(visibilityBlock);
+        blocksToExclude=find_system(currentLevel, 'BlockType', 'Goto', 'GotoTag', tag);
+        froms=setdiff(froms, blocksToExclude);
     else
         fromsToExclude={};
         for i=1:length(scopedTags)
