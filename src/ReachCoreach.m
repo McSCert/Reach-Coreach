@@ -191,7 +191,8 @@ classdef ReachCoreach < handle
                                 object.PortsToTraverse(end + 1) = outport;
                             end
                         end
-                        
+                        tag=findVisibilityTag(getfullname(nextBlocks(i)));
+                        object.ReachedObjects(end+1)=get_param(tag, 'Handle');
                     case 'DataStoreWrite'
                         reads = findReadsInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(reads)
@@ -200,6 +201,8 @@ classdef ReachCoreach < handle
                             outport = outport.Outport;
                             object.PortsToTraverse(end + 1) = outport;
                         end
+                        mem=findDataStoreMemory(getfullname(nextBlocks(i)));
+                        object.ReachedObjects(end+1)=get_param(mem, 'Handle');
                     case 'SubSystem'
                         dstPorts = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPorts)
@@ -248,6 +251,8 @@ classdef ReachCoreach < handle
                                 outport = outport.Outport;
                                 object.PortsToTraverse(end + 1) = outport;
                             end
+                            tag=findVisibilityTag(gotos{j});
+                            object.ReachedObjects(end+1)=get_param(tag, 'Handle');
                         end
                         writes = find_system(system, 'BlockType', 'DataStoreWrite');
                         for j = 1:length(writes)
@@ -258,6 +263,8 @@ classdef ReachCoreach < handle
                                 outport = outport.Outport;
                                 object.PortsToTraverse(end + 1) = outport;
                             end
+                            mem=findDataStoreMemory(writes{j});
+                            object.ReachedObjects(end+1)=get_param(mem, 'Handle');
                         end
 
                     case 'BusCreator'
@@ -335,6 +342,8 @@ classdef ReachCoreach < handle
                             inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
+                        tag=findVisibilityTag(getfullname(nextBlocks(i)));
+                        object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
                     case 'DataStoreRead'
                         writes = findWritesInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(writes)
@@ -343,6 +352,8 @@ classdef ReachCoreach < handle
                             inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
+                        mem=findDataStoreMemory(getfullname(nextBlocks(i)));
+                        object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
                     case 'SubSystem'
                         srcPorts = get_param(line, 'SrcPortHandle');
                         for j = 1:length(srcPorts)
