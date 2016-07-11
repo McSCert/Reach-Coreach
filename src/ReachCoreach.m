@@ -105,7 +105,8 @@ classdef ReachCoreach < handle
             % TODO Description.
             
             for i = 1:length(selection)
-                if strcmp(get_param(selection{i}, 'BlockType'), 'SubSystem')
+                selectionType=get_param(selection{i}, 'BlockType');
+                if strcmp(selectionType, 'SubSystem')
                     inBlocks=getInterfaceIn(selection{i});
                     for j=1:length(inBlocks)
                         object.CoreachedObjects(end + 1) = get_param(inBlocks{j}, 'handle');

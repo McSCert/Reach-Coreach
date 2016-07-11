@@ -29,7 +29,7 @@ function goto=findGotosInScope(block)
     % Get the corresponding gotos for a given from that's in the
     % correct scope.
     visibilityBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
-    goto=findGotoFromsInScope(visibilityBlock);
+    goto=findGotoFromsInScope(visibilityBlock{1});
     blocksToExclude=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
     goto=setdiff(goto, blocksToExclude);
 end

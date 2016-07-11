@@ -28,7 +28,7 @@ function writes = findWritesInScope(block)
     end
     
     memBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
-    writes=findReadWritesInScope(memBlock);
+    writes=findReadWritesInScope(memBlock{1});
     blocksToExclude=find_system(currentLevel, 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName);
     writes=setdiff(writes, blocksToExclude);
 
