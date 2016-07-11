@@ -7,6 +7,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
     next=dstBlocks(1);
     portHandles=get_param(block, 'PortHandles');
     path(end+1)=portHandles.Outport;
+    blockList(end+1)=get_param(portHandles.Outport, 'line');
     blockType=get_param(next, 'BlockType');
     switch blockType
         case 'BusCreator'
@@ -71,6 +72,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
             blockLines=get_param(block, 'LineHandles');
             nextLines=get_param(next, 'LineHandles');
             line=intersect(blockLines, nextLines);
+            blockList(end+1)=line;
             dstPorts=get_param(line, 'DstPortHandle');
             for j=1:length(dstPorts)
                 portNum=get_param(dstPorts(j), 'PortNumber');
@@ -80,12 +82,18 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
         case 'Outport'
             portNum=get_param(next, 'Port');
             parent=get_param(next, 'parent');
-            blockList(end+1)=get_param(parent, 'Handle');
-            port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
-                'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
-            path(end+1)=port;
-            connectedBlock=get_param(port, 'DstBlock');
-            [dest, path, blockList, exit]=traverseBusForwards(connectedBlock, signal, path, blockList);
+            if ~isempty(get_param(parent, 'parent'))
+                blockList(end+1)=get_param(parent, 'Handle');
+                port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                    'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
+                path(end+1)=port;
+                connectedBlock=get_param(port, 'DstBlock');
+                [dest, path, blockList, exit]=traverseBusForwards(connectedBlock, signal, path, blockList);
+            else
+                dest=[];
+                exit=[];
+                blockList(end+1)=next;
+            end
         otherwise
             [dest, path, blockList, exit]=traverseBusForwards(next, signal, path, blockList);
     end
