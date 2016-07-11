@@ -115,7 +115,7 @@ classdef ReachCoreach < handle
                 if ~isempty(iterators);
                     for i=1:length(iterators)
                         ports=get_param(iterators{i}, 'PortHandles');
-                        object.PortsToTraverseCo=[object.PortsToTraverseCo, ports];
+                        object.PortsToTraverseCo=[object.PortsToTraverseCo, ports.Inport];
                         object.CoreachedObjects(end+1)=get_param(iterators{i}, 'Handle');
                     end
                 else
@@ -385,7 +385,7 @@ classdef ReachCoreach < handle
                 system = get_param(candidates{i}, 'parent');
                 sysObjects = find_system(system, 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
-                    if isempty(intersect(candidates{i}, object.CoreachedObjects))
+                    if isempty(intersect(get_param(candidates{i}, 'Handle'), object.CoreachedObjects))
                         iterators{end + 1} = candidates{i};
                     end
                 end
