@@ -3,7 +3,7 @@ function [dest, path, blockList, exit]=traverseBusBackwards(block, signal, path,
     %well as the exiting port
     blockList(end+1)=get_param(block, 'Handle');
     portConnectivity=get_param(block, 'PortConnectivity');
-    srcBlocks=portConnectivity(end).SrcBlock;
+    srcBlocks=portConnectivity(1).SrcBlock;
     next=srcBlocks(1);
     portHandles=get_param(block, 'PortHandles');
     path(end+1)=portHandles.Inport;
@@ -27,14 +27,15 @@ function [dest, path, blockList, exit]=traverseBusBackwards(block, signal, path,
             inputs=get_param(next, 'LineHandles');
             inputs=inputs.Inport;
             inputs=get_param(inputs, 'Name');
-            portNum=find(strcmp(signal, inputs);
+            portNum=find(strcmp(signal, inputs));
             if isempty(portNum)
                 portNum=regexp(signal, '[1-9]*$', 'match');
+                portNum=str2num(portNum{1});
             end
             dest=get_param(next, 'PortConnectivity');
             dest=dest(1+portNum).SrcBlock;
             exit=get_param(next, 'PortHandles');
-            exit=exit.Outport;
+            exit=exit.Inport;
             exit=exit(portNum);
         case 'From'
             blockList(end+1)=next;

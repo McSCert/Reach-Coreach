@@ -115,7 +115,7 @@ classdef ReachCoreach < handle
                 if ~isempty(iterators);
                     for i=1:length(iterators)
                         ports=get_param(iterators{i}, 'PortHandles');
-                        object.PortsToTraverseCo=[objects.PortsToTraverseCo, ports];
+                        object.PortsToTraverseCo=[object.PortsToTraverseCo, ports];
                         object.CoreachedObjects(end+1)=get_param(iterators{i}, 'Handle');
                     end
                 else
@@ -344,20 +344,24 @@ classdef ReachCoreach < handle
                         end
                     case 'BusSelector'
                         blockLines = get_param(block, 'LineHandles');
-                        blockLines = blockLines.Outport;
+                        blockLines = blockLines.Inport;
                         nextLines = get_param(nextBlocks(i), 'LineHandles');
-                        nextLines = nextLines.Inport;
+                        nextLines = nextLines.Outport;
                         line = intersect(blockLines, nextLines);
-                        signal = get_param(line, 'Name');
-                        [~, path, blockList, exit]=traverseBusBackwards(next, signal, [], []);
-                        object.TraversedPortsCo=[objects.TraversedPortsCo path];
-                        object.CoreachedObjects=[objects.CoreachedObjects blockList];
+                        port=get_param(line, 'SrcPortHandle');
+                        portNum=get_param(port, 'PortNumber');
+                        signal=get_param(nextBlocks(i), 'OutputSignals');
+                        signal=regexp(signal, ',', 'split');
+                        signal = signal{portNum};
+                        [~, path, blockList, exit]=traverseBusBackwards(nextBlocks(i), signal, [], []);
+                        object.TraversedPortsCo=[object.TraversedPortsCo path];
+                        object.CoreachedObjects=[object.CoreachedObjects blockList];
                         object.PortsToTraverseCo(end+1)=exit;
                     case 'If'
                         blockLines = get_param(block, 'LineHandles');
-                        blockLines = blockLines.Outport;
+                        blockLines = blockLines.Inport;
                         nextLines = get_param(nextBlocks(i), 'LineHandles');
-                        nextLines = nextLines.Inport;
+                        nextLines = nextLines.Outport;
                         line = intersect(blockLines, nextLines);
                         srcPort = get_param(line, 'SrcPortHandle');
                         portNum = get_param(srcPort, 'PortNumber');
