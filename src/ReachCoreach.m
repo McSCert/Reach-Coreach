@@ -192,10 +192,10 @@ classdef ReachCoreach < handle
                         end
                         
                     case 'DataStoreWrite'
-                        reads = findReadsInScope(getfullname(nextBlocks{i}));
+                        reads = findReadsInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(reads)
                             object.ReachedObjects(end + 1) = get_param(reads{j}, 'Handle');
-                            outport = get_param(reads(j), 'PortHandles');
+                            outport = get_param(reads{j}, 'PortHandles');
                             outport = outport.Outport;
                             object.PortsToTraverse(end + 1) = outport;
                         end

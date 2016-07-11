@@ -28,7 +28,7 @@ function reads = findReadsInScope(block)
     end
     
     memBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
-    reads=findReadWritesInScope(memBlock);
+    reads=findReadWritesInScope(memBlock{1});
     blocksToExclude=find_system(currentLevel, 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName);
     reads=setdiff(reads, blocksToExclude);
 

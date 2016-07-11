@@ -10,7 +10,6 @@ function goto=findGotosInScope(block)
     levelSplit=regexp(level, '/', 'split');
 
     currentLevel=level;
-    currentLimit='';
 
     for i=1:length(scopedTags)
         tagScope=get_param(scopedTags{i}, 'parent');
@@ -24,19 +23,13 @@ function goto=findGotosInScope(block)
             if length(currentLevelSplit)<length(tagScopeSplit)
                 currentLevel=tagScope;
             end
-            %if a visibility tag is below the level of the goto in
-            %subsystem hierarchy
-        elseif (length(inter)==length(levelSplit))
-            currentLimitSplit=regexp(currentLevel, '/', 'split');
-            if length(currentLimitSplit)<length(tagScopeSplit)
-                currentLimit=tagScope;
-            end
         end
     end
 
     % Get the corresponding gotos for a given from that's in the
     % correct scope.
-    goto=find_system(currentLevel, 'BlockType', 'Goto', 'GotoTag', tag);
-    gotosToExclude=find_system(currentLimit, 'BlockType', 'Goto', 'GotoTag', tag);
-    goto=setdiff(goto, gotosToExclude);
+    visibilityBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+    goto=findGotoFromsInScope(visibilityBlock);
+    blocksToExclude=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
+    goto=setdiff(goto, blocksToExclude);
 end
