@@ -65,11 +65,26 @@ classdef ReachCoreach < handle
                         
             % Get all the outports from the selected blocks
             for i = 1:length(selection)
-                if strcmp(get_param(selection{i}, 'BlockType'), 'SubSystem')
+                selectionType=get_param(selection{i}, 'BlockType');
+                if strcmp(selectionType, 'SubSystem')
                     outBlocks=getInterfaceOut(selection{i});
                     for j=1:length(outBlocks)
                         object.ReachedObjects(end + 1) = get_param(outBlocks{j}, 'handle');
                         ports = get_param(outBlocks{j}, 'PortHandles');
+                        object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    end
+                elseif strcmp(selectionType, 'GotoTagVisibility')
+                    associatedBlocks=findGotoFromsInScope(selection{i});
+                    for j=1:length(associatedBlocks)
+                        object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
+                        ports = get_param(associatedBlocks{j}, 'PortHandles');
+                        object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    end
+                elseif strcmp(selectionType, 'DataStoreMemory')
+                    associatedBlocks=findReadWritesInScope(selection{i});
+                    for j=1:length(associatedBlocks)
+                        object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
+                        ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
                 end
@@ -95,6 +110,20 @@ classdef ReachCoreach < handle
                     for j=1:length(inBlocks)
                         object.CoreachedObjects(end + 1) = get_param(inBlocks{j}, 'handle');
                         ports = get_param(inBlocks{j}, 'PortHandles');
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    end
+                    elseif strcmp(selectionType, 'GotoTagVisibility')
+                        associatedBlocks=findGotoFromsInScope(selection{i});
+                        for j=1:length(associatedBlocks)
+                            object.CoreachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
+                            ports = get_param(associatedBlocks{j}, 'PortHandles');
+                            object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                        end
+                elseif strcmp(selectionType, 'DataStoreMemory')
+                    associatedBlocks=findReadWritesInScope(selection{i});
+                    for j=1:length(associatedBlocks)
+                        object.CoreachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
+                        ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
                 end
@@ -257,7 +286,7 @@ classdef ReachCoreach < handle
                         end
                         for j = 1:length(expressions)
                             if regexp(expressions{j}, cond)
-                                object.PortsToTraverse = outports(j);
+                                object.PortsToTraverse(end + 1) = outports(j);
                             end
                         end
                     otherwise
