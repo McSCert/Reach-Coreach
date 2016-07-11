@@ -1,6 +1,8 @@
 %% Register custom menu function to beginning of Simulink Editor's context menu
 function sl_customization(cm)
   cm.addCustomMenuFcn('Simulink:PreContextMenu', @getMcMasterTool);
+  cm.addCustomFilterFcn('McMasterTool:RCRclear', @RCRFilter);
+  cm.addCustomFilterFcn('McMasterTool:RCRslice', @RCRFilter);
 end
 
 function schemaFcns = getMcMasterTool(callbackInfo)
@@ -33,7 +35,12 @@ end
 
 function RCRReachCallback(callbackInfo)
     global reachCoreachObject;
-    reachCoreachObject.reachAll(gcbs);
+    if (exist('reachCoreachObject', 'var')==1)
+        reachCoreachObject.reachAll(gcbs);
+    else
+        reachCoreachObject=ReachCoreach(gcs);
+        reachCoreachObject.reachAll(gcbs);
+    end
 end
 
 function schema = getRCRCoreachSel(callbackInfo)
@@ -45,7 +52,12 @@ end
 
 function RCRCoreachCallback(callbackInfo)
     global reachCoreachObject;
-    reachCoreachObject.coreachAll(gcbs);
+    if (exist('reachCoreachObject', 'var')==1)
+        reachCoreachObject.coreachAll(gcbs);
+    else
+        reachCoreachObject=ReachCoreach(gcs);
+        reachCoreachObject.coreachAll(gcbs);
+    end
 end
 
 function schema = getRCRBothSel(callbackInfo)
@@ -57,8 +69,14 @@ end
 
 function RCRbothCallback(callbackInfo)
     global reachCoreachObject;
-    reachCoreachObject.reachAll(gcbs);
-    reachCoreachObject.coreachAll(gcbs);
+    if (exist('reachCoreachObject', 'var')==1)
+        reachCoreachObject.reachAll(gcbs);
+        reachCoreachObject.coreachAll(gcbs);
+    else
+        reachCoreachObject=ReachCoreach(gcs);
+        reachCoreachObject.reachAll(gcbs);
+        reachCoreachObject.coreachAll(gcbs);
+    end
 end
 
 function schema = getRCRClear(callbackInfo)
@@ -83,4 +101,14 @@ end
 function RCRsliceCallback(callbackInfo)
     global reachCoreachObject;
     reachCoreachObject.slice();
+end
+
+% Grey out menu options for clear and slice when 
+% the currently selected block is not a Data Store block
+function state = RCRFilter(callbackInfo)
+    if (exist('reachCoreachObject', 'var')==1)
+            state = 'Enabled';
+    else
+            state = 'Disabled';
+    end
 end
