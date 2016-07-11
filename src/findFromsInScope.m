@@ -47,6 +47,8 @@ function froms=findFromsInScope(block)
         %get all froms within the scope of the tag selected goto
         %belongs to
         froms=find_system(currentLevel, 'BlockType', 'From', 'GotoTag', tag);
+        visibilityBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+        froms=[froms visibilityBlock];
         if ~isempty(currentLimit)
             fromsToExclude=find_system(currentLimit, 'BlockType', 'From', 'GotoTag', tag);
             froms=setdiff(froms, fromsToExclude);

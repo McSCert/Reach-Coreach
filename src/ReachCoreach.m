@@ -157,13 +157,15 @@ classdef ReachCoreach < handle
                             object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
                             outport = get_param(froms{j}, 'PortHandles');
                             outport = outport.Outport;
-                            object.PortsToTraverse(end + 1) = outport;
+                            if ~isempty(outport)
+                                object.PortsToTraverse(end + 1) = outport;
+                            end
                         end
                         
                     case 'DataStoreWrite'
                         reads = findReadsInScope(getfullname(nextBlocks{i}));
                         for j = 1:length(reads)
-                            object.ReachedObjects(end + 1) = get_param(reads(j), 'Handle');
+                            object.ReachedObjects(end + 1) = get_param(reads{j}, 'Handle');
                             outport = get_param(reads(j), 'PortHandles');
                             outport = outport.Outport;
                             object.PortsToTraverse(end + 1) = outport;
@@ -221,8 +223,8 @@ classdef ReachCoreach < handle
                         for j = 1:length(writes)
                             reads = findReadsInScope(writes{j});
                             for k = 1:length(reads)
-                                object.ReachedObjects(end + 1) = reads(k);
-                                outport = get_param(reads(k), 'PortHandles');
+                                object.ReachedObjects(end + 1) = get_param(reads{k}, 'Handle');
+                                outport = get_param(reads{k}, 'PortHandles');
                                 outport = outport.Outport;
                                 object.PortsToTraverse(end + 1) = outport;
                             end
@@ -314,10 +316,10 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
                     case 'DataStoreRead'
-                        writes = findWritesInScope(getfullname(nextBlocks{i}));
+                        writes = findWritesInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(writes)
-                            object.CoreachedObjects(end + 1) = get_param(writes(j), 'Handle');
-                            inport = get_param(writes(j), 'PortHandles');
+                            object.CoreachedObjects(end + 1) = get_param(writes{j}, 'Handle');
+                            inport = get_param(writes{j}, 'PortHandles');
                             inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
@@ -336,7 +338,7 @@ classdef ReachCoreach < handle
                         parent = get_param(nextBlocks(i), 'parent');
                         if ~isempty(get_param(parent, 'parent'))
                             port = find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
-                                'type', 'port', 'parent', parent, 'PortType', 'Inport', 'PortNumber', str2num(portNum));
+                                'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
                             object.CoreachedObjects(end + 1) = get_param(parent, 'handle');
                             object.PortsToTraverseCo(end + 1) = port;
                         end
@@ -389,8 +391,8 @@ classdef ReachCoreach < handle
         function iterators = findIterators(object)
         % TODO Description.
             iterators = {};
-            candidates = find_system(model, 'BlockType', 'WhileIterator');
-            candidates = [candidates find_system(model, 'BlockType', 'ForIterator')];
+            candidates = find_system(object.RootSystemName, 'BlockType', 'WhileIterator');
+            candidates = [candidates find_system(object.RootSystemName, 'BlockType', 'ForIterator')];
             for i = 1:length(candidates)
                 system = get_param(candidates{i}, 'parent');
                 sysObjects = find_system(system, 'FindAll', 'on');

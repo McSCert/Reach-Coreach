@@ -22,7 +22,7 @@ function writes = findWritesInScope(block)
             currentLevelSplit=regexp(currentLevel, '/', 'split');
             %if it's the closest to the write, note that as the correct
             %scope for the data store memory block
-            if length(currentLevelSplit)<length(memScopeSplit)
+            if length(currentLevelSplit)>length(memScopeSplit)
                 currentLevel=memScope;
             end
         elseif (length(inter)==length(levelSplit))
