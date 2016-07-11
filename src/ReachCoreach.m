@@ -5,17 +5,14 @@ classdef ReachCoreach < handle
     properties
         RootSystemName      % Simulink model name (or top-level system name)
         
-        ReachedObjects      % TODO Description
-        CoreachedObjects    % TODO Description
+        ReachedObjects      % List of blocks and lines reached
+        CoreachedObjects    % List of blocks and lines coreached
         
-        PortsToTraverse     % TODO Description
-        PortsToTraverseCo   % TODO Description
+        PortsToTraverse     % Ports remaining to traverse in reach operation
+        PortsToTraverseCo   % Ports remaining to traverse in coreach operation
         
-        TraversedPorts      % TODO Description
-        TraversedPortsCo    % TODO Description
-        
-        Color               % Block outline, text, and line color
-        BGColor             % Block background color
+        TraversedPorts      % Ports already traversed in reach operation
+        TraversedPortsCo    % Ports already traversed in coreach operation
     end
     
     methods
@@ -27,19 +24,16 @@ classdef ReachCoreach < handle
             object.CoreachedObjects = [];
         end
         
-        function setColor(object, color1, color2)
+        function setColor(color1, color2)
             % Set the desired colors for highlighting.
-            object.Color = color1;
-            object.BGColor = color2;
+            HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', color1, 'BackgroundColor', color2);
+            set_param(0, 'HiliteAncestorsData', HILITE_DATA);
         end
         
         function hiliteObjects(object)
             % Highlight the reached/coreached blocks and lines.
-            hilite_system(object.ReachedObjects);
-            
-            for i = 1:length(object.CoreachedObjects)
-                hilite_system(object.CoreachedObjects(i));
-            end
+            hilite_system(object.ReachedObjects, 'user2');
+            hilite_system(object.CoreachedObjects, 'user2');
         end
         
         function slice(object)
