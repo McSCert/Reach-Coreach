@@ -305,7 +305,9 @@ classdef ReachCoreach < handle
                         end
                     case 'SubSystem'
                         %handles the case of the next block being a
-                        %subsystem. Adds
+                        %subsystem. Adds corresponding inports inside
+                        %subsystem to reach and adds their outgoing ports
+                        %to list of ports to traverse
                         dstPorts = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPorts)
                             portNum = get_param(dstPorts(j), 'PortNumber');
@@ -323,6 +325,11 @@ classdef ReachCoreach < handle
                             end
                         end
                     case 'Outport'
+                        %handles the case where the next block is an
+                        %outport. Provided the outport isn't at top level,
+                        %add subsystem outport belongs to to the reach and
+                        %add corresponding subsystem port of the outport to
+                        %list of ports to traverse
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         if ~isempty(get_param(parent, 'parent'))
@@ -340,6 +347,11 @@ classdef ReachCoreach < handle
                         object.reachEverythingInSub(parent);
 
                     case 'BusCreator'
+                        %handles the case where the next block is a bus
+                        %creator. follows the signal going into bus creator
+                        %and highlights the path through the bused signal
+                        %and out to its next block once the bus is
+                        %separated.
                         signalName = get_param(line, 'Name');
                         if isempty(signalName)
                             dstPort = get_param(line, 'DstPortHandle');
@@ -351,6 +363,9 @@ classdef ReachCoreach < handle
                         object.ReachedObjects = [object.ReachedObjects blockList];
                         object.PortsToTraverse = [object.PortsToTraverse exit];
                     case 'If'
+                        %handles the case where the next block is an if
+                        %block, reaches each port where the corresponding
+                        %condition is referenced and the else port
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
                         dstPort = get_param(line, 'DstPortHandle');
@@ -370,6 +385,8 @@ classdef ReachCoreach < handle
                             end
                         end
                     otherwise
+                        %otherwise case, simply adds outports of block to
+                        %the list of ports to traverse
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
                         for j = 1:length(outports)
@@ -380,10 +397,11 @@ classdef ReachCoreach < handle
         end
         
         function coreach(object, port)
-            % TODO Description.
+            % this function finds the next ports to find the coreach from,
+            % and adds all objects encountered to coreached objects
                         
             %check if this port was already traversed
-            if isempty(setdiff(port, object.TraversedPortsCo))
+            if any(object.TraversedPorts==port)
                 return
             end
             
