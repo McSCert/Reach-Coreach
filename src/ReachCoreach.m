@@ -8,11 +8,13 @@ classdef ReachCoreach < handle
         ReachedObjects      % List of blocks and lines reached
         CoreachedObjects    % List of blocks and lines coreached
         
-        PortsToTraverse     % Ports remaining to traverse in reach operation
-        PortsToTraverseCo   % Ports remaining to traverse in coreach operation
-        
         TraversedPorts      % Ports already traversed in reach operation
         TraversedPortsCo    % Ports already traversed in coreach operation
+    end
+    
+    properties(Access=private)
+        PortsToTraverse     % Ports remaining to traverse in reach operation
+        PortsToTraverseCo   % Ports remaining to traverse in coreach operation
     end
     
     methods
@@ -266,6 +268,9 @@ classdef ReachCoreach < handle
                 %differently.
                 switch blockType
                     case 'Goto'
+                        %handles the case if the next block is a goto.
+                        %Finds all froms and adds their outgoing ports to
+                        %the list of ports to traverse
                         froms = findFromsInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(froms)
                             object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
@@ -275,11 +280,16 @@ classdef ReachCoreach < handle
                                 object.PortsToTraverse(end + 1) = outport;
                             end
                         end
+                        %adds associated goto tag visibility block to the
+                        %reach
                         tag=findVisibilityTag(getfullname(nextBlocks(i)));
                         if ~isempty(tag)
                             object.ReachedObjects(end+1)=get_param(tag, 'Handle');
                         end
                     case 'DataStoreWrite'
+                        %handles the case if the next block is a data store
+                        %write. Finds all data store reads and adds their
+                        %outgoing ports to the list of ports to traverse
                         reads = findReadsInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(reads)
                             object.ReachedObjects(end + 1) = get_param(reads{j}, 'Handle');
@@ -287,11 +297,15 @@ classdef ReachCoreach < handle
                             outport = outport.Outport;
                             object.PortsToTraverse(end + 1) = outport;
                         end
+                        %adds associated data store memory block to the
+                        %reach
                         mem=findDataStoreMemory(getfullname(nextBlocks(i)));
                         if ~isempty(mem)
                             object.ReachedObjects(end+1)=get_param(mem, 'Handle');
                         end
                     case 'SubSystem'
+                        %handles the case of the next block being a
+                        %subsystem. Adds
                         dstPorts = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPorts)
                             portNum = get_param(dstPorts(j), 'PortNumber');
