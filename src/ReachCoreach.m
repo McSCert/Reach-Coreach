@@ -186,7 +186,9 @@ classdef ReachCoreach < handle
                         object.PortsToTraverseCo=[object.PortsToTraverseCo, ports.Inport];
                         object.CoreachedObjects(end+1)=get_param(iterators{i}, 'Handle');
                     end
-                else
+                end
+                object.findSpecialPorts();
+                if isempty(object.PortsToTraverseCo)
                     flag=false;
                 end
             end
@@ -436,6 +438,48 @@ classdef ReachCoreach < handle
                 end
             end
         end
+        
+        function findSpecialPorts(object)
+            actionPorts=find_system(object.RootSystemName, 'BlockType', 'ActionPort');
+            for i=1:length(actionPorts)
+                system=get_param(actionPorts{i}, 'parent');
+                sysObjects=find_system(system, 'FindAll', 'on');
+                if ~isempty(intersect(sysObjects, object.CoreachedObjects))
+                    if isempty(intersect(get_param(actionPorts{i}, 'Handle'), object.CoreachedObjects))
+                        object.CoreachedObjects(end + 1) = get_param(actionPorts{i}, 'Handle');
+                        sysPorts=get_param(system, 'PortHandles');
+                        object.PortsToTraverseCo=[object.PortsToTraverseCo sysPorts.Ifaction];
+                    end
+                end
+            end
+            
+            triggerPorts=find_system(object.RootSystemName, 'BlockType', 'TriggerPort');
+            for i=1:length(triggerPorts)
+                system=get_param(triggerPorts{i}, 'parent');
+                sysObjects=find_system(system, 'FindAll', 'on');
+                if ~isempty(intersect(sysObjects, object.CoreachedObjects))
+                    if isempty(intersect(get_param(triggerPorts{i}, 'Handle'), object.CoreachedObjects))
+                        object.CoreachedObjects(end + 1) = get_param(triggerPorts{i}, 'Handle');
+                        sysPorts=get_param(system, 'PortHandles');
+                        object.PortsToTraverseCo=[object.PortsToTraverseCo sysPorts.Trigger];
+                    end
+                end
+            end
+            
+            enablePorts=find_system(object.RootSystemName, 'BlockType', 'EnablePort');
+            for i=1:length(triggerPorts)
+                system=get_param(enablePorts{i}, 'parent');
+                sysObjects=find_system(system, 'FindAll', 'on');
+                if ~isempty(intersect(sysObjects, object.CoreachedObjects))
+                    if isempty(intersect(get_param(enablePorts{i}, 'Handle'), object.CoreachedObjects))
+                        object.CoreachedObjects(end + 1) = get_param(enablePorts{i}, 'Handle');
+                        sysPorts=get_param(system, 'PortHandles');
+                        object.PortsToTraverseCo=[object.PortsToTraverseCo sysPorts.Enable];
+                    end
+                end
+            end
+        end
+                
         
         function reachEverythingInSub(object, system)
             blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
