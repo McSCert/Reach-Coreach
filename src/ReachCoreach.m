@@ -83,6 +83,24 @@ classdef ReachCoreach < handle
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                elseif strcmp(selectionType, 'DataStoreWrite')
+                    reads=findReadsInScope(selection{i});
+                    for j=1:length(reads)
+                        object.ReachedObjects(end + 1) = get_param(reads{j}, 'handle');
+                        ports = get_param(reads{j}, 'PortHandles');
+                        object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    end
+                    mem=findDataStoreMemory(selection{i});
+                    object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                elseif strcmp(selectionType, 'Goto')
+                    froms=findFromsInScope(selection{i});
+                    for j=1:length(froms)
+                        object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
+                        ports = get_param(froms{j}, 'PortHandles');
+                        object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    end
+                    tag=findVisibilityTag(selection{i});
+                    object.ReachedObjects(end+1)=get_param(tag, 'Handle');
                 end
                 object.ReachedObjects(end + 1) = get_param(selection{i}, 'handle');
                 ports = get_param(selection{i}, 'PortHandles');
@@ -123,6 +141,24 @@ classdef ReachCoreach < handle
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
+                elseif strcmp(selectionType, 'From')
+                    gotos=findGotosInScope(selection{i});
+                    for j=1:length(gotos)
+                        object.CoreachedObjects(end + 1) = get_param(gotos{j}, 'handle');
+                        ports = get_param(gotos{j}, 'PortHandles');
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    end
+                    tag=findVisibilityTag(selection{i});
+                    object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
+                elseif strcmp(selectionType, 'DataStoreRead')
+                    writes=findWritesInScope(selection{i});
+                    for j=1:length(writes)
+                        object.CoreachedObjects(end + 1) = get_param(writes{j}, 'handle');
+                        ports = get_param(writes{j}, 'PortHandles');
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    end
+                    mem=findDataStoreMemory(selection{i});
+                    object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
                 end
                 object.CoreachedObjects(end + 1) = get_param(selection{i}, 'handle');
                 ports = get_param(selection{i}, 'PortHandles');
@@ -203,11 +239,18 @@ classdef ReachCoreach < handle
                         dstPorts = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPorts)
                             portNum = get_param(dstPorts(j), 'PortNumber');
-                            inport = find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', num2str(portNum));
-                            object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
-                            outport = get_param(inport, 'PortHandles');
-                            outport = outport.Outport;
-                            object.PortsToTraverse(end + 1) = outport;
+                            portType = get_param(dstPorts(j), 'PortType');
+                            if (strcmp(portType, 'trigger') || ...
+                                    strcmp(portType, 'enable') || ...
+                                    strcmp(portType, 'ifaction'))
+                                object.reachEverythingInSub(block);
+                            else
+                                inport = find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', num2str(portNum));
+                                object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
+                                outport = get_param(inport, 'PortHandles');
+                                outport = outport.Outport;
+                                object.PortsToTraverse(end + 1) = outport;
+                            end
                         end
                     case 'Outport'
                         portNum = get_param(nextBlocks(i), 'Port');
@@ -223,45 +266,8 @@ classdef ReachCoreach < handle
                         %get all blocks/ports in the subsystem, then reach
                         %the blocks the outports, gotos, and writes connect
                         %to outside of the system.
-                        blocks = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
-                        object.ReachedObjects = [object.ReachedObjects get_param(blocks, 'Handle')];
-                        ports = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
-                        object.TraversedPorts = [object.TraversedPorts ports];
-                        outports = find_system(system, 'SearchDepth', 1, 'BlockType', 'Outport');
-                        for j = 1:length(outports)
-                            portNum = get_param(outports{j}, 'Port');
-                            parent = get_param(outports{j}, 'parent');
-                            if ~isempty(get_param(parent, 'parent'))
-                                port = find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
-                                    'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
-                                object.ReachedObjects(end + 1) = get_param(parent, 'handle');
-                                object.PortsToTraverse(end + 1) = port;
-                            end
-                        end
-                        gotos = find_system(system, 'BlockType', 'Goto');
-                        for j = 1:length(gotos)
-                            froms = findFromsInScope(gotos{j});
-                            for k = 1:length(froms)
-                                object.ReachedObjects(end + 1) = get_param(froms{k}, 'handle');
-                                outport = get_param(froms{k}, 'PortHandles');
-                                outport = outport.Outport;
-                                object.PortsToTraverse(end + 1) = outport;
-                            end
-                            tag=findVisibilityTag(gotos{j});
-                            object.ReachedObjects(end+1)=get_param(tag, 'Handle');
-                        end
-                        writes = find_system(system, 'BlockType', 'DataStoreWrite');
-                        for j = 1:length(writes)
-                            reads = findReadsInScope(writes{j});
-                            for k = 1:length(reads)
-                                object.ReachedObjects(end + 1) = get_param(reads{k}, 'Handle');
-                                outport = get_param(reads{k}, 'PortHandles');
-                                outport = outport.Outport;
-                                object.PortsToTraverse(end + 1) = outport;
-                            end
-                            mem=findDataStoreMemory(writes{j});
-                            object.ReachedObjects(end+1)=get_param(mem, 'Handle');
-                        end
+                        parent=get_param(block, 'parent');
+                        object.reachEverythingInSub(parent);
 
                     case 'BusCreator'
                         signalName = get_param(line, 'Name');
@@ -422,6 +428,48 @@ classdef ReachCoreach < handle
                         iterators{end + 1} = candidates{i};
                     end
                 end
+            end
+        end
+        
+        function reachEverythingInSub(object, system)
+            blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+            object.ReachedObjects = [object.ReachedObjects get_param(blocks, 'Handle')];
+            ports = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+            object.TraversedPorts = [object.TraversedPorts ports];
+            outports = find_system(system, 'SearchDepth', 1, 'BlockType', 'Outport');
+            for j = 1:length(outports)
+                portNum = get_param(outports{j}, 'Port');
+                parent = get_param(outports{j}, 'parent');
+                if ~isempty(get_param(parent, 'parent'))
+                    port = find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                        'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
+                    object.ReachedObjects(end + 1) = get_param(parent, 'handle');
+                    object.PortsToTraverse(end + 1) = port;
+                end
+            end
+            gotos = find_system(system, 'BlockType', 'Goto');
+            for j = 1:length(gotos)
+                froms = findFromsInScope(gotos{j});
+                for k = 1:length(froms)
+                    object.ReachedObjects(end + 1) = get_param(froms{k}, 'handle');
+                    outport = get_param(froms{k}, 'PortHandles');
+                    outport = outport.Outport;
+                    object.PortsToTraverse(end + 1) = outport;
+                end
+                tag=findVisibilityTag(gotos{j});
+                object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+            end
+            writes = find_system(system, 'BlockType', 'DataStoreWrite');
+            for j = 1:length(writes)
+                reads = findReadsInScope(writes{j});
+                for k = 1:length(reads)
+                    object.ReachedObjects(end + 1) = get_param(reads{k}, 'Handle');
+                    outport = get_param(reads{k}, 'PortHandles');
+                    outport = outport.Outport;
+                    object.PortsToTraverse(end + 1) = outport;
+                end
+                mem=findDataStoreMemory(writes{j});
+                object.ReachedObjects(end+1)=get_param(mem, 'Handle');
             end
         end
     end

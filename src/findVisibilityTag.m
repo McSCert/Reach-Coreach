@@ -1,3 +1,4 @@
+
 function visBlock = findVisibilityTag(block)
 %FINDVISIBILITYTAG Function that finds the associated visibility tag of a
 %scoped goto or from.
@@ -25,5 +26,6 @@ function visBlock = findVisibilityTag(block)
     end
     
     visBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+    visBlock=visBlock{1};
 
 end
