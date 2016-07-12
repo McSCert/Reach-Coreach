@@ -57,12 +57,16 @@ classdef ReachCoreach < handle
         end
         
         function reachAll(object, selection)
-            % TODO Description.
+            % Public function to reach from all of a selection of blocks.
                         
-            % Get all the outports from the selected blocks
+            % Get the ports/blocks of selected blocks that are special
+            % cases
             for i = 1:length(selection)
                 selectionType=get_param(selection{i}, 'BlockType');
                 if strcmp(selectionType, 'SubSystem')
+                    %get all outgoing interface from subsystem, and add
+                    %blocks to reach, as well as ports to the list of ports
+                    %to traverse
                     outBlocks=getInterfaceOut(selection{i});
                     for j=1:length(outBlocks)
                         object.ReachedObjects(end + 1) = get_param(outBlocks{j}, 'handle');
@@ -70,6 +74,8 @@ classdef ReachCoreach < handle
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
                 elseif strcmp(selectionType, 'GotoTagVisibility')
+                    %add goto and from blocks to reach, and ports to list to
+                    %traverse
                     associatedBlocks=findGotoFromsInScope(selection{i});
                     for j=1:length(associatedBlocks)
                         object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
@@ -77,6 +83,8 @@ classdef ReachCoreach < handle
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
                 elseif strcmp(selectionType, 'DataStoreMemory')
+                    %add read and write blocks to reach, and ports to list
+                    %to traverse
                     associatedBlocks=findReadWritesInScope(selection{i});
                     for j=1:length(associatedBlocks)
                         object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
@@ -84,6 +92,8 @@ classdef ReachCoreach < handle
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
                 elseif strcmp(selectionType, 'DataStoreWrite')
+                    %add read blocks to reach, and ports to list to
+                    %traverse
                     reads=findReadsInScope(selection{i});
                     for j=1:length(reads)
                         object.ReachedObjects(end + 1) = get_param(reads{j}, 'handle');
@@ -93,6 +103,8 @@ classdef ReachCoreach < handle
                     mem=findDataStoreMemory(selection{i});
                     object.ReachedObjects(end+1)=get_param(mem, 'Handle');
                 elseif strcmp(selectionType, 'Goto')
+                    %add from blocks to reach, and ports to list to
+                    %traverse
                     froms=findFromsInScope(selection{i});
                     for j=1:length(froms)
                         object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
@@ -106,8 +118,12 @@ classdef ReachCoreach < handle
                         strcmp(selectionType, 'TriggerPort') || ...
                         strcmp(selectionType, 'WhileIterator') || ...
                         strcmp(selectionType, 'ForIterator'))
+                    %add everything to in a subsystem to the reach if one
+                    %of the listed block types is in the selection
                     object.reachEverythingInSub(get_param(selection{i}, 'parent'))
                 end
+                %add blocks to reach from selection, and their ports to the
+                %list to traverse
                 object.ReachedObjects(end + 1) = get_param(selection{i}, 'handle');
                 ports = get_param(selection{i}, 'PortHandles');
                 object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
@@ -118,12 +134,15 @@ classdef ReachCoreach < handle
                 object.PortsToTraverse(end) = [];
                 reach(object, port)
             end
+            %highlight all objects reached
             object.hiliteObjects();
         end
         
         function coreachAll(object, selection)
-            % TODO Description.
+            % Public function to get the coreach of a selection of blocks
             
+            % Get the ports/blocks of selected blocks that are special
+            % cases
             for i = 1:length(selection)
                 selectionType=get_param(selection{i}, 'BlockType');
                 if strcmp(selectionType, 'SubSystem')
@@ -193,6 +212,10 @@ classdef ReachCoreach < handle
                 end
             end
         end
+        
+    end
+        
+    methods(Access=private)
         
         function reach(object, port)
             % TODO Description.
@@ -414,12 +437,18 @@ classdef ReachCoreach < handle
                         end
                         if portNum>length(expressions)
                             %else case
+                            ifPorts=get_param(nextBlocks(i), 'PortHandles');
+                            ifPorts=ifPorts.Inport;
+                            object.PortsToTraverseCo=[object.PortsToTraverseCo ifPorts];
                         else
-                            conditions = regexp(expressions{portNum}, 'u[1-9] + ', 'match');
-                            cond = conditions{portNum};
-                            cond = cond(2:end);
-                            port = find_system(get_param(nextBlocks(i), 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
-                                'type', 'port', 'parent', nextBlocks(i), 'PortType', 'Inport', 'PortNumber', str2num(cond));
+                            conditions = regexp(expressions{portNum}, 'u[1-9]+', 'match');
+                            for j=1:length(conditions)
+                                cond=conditions{j};
+                                cond = cond(2:end);
+                                ifPorts=get_param(nextBlocks(i), 'PortHandles');
+                                ifPorts=ifPorts.Inport;
+                                object.PortsToTraverseCo(end+1)=ifPorts(str2num(cond));
+                            end
                         end
                     otherwise
                         ports = get_param(nextBlocks(i), 'PortHandles');
@@ -430,9 +459,6 @@ classdef ReachCoreach < handle
                 end
             end
         end
-    end
-        
-    methods(Access=private)
         
         function iterators = findIterators(object)
         % Function finds all while and for iterators that need to be
