@@ -101,6 +101,12 @@ classdef ReachCoreach < handle
                     end
                     tag=findVisibilityTag(selection{i});
                     object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                elseif (strcmp(selectionType, 'EnablePort') || ...
+                        strcmp(selectionType, 'ActionPort') || ...
+                        strcmp(selectionType, 'TriggerPort') || ...
+                        strcmp(selectionType, 'WhileIterator') || ...
+                        strcmp(selectionType, 'ForIterator'))
+                    object.reachEverythingInSub(get_param(selection{i}, 'parent'))
                 end
                 object.ReachedObjects(end + 1) = get_param(selection{i}, 'handle');
                 ports = get_param(selection{i}, 'PortHandles');
@@ -190,7 +196,7 @@ classdef ReachCoreach < handle
             % TODO Description.
             
             % check if this port was already traversed
-            if isempty(setdiff(port, object.TraversedPorts))
+            if any(object.TraversedPorts==port)
                 return
             end
             
@@ -243,7 +249,7 @@ classdef ReachCoreach < handle
                             if (strcmp(portType, 'trigger') || ...
                                     strcmp(portType, 'enable') || ...
                                     strcmp(portType, 'ifaction'))
-                                object.reachEverythingInSub(block);
+                                object.reachEverythingInSub(getfullname(nextBlocks(i)));
                             else
                                 inport = find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', num2str(portNum));
                                 object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
@@ -433,9 +439,14 @@ classdef ReachCoreach < handle
         
         function reachEverythingInSub(object, system)
             blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
-            object.ReachedObjects = [object.ReachedObjects get_param(blocks, 'Handle')];
-            ports = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
-            object.TraversedPorts = [object.TraversedPorts ports];
+            for i=1:length(blocks)
+                object.ReachedObjects(end+1)=get_param(blocks{i}, 'handle');
+            end
+            ports = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
+            portsToExclude=get_param(system, 'PortHandles');
+            portsToExclude=portsToExclude.Outport;
+            ports=setdiff(ports, portsToExclude);
+            object.TraversedPorts = [object.TraversedPorts ports.'];
             outports = find_system(system, 'SearchDepth', 1, 'BlockType', 'Outport');
             for j = 1:length(outports)
                 portNum = get_param(outports{j}, 'Port');
