@@ -6,8 +6,10 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
     dstBlocks=portConnectivity(end).DstBlock;
     next=dstBlocks(1);
     portHandles=get_param(block, 'PortHandles');
-    path(end+1)=portHandles.Outport;
-    blockList(end+1)=get_param(portHandles.Outport, 'line');
+    port=portHandles.Outport;
+    path(end+1)=port;
+    portline=get_param(port, 'line');
+    blockList(end+1)=portline;
     blockType=get_param(next, 'BlockType');
     switch blockType
         case 'BusCreator'
@@ -16,6 +18,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
             nextLines=get_param(next, 'LineHandles');
             nextLines=nextLines.Inport;
             line=intersect(blockLines, nextLines);
+            line=intersect(line, portline);
             signalName=get_param(line, 'Name');
             if ~isempty(signalName)
                 dstPort=get_param(line, 'DstPortHandle');
@@ -33,7 +36,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
                     path=[path, tempPath];
                 end
             else
-                intermediate=traverseBusForward(next, signalName);
+                [intermediate, path, blockList, ~]=traverseBusForwards(next, signalName, path, blockList);
                 dest=[];
                 exit=[];
                 for i=1:length(intermediate)
@@ -72,6 +75,7 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
             blockLines=get_param(block, 'LineHandles');
             nextLines=get_param(next, 'LineHandles');
             line=intersect(blockLines, nextLines);
+            line=intersect(line, portline);
             blockList(end+1)=line;
             dstPorts=get_param(line, 'DstPortHandle');
             for j=1:length(dstPorts)
