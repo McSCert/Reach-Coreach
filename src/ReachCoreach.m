@@ -467,7 +467,7 @@ classdef ReachCoreach < handle
             end
             
             enablePorts=find_system(object.RootSystemName, 'BlockType', 'EnablePort');
-            for i=1:length(triggerPorts)
+            for i=1:length(enablePorts)
                 system=get_param(enablePorts{i}, 'parent');
                 sysObjects=find_system(system, 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))

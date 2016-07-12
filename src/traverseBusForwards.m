@@ -55,11 +55,16 @@ function [dest, path, blockList, exit]=traverseBusForwards(block, signal, path, 
                     outputs=get_param(next, 'OutputSignals');
                     outputs=regexp(outputs, ',', 'split');
                     portNum=find(strcmp(outputs(:), signal));
-                    dest=get_param(next, 'PortConnectivity');
-                    dest=dest(1+portNum).DstBlock;
-                    exit=get_param(next, 'PortHandles');
-                    exit=exit.Outport;
-                    exit=exit(portNum);
+                    if ~isempty(portNum)
+                        dest=get_param(next, 'PortConnectivity');
+                        dest=dest(1+portNum).DstBlock;
+                        exit=get_param(next, 'PortHandles');
+                        exit=exit.Outport;
+                        exit=exit(portNum);
+                    else
+                        dest=[];
+                        exit=[];
+                    end
                 case 'Goto'
                     blockList(end+1)=next;
                     froms=findFromsInScope(next);

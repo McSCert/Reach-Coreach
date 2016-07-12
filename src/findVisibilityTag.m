@@ -8,7 +8,7 @@ function visBlock = findVisibilityTag(block)
     level=get_param(block, 'parent');
     levelSplit=regexp(level, '/', 'split');
 
-    currentLevel=level;
+    currentLevel='';
 
     for i=1:length(scopedTags)
         tagScope=get_param(scopedTags{i}, 'parent');
@@ -19,7 +19,7 @@ function visBlock = findVisibilityTag(block)
             currentLevelSplit=regexp(currentLevel, '/', 'split');
             %if it's the closest to the goto, note that as the correct
             %scope for the visibility block
-            if length(currentLevelSplit)<length(tagScopeSplit)
+            if isempty(currentLevel)||length(currentLevelSplit)<length(tagScopeSplit)
                 currentLevel=tagScope;
             end
         end
