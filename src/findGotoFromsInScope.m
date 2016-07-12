@@ -4,7 +4,7 @@ function blockList = findGotoFromsInScope(block)
 
     gotoTag=get_param(block, 'GotoTag');
     blockParent=get_param(block, 'parent');
-    tagsSameName=find_system(parent, 'BlockType', 'GotoTagVisibility', 'GotoTag', gotoTag);
+    tagsSameName=find_system(blockParent, 'BlockType', 'GotoTagVisibility', 'GotoTag', gotoTag);
     tagsSameName=setdiff(tagsSameName, block);
     
     blocksToExclude={};
