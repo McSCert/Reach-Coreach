@@ -232,7 +232,9 @@ classdef ReachCoreach < handle
                             end
                         end
                         tag=findVisibilityTag(getfullname(nextBlocks(i)));
-                        object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                        if ~isempty(tag)
+                            object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                        end
                     case 'DataStoreWrite'
                         reads = findReadsInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(reads)
@@ -242,7 +244,9 @@ classdef ReachCoreach < handle
                             object.PortsToTraverse(end + 1) = outport;
                         end
                         mem=findDataStoreMemory(getfullname(nextBlocks(i)));
-                        object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                        if ~isempty(mem)
+                            object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                        end
                     case 'SubSystem'
                         dstPorts = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPorts)
@@ -353,7 +357,9 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
                         tag=findVisibilityTag(getfullname(nextBlocks(i)));
-                        object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
+                        if ~isempty(tag)
+                            object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
+                        end
                     case 'DataStoreRead'
                         writes = findWritesInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(writes)
@@ -363,7 +369,9 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
                         mem=findDataStoreMemory(getfullname(nextBlocks(i)));
-                        object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
+                        if ~isempty(mem)
+                            object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
+                        end
                     case 'SubSystem'
                         srcPorts = get_param(line, 'SrcPortHandle');
                         for j = 1:length(srcPorts)
@@ -422,9 +430,13 @@ classdef ReachCoreach < handle
                 end
             end
         end
+    end
+        
+    methods(Access=private)
         
         function iterators = findIterators(object)
-        % TODO Description.
+        % Function finds all while and for iterators that need to be
+        % coreached.
             iterators = {};
             candidates = find_system(object.RootSystemName, 'BlockType', 'WhileIterator');
             candidates = [candidates find_system(object.RootSystemName, 'BlockType', 'ForIterator')];
