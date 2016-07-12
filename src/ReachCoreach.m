@@ -22,9 +22,11 @@ classdef ReachCoreach < handle
             object.RootSystemName = RootSystemName;
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
+            HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', 'yellow', 'BackgroundColor', 'red');
+            set_param(0, 'HiliteAncestorsData', HILITE_DATA);
         end
         
-        function setColor(color1, color2)
+        function setColor(object, color1, color2)
             % Set the desired colors for highlighting.
             HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', color1, 'BackgroundColor', color2);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
@@ -222,7 +224,7 @@ classdef ReachCoreach < handle
                         %the blocks the outports, gotos, and writes connect
                         %to outside of the system.
                         blocks = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
-                        object.ReachedObjects = [object.ReachedObjects getSimulinkBlockHandle(blocks)];
+                        object.ReachedObjects = [object.ReachedObjects get_param(blocks, 'Handle')];
                         ports = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
                         object.TraversedPorts = [object.TraversedPorts ports];
                         outports = find_system(system, 'SearchDepth', 1, 'BlockType', 'Outport');

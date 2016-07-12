@@ -35,7 +35,7 @@ end
 
 function RCRReachCallback(callbackInfo)
     global reachCoreachObject;
-    if (exist('reachCoreachObject', 'var')==1)
+    if (isa(reachCoreachObject, 'ReachCoreach'))
         reachCoreachObject.reachAll(gcbs);
     else
         reachCoreachObject=ReachCoreach(gcs);
@@ -52,7 +52,7 @@ end
 
 function RCRCoreachCallback(callbackInfo)
     global reachCoreachObject;
-    if (exist('reachCoreachObject', 'var')==1)
+    if (isa(reachCoreachObject, 'ReachCoreach'))
         reachCoreachObject.coreachAll(gcbs);
     else
         reachCoreachObject=ReachCoreach(gcs);
@@ -69,7 +69,7 @@ end
 
 function RCRbothCallback(callbackInfo)
     global reachCoreachObject;
-    if (exist('reachCoreachObject', 'var')==1)
+    if (isa(reachCoreachObject, 'ReachCoreach'))
         reachCoreachObject.reachAll(gcbs);
         reachCoreachObject.coreachAll(gcbs);
     else
