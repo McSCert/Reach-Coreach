@@ -28,8 +28,12 @@ function mem = findDataStoreMemory(block)
         end
     end
     
-    mem=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
-    mem=mem{1};
+    if ~isempty(currentLevel)
+        mem=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+        mem=mem{1};
+    else
+        mem={};
+    end
 
 end
 

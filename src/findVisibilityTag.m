@@ -25,7 +25,11 @@ function visBlock = findVisibilityTag(block)
         end
     end
     
-    visBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
-    visBlock=visBlock{1};
+    if ~isempty(currentLevel)
+        visBlock=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+        visBlock=visBlock{1};
+    else
+        visBlock={};
+    end
 
 end
