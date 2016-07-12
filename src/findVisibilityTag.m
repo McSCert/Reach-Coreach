@@ -10,14 +10,18 @@ function visBlock = findVisibilityTag(block)
 
     currentLevel='';
 
+    %finds goto tag visibility block with the closest above the block in
+    %the subsystem hierarchy by comparing their addresses in loop
     for i=1:length(scopedTags)
+        %get level of tag visibility block
         tagScope=get_param(scopedTags{i}, 'parent');
         tagScopeSplit=regexp(tagScope, '/', 'split');
         inter=intersect(tagScopeSplit, levelSplit);
-
+        
+        %check if it's above the block
         if (length(inter)==length(tagScopeSplit))
             currentLevelSplit=regexp(currentLevel, '/', 'split');
-            %if it's the closest to the goto, note that as the correct
+            %if it's the closest to the goto/from, note that as the correct
             %scope for the visibility block
             if isempty(currentLevel)||length(currentLevelSplit)<length(tagScopeSplit)
                 currentLevel=tagScope;

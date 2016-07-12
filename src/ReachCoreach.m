@@ -312,6 +312,8 @@ classdef ReachCoreach < handle
                         for j = 1:length(dstPorts)
                             portNum = get_param(dstPorts(j), 'PortNumber');
                             portType = get_param(dstPorts(j), 'PortType');
+                            %this if statement checks for trigger, enable,
+                            %or ifaction ports
                             if (strcmp(portType, 'trigger') || ...
                                     strcmp(portType, 'enable') || ...
                                     strcmp(portType, 'ifaction'))
@@ -421,10 +423,15 @@ classdef ReachCoreach < handle
                 object.CoreachedObjects(end + 1) = nextBlocks(i);
                 %get blocktype for switch case
                 blockType = get_param(nextBlocks(i), 'BlockType');
-                %switch statement that handles the reaching of blocks
+                %switch statement that handles the coreaching of blocks
                 %differently.
                 switch blockType
                     case 'From'
+                        %handles the case where the next block is a from
+                        %block. finds all gotos associated with the from
+                        %block, adds them to the coreach blocks, then adds their
+                        %respective inports to the list of ports to
+                        %traverse
                         gotos = findGotosInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(gotos)
                             object.CoreachedObjects(end + 1) = get_param(gotos{j}, 'handle');
@@ -432,11 +439,18 @@ classdef ReachCoreach < handle
                             inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
+                        %adds associated goto tag visibility block to list
+                        %of coreached objects
                         tag=findVisibilityTag(getfullname(nextBlocks(i)));
                         if ~isempty(tag)
                             object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
                         end
                     case 'DataStoreRead'
+                        %handles the case where the next block is a data
+                        %store read block. finds all gotos associated with
+                        %the write block, adds them to the coreached
+                        %blocks, then adds their respective inports to the
+                        %list of ports to traverse.
                         writes = findWritesInScope(getfullname(nextBlocks(i)));
                         for j = 1:length(writes)
                             object.CoreachedObjects(end + 1) = get_param(writes{j}, 'Handle');
@@ -444,11 +458,18 @@ classdef ReachCoreach < handle
                             inport = inport.Inport;
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
+                        %adds associated data store memory block to the
+                        %list of coreached objects.
                         mem=findDataStoreMemory(getfullname(nextBlocks(i)));
                         if ~isempty(mem)
                             object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
                         end
                     case 'SubSystem'
+                        %handles the case where the next block is a
+                        %subsystem. Finds outport block corresponding to
+                        %the outport of the subsystem, adds it to the
+                        %list of coreached objects, then adds its inport to
+                        %the list of inports to traverse.
                         srcPorts = get_param(line, 'SrcPortHandle');
                         for j = 1:length(srcPorts)
                             portNum = get_param(srcPorts(j), 'PortNumber');
@@ -459,6 +480,11 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = inport;
                         end
                     case 'Inport'
+                        %handles the case where the next block is an
+                        %inport. If the inport is not top level, it adds
+                        %the parent subsystem to the list of coreached
+                        %objects, then adds the corresponding inport on the
+                        %subsystem to the list of ports to traverse.
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         if ~isempty(get_param(parent, 'parent'))
@@ -468,6 +494,12 @@ classdef ReachCoreach < handle
                             object.PortsToTraverseCo(end + 1) = portSub;
                         end
                     case 'BusSelector'
+                        %handles the case where the next block is a bus
+                        %selector. follows the signal going into the bus
+                        %and adds the path through the bus to the list of
+                        %coreached objects. Adds the corresponding exit
+                        %port on the bus creator to the list of ports to
+                        %traverse.
                         portBus=get_param(line, 'SrcPortHandle');
                         portNum=get_param(portBus, 'PortNumber');
                         signal=get_param(nextBlocks(i), 'OutputSignals');
@@ -478,6 +510,11 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects=[object.CoreachedObjects blockList];
                         object.PortsToTraverseCo(end+1)=exit;
                     case 'If'
+                        %handles the case where the next block is an if
+                        %block. Adds ports with conditions corresponding to
+                        %the conditions associated with teh outport the
+                        %current port leads into to the list of ports to
+                        %traverse.
                         srcPort = get_param(line, 'SrcPortHandle');
                         portNum = get_param(srcPort, 'PortNumber');
                         expressions = get_param(nextBlocks(i), 'ElseIfExpressions');
@@ -504,6 +541,8 @@ classdef ReachCoreach < handle
                             end
                         end
                     otherwise
+                        %otherwise case, simply adds the inports of the block
+                        %to the list of ports to traverse.
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         inports = ports.Inport;
                         for j = 1:length(inports)
@@ -531,6 +570,10 @@ classdef ReachCoreach < handle
         end
         
         function findSpecialPorts(object)
+            %function finds all actionport, triggerport, and enableport
+            %blocks and adds them to the coreach, as well as adding their
+            %corresponding port in the parent subsystem block to the list
+            %of ports to traverse.
             actionPorts=find_system(object.RootSystemName, 'BlockType', 'ActionPort');
             for i=1:length(actionPorts)
                 system=get_param(actionPorts{i}, 'parent');
@@ -573,6 +616,10 @@ classdef ReachCoreach < handle
                 
         
         function reachEverythingInSub(object, system)
+            %adds all blocks and outports of blocks in the subsystem to the lists of reached
+            %objects. Additionally, finds all interface going outward
+            %(outports, gotos, froms) and finds the next blocks/ports as if
+            %being reached by the main reach function above.
             blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
             for i=1:length(blocks)
                 object.ReachedObjects(end+1)=get_param(blocks{i}, 'handle');
@@ -582,6 +629,8 @@ classdef ReachCoreach < handle
             portsToExclude=portsToExclude.Outport;
             ports=setdiff(ports, portsToExclude);
             object.TraversedPorts = [object.TraversedPorts ports.'];
+            
+            %handles outports same as the reach function
             outports = find_system(system, 'SearchDepth', 1, 'BlockType', 'Outport');
             for j = 1:length(outports)
                 portNum = get_param(outports{j}, 'Port');
@@ -593,6 +642,8 @@ classdef ReachCoreach < handle
                     object.PortsToTraverse(end + 1) = port;
                 end
             end
+            
+            %handles gotos same as the reach function
             gotos = find_system(system, 'BlockType', 'Goto');
             for j = 1:length(gotos)
                 froms = findFromsInScope(gotos{j});
@@ -605,6 +656,8 @@ classdef ReachCoreach < handle
                 tag=findVisibilityTag(gotos{j});
                 object.ReachedObjects(end+1)=get_param(tag, 'Handle');
             end
+            
+            %handles writes same as the reach function
             writes = find_system(system, 'BlockType', 'DataStoreWrite');
             for j = 1:length(writes)
                 reads = findReadsInScope(writes{j});
@@ -616,6 +669,50 @@ classdef ReachCoreach < handle
                 end
                 mem=findDataStoreMemory(writes{j});
                 object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+            end
+        end
+        
+        function blocks=getInterfaceIn(subsystem)
+            blocks={};
+            gotos={};
+            writes={};
+            froms=find_system(subsystem, 'BlockType', 'From');
+            for i=1:length(froms)
+                gotos=findFromsInScope(froms{i});
+            end
+            reads=find_system(subsystem, 'BlockType', 'DataStoreRead');
+            for i=1:length(reads)
+                writes=findReadsInScope(reads{i});
+            end
+            implicits=[gotos writes];
+            for i=1:length(implicits)
+                name=getfullname(implicits{i});
+                lcs=intersect(name, getfullname(subsystem));
+                if ~strcmp(lcs, getfullname(subsystem))
+                    blocks{end+1}=implicits{i};
+                end
+            end
+        end
+        
+        function blocks=getInterfaceOut(subsystem)
+            blocks={};
+            froms={};
+            reads={};
+            gotos=find_system(subsystem, 'BlockType', 'Goto');
+            for i=1:length(gotos)
+                froms=findFromsInScope(gotos{i});
+            end
+            writes=find_system(subsystem, 'BlockType', 'DataStoreWrite');
+            for i=1:length(writes)
+                reads=findReadsInScope(writes{i});
+            end
+            implicits=[froms reads];
+            for i=1:length(implicits)
+                name=getfullname(implicits{i});
+                lcs=intersect(name, getfullname(subsystem));
+                if ~strcmp(lcs, getfullname(subsystem))
+                    blocks{end+1}=implicits{i};
+                end
             end
         end
     end
