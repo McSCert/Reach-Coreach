@@ -42,8 +42,8 @@ classdef ReachCoreach < handle
         
         function slice(object)
             % Isolate the  reached/coreached blocks.
-            allObjects = find_system(object.RootSystemName, 'FindAll', 'On', 'type', 'line');
-            allObjects = [allObjects find_system(object.RootSystemName, 'FindAll', 'On', 'type', 'block')];
+            allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'FindAll', 'On', 'type', 'line');
+            allObjects = [allObjects find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'FindAll', 'On', 'type', 'block')];
             toDelete = setdiff(allObjects, object.ReachedObjects);
             delete_block(toDelete);
         end
@@ -320,7 +320,7 @@ classdef ReachCoreach < handle
                                     strcmp(portType, 'ifaction'))
                                 object.reachEverythingInSub(getfullname(nextBlocks(i)));
                             else
-                                inport = find_system(nextBlocks(i), 'BlockType', 'Inport', 'Port', num2str(portNum));
+                                inport = find_system(nextBlocks(i), 'LookUnderMasks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
                                 object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
                                 outport = get_param(inport, 'PortHandles');
                                 outport = outport.Outport;
@@ -336,7 +336,7 @@ classdef ReachCoreach < handle
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         if ~isempty(get_param(parent, 'parent'))
-                            port = find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                            port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                             object.ReachedObjects(end + 1) = get_param(parent, 'handle');
                             object.PortsToTraverse(end + 1) = port;
@@ -474,7 +474,7 @@ classdef ReachCoreach < handle
                         srcPorts = get_param(line, 'SrcPortHandle');
                         for j = 1:length(srcPorts)
                             portNum = get_param(srcPorts(j), 'PortNumber');
-                            outport = find_system(nextBlocks(i), 'BlockType', 'Outport', 'Port', num2str(portNum));
+                            outport = find_system(nextBlocks(i), 'LookUnderMasks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
                             object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
                             inport = get_param(outport, 'PortHandles');
                             inport = inport.Inport;
@@ -489,7 +489,7 @@ classdef ReachCoreach < handle
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         if ~isempty(get_param(parent, 'parent'))
-                            portSub = find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                            portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
                             object.CoreachedObjects(end + 1) = get_param(parent, 'handle');
                             object.PortsToTraverseCo(end + 1) = portSub;
@@ -557,11 +557,11 @@ classdef ReachCoreach < handle
         % Function finds all while and for iterators that need to be
         % coreached.
             iterators = {};
-            candidates = find_system(object.RootSystemName, 'BlockType', 'WhileIterator');
-            candidates = [candidates find_system(object.RootSystemName, 'BlockType', 'ForIterator')];
+            candidates = find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'BlockType', 'WhileIterator');
+            candidates = [candidates find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'BlockType', 'ForIterator')];
             for i = 1:length(candidates)
                 system = get_param(candidates{i}, 'parent');
-                sysObjects = find_system(system, 'FindAll', 'on');
+                sysObjects = find_system(system, 'LookUnderMasks', 'on', 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(candidates{i}, 'Handle'), object.CoreachedObjects))
                         iterators{end + 1} = candidates{i};
@@ -575,10 +575,10 @@ classdef ReachCoreach < handle
             %blocks and adds them to the coreach, as well as adding their
             %corresponding port in the parent subsystem block to the list
             %of ports to traverse.
-            actionPorts=find_system(object.RootSystemName, 'BlockType', 'ActionPort');
+            actionPorts=find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'BlockType', 'ActionPort');
             for i=1:length(actionPorts)
                 system=get_param(actionPorts{i}, 'parent');
-                sysObjects=find_system(system, 'FindAll', 'on');
+                sysObjects=find_system(system, 'LookUnderMasks', 'on', 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(actionPorts{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(actionPorts{i}, 'Handle');
@@ -588,10 +588,10 @@ classdef ReachCoreach < handle
                 end
             end
             
-            triggerPorts=find_system(object.RootSystemName, 'BlockType', 'TriggerPort');
+            triggerPorts=find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'BlockType', 'TriggerPort');
             for i=1:length(triggerPorts)
                 system=get_param(triggerPorts{i}, 'parent');
-                sysObjects=find_system(system, 'FindAll', 'on');
+                sysObjects=find_system(system, 'LookUnderMasks', 'on', 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(triggerPorts{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(triggerPorts{i}, 'Handle');
@@ -601,10 +601,10 @@ classdef ReachCoreach < handle
                 end
             end
             
-            enablePorts=find_system(object.RootSystemName, 'BlockType', 'EnablePort');
+            enablePorts=find_system(object.RootSystemName, 'LookUnderMasks', 'on', 'BlockType', 'EnablePort');
             for i=1:length(enablePorts)
                 system=get_param(enablePorts{i}, 'parent');
-                sysObjects=find_system(system, 'FindAll', 'on');
+                sysObjects=find_system(system, 'LookUnderMasks', 'on', 'FindAll', 'on');
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(enablePorts{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(enablePorts{i}, 'Handle');
@@ -621,25 +621,25 @@ classdef ReachCoreach < handle
             %objects. Additionally, finds all interface going outward
             %(outports, gotos, froms) and finds the next blocks/ports as if
             %being reached by the main reach function above.
-            blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+            blocks = find_system(system, 'LookUnderMasks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
             for i=1:length(blocks)
                 object.ReachedObjects(end+1)=get_param(blocks{i}, 'handle');
             end
-            lines = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+            lines = find_system(system, 'LookUnderMasks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
             object.ReachedObjects=[object.ReachedObjects lines.'];
-            ports = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
+            ports = find_system(system, 'LookUnderMasks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
             portsToExclude=get_param(system, 'PortHandles');
             portsToExclude=portsToExclude.Outport;
             ports=setdiff(ports, portsToExclude);
             object.TraversedPorts = [object.TraversedPorts ports.'];
             
             %handles outports same as the reach function
-            outports = find_system(system, 'SearchDepth', 1, 'BlockType', 'Outport');
+            outports = find_system(system, 'LookUnderMasks', 'on', 'SearchDepth', 1, 'BlockType', 'Outport');
             for j = 1:length(outports)
                 portNum = get_param(outports{j}, 'Port');
                 parent = get_param(outports{j}, 'parent');
                 if ~isempty(get_param(parent, 'parent'))
-                    port = find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                    port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                         'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                     object.ReachedObjects(end + 1) = get_param(parent, 'handle');
                     object.PortsToTraverse(end + 1) = port;
@@ -647,7 +647,7 @@ classdef ReachCoreach < handle
             end
             
             %handles gotos same as the reach function
-            gotos = find_system(system, 'BlockType', 'Goto');
+            gotos = find_system(system, 'LookUnderMasks', 'on', 'BlockType', 'Goto');
             for j = 1:length(gotos)
                 froms = findFromsInScope(gotos{j});
                 for k = 1:length(froms)
@@ -661,7 +661,7 @@ classdef ReachCoreach < handle
             end
             
             %handles writes same as the reach function
-            writes = find_system(system, 'BlockType', 'DataStoreWrite');
+            writes = find_system(system, 'LookUnderMasks', 'on', 'BlockType', 'DataStoreWrite');
             for j = 1:length(writes)
                 reads = findReadsInScope(writes{j});
                 for k = 1:length(reads)
@@ -679,11 +679,11 @@ classdef ReachCoreach < handle
             blocks={};
             gotos={};
             writes={};
-            froms=find_system(subsystem, 'BlockType', 'From');
+            froms=find_system(subsystem, 'LookUnderMasks', 'on', 'BlockType', 'From');
             for i=1:length(froms)
                 gotos=findFromsInScope(froms{i});
             end
-            reads=find_system(subsystem, 'BlockType', 'DataStoreRead');
+            reads=find_system(subsystem, 'LookUnderMasks', 'on', 'BlockType', 'DataStoreRead');
             for i=1:length(reads)
                 writes=findReadsInScope(reads{i});
             end
@@ -701,11 +701,11 @@ classdef ReachCoreach < handle
             blocks={};
             froms={};
             reads={};
-            gotos=find_system(subsystem, 'BlockType', 'Goto');
+            gotos=find_system(subsystem, 'LookUnderMasks', 'on', 'BlockType', 'Goto');
             for i=1:length(gotos)
                 froms=findFromsInScope(gotos{i});
             end
-            writes=find_system(subsystem, 'BlockType', 'DataStoreWrite');
+            writes=find_system(subsystem, 'LookUnderMasks', 'on', 'BlockType', 'DataStoreWrite');
             for i=1:length(writes)
                 reads=findReadsInScope(writes{i});
             end
@@ -808,7 +808,7 @@ classdef ReachCoreach < handle
                             dstPorts=get_param(line, 'DstPortHandle');
                             for j=1:length(dstPorts)
                                 portNum=get_param(dstPorts(j), 'PortNumber');
-                                inport=find_system(next, 'BlockType', 'Inport', 'Port', portNum);
+                                inport=find_system(next, 'LookUnderMasks', 'on', 'BlockType', 'Inport', 'Port', portNum);
                                 [dest, path, blockList, exit]=object.traverseBusForwards(inport, signal, path, blockList);
                             end
                         case 'Outport'
@@ -816,7 +816,7 @@ classdef ReachCoreach < handle
                             parent=get_param(next, 'parent');
                             if ~isempty(get_param(parent, 'parent'))
                                 blockList(end+1)=get_param(parent, 'Handle');
-                                port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                                port=find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
                                 path(end+1)=port;
                                 connectedBlock=get_param(port, 'DstBlock');
@@ -894,7 +894,7 @@ classdef ReachCoreach < handle
                     srcPorts=get_param(line, 'SrcPortHandle');
                     for j=1:length(srcPorts)
                         portNum=get_param(srcPorts(j), 'PortNumber');
-                        inport=find_system(next, 'BlockType', 'Outport', 'Port', portNum);
+                        inport=find_system(next, 'LookUnderMasks', 'on', 'BlockType', 'Outport', 'Port', portNum);
                         [dest, path, blockList, exit]=object.traverseBusBackwards(inport, signal, path, blockList);
                     end
                 case 'Inport'
@@ -902,7 +902,7 @@ classdef ReachCoreach < handle
                     parent=get_param(next, 'parent');
                     if isempty(get_param(parent, 'parent'))
                         blockList(end+1)=get_param(parent, 'Handle');
-                        port=find_system(get_param(parent, 'parent'), 'SearchDepth', 1, 'FindAll', 'on', ...
+                        port=find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                             'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', portNum);
                         path(end+1)=port;
                         connectedBlock=get_param(port, 'SrcBlock');
