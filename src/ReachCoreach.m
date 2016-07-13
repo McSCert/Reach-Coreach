@@ -244,7 +244,6 @@ classdef ReachCoreach < handle
                     object.PortsToTraverseCo(end) = [];
                     coreach(object, port)
                 end
-                object.hiliteObjects();
                 %add any iterators in the coreach to blocks coreached and
                 %their ports to list to traverse
                 iterators=findIterators(object);
@@ -265,6 +264,7 @@ classdef ReachCoreach < handle
                     flag=false;
                 end
             end
+            object.hiliteObjects();
         end
         
     end
@@ -615,7 +615,7 @@ classdef ReachCoreach < handle
         end
         
         function findSpecialPorts(object)
-            %function finds all actionport, triggerport, and enableport
+            %function finds all actionport, foreach, triggerport, and enableport
             %blocks and adds them to the coreach, as well as adding their
             %corresponding port in the parent subsystem block to the list
             %of ports to traverse.
@@ -657,6 +657,18 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects(end + 1) = get_param(enablePorts{i}, 'Handle');
                         sysPorts=get_param(system, 'PortHandles');
                         object.PortsToTraverseCo=[object.PortsToTraverseCo sysPorts.Enable];
+                    end
+                end
+            end
+            
+            forEach=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
+            for i=1:length(forEach)
+                system=get_param(forEach{i}, 'parent');
+                sysObjects=find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
+                sysObjects=setdiff(sysObjects, get_param(system, 'handle'));
+                if ~isempty(intersect(sysObjects, object.CoreachedObjects))
+                    if isempty(intersect(get_param(forEach{i}, 'Handle'), object.CoreachedObjects))
+                        object.CoreachedObjects(end + 1) = get_param(forEach{i}, 'Handle');
                     end
                 end
             end
