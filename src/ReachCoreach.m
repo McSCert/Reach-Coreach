@@ -33,6 +33,17 @@ classdef ReachCoreach < handle
                 return
             end
             
+            % 2) Ensure that the parameter given is the top level of the
+            % model
+            try
+                assert(strcmp(RootSystemName, bdroot(RootSystemName)))
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid RootSystemName. Given RootSystemName is not ' ...
+                    'the root level of its model' char(10)])
+                help(mfilename)
+            end
+            
             % Initialize a new instance of ReachCoreach.
             object.RootSystemName = RootSystemName;
             object.ReachedObjects = [];
@@ -54,7 +65,7 @@ classdef ReachCoreach < handle
         end
         
         function slice(object)
-            % Isolate the  reached/coreached blocks.
+            % Isolate the reached/coreached blocks.
             allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
             allObjects = [allObjects find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
             toDelete = setdiff(allObjects, object.ReachedObjects);
@@ -63,8 +74,11 @@ classdef ReachCoreach < handle
         
         function clear(object)
             % Remove the reached/coreached blocks from selection.
-            hilite_system(object.ReachedObjects, 'none');
-            hilite_system(object.CoreachedObjects, 'none');
+            allObjects=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On');
+            reachedCoreachedObjects=[object.ReachedObjects object.CoreachedObjects];
+            missingElements=setdiff(reachedCoreachedObjects, allObjects);
+            reachedCoreachedObjects=setdiff(reachedCoreachedObjects, missingElements);
+            hilite_system(reachedCoreachedObjects, 'none');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             object.TraversedPorts=[];
@@ -103,10 +117,31 @@ classdef ReachCoreach < handle
                     return
                 end
             end
+            
+            % Check that selection is of type 'cell'
+            try
+                assert(iscell(selection));
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid cell argument "selection".' char(10)])
+                help(mfilename)
+                return
+            end
                         
             % Get the ports/blocks of selected blocks that are special
             % cases
             for i = 1:length(selection)
+                % check that the elements of selection are existing blocks
+                % in model RootSystemName
+                try
+                    assert(strcmp(get_param(selection{i}, 'type'), 'block'));
+                    assert(strcmp(bdroot(selection{i}), object.RootSystemName));
+                catch
+                    disp(['Error using ' mfilename ':' char(10) ...
+                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
+                    help(mfilename)
+                    break
+                end
                 selectionType=get_param(selection{i}, 'BlockType');
                 if strcmp(selectionType, 'SubSystem')
                     %get all outgoing interface from subsystem, and add
@@ -240,9 +275,30 @@ classdef ReachCoreach < handle
                 end
             end
             
+            % Check that selection is of type 'cell'
+            try
+                assert(iscell(selection));
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid cell argument "selection".' char(10)])
+                help(mfilename)
+                return
+            end
+            
             % Get the ports/blocks of selected blocks that are special
             % cases
             for i = 1:length(selection)
+                % check that the elements of selection are existing blocks
+                % in model RootSystemName
+                try
+                    assert(strcmp(get_param(selection{i}, 'type'), 'block'));
+                    assert(strcmp(bdroot(selection{i}), object.RootSystemName));
+                catch
+                    disp(['Error using ' mfilename ':' char(10) ...
+                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
+                    help(mfilename)
+                    break
+                end
                 selectionType=get_param(selection{i}, 'BlockType');
                 if strcmp(selectionType, 'SubSystem')
                     %get all incoming interface to subsystem, and add
