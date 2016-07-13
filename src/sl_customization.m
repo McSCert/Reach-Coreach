@@ -34,12 +34,13 @@ function schema = getRCRReachSel(callbackInfo)
 end
 
 function RCRReachCallback(callbackInfo)
-    global reachCoreachObject;
-    if (isa(reachCoreachObject, 'ReachCoreach'))
-        reachCoreachObject.reachAll(gcbs);
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
+    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');'])
+    if flag
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
     else
-        reachCoreachObject=ReachCoreach(gcs);
-        reachCoreachObject.reachAll(gcbs);
+        eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);'])
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);'])
     end
 end
 
@@ -51,12 +52,13 @@ function schema = getRCRCoreachSel(callbackInfo)
 end
 
 function RCRCoreachCallback(callbackInfo)
-    global reachCoreachObject;
-    if (isa(reachCoreachObject, 'ReachCoreach'))
-        reachCoreachObject.coreachAll(gcbs);
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
+    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');'])
+    if flag
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
     else
-        reachCoreachObject=ReachCoreach(gcs);
-        reachCoreachObject.coreachAll(gcbs);
+        eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);'])
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
     end
 end
 
@@ -68,14 +70,15 @@ function schema = getRCRBothSel(callbackInfo)
 end
 
 function RCRbothCallback(callbackInfo)
-    global reachCoreachObject;
-    if (isa(reachCoreachObject, 'ReachCoreach'))
-        reachCoreachObject.reachAll(gcbs);
-        reachCoreachObject.coreachAll(gcbs);
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
+    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');'])
+    if flag
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);'])
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
     else
-        reachCoreachObject=ReachCoreach(gcs);
-        reachCoreachObject.reachAll(gcbs);
-        reachCoreachObject.coreachAll(gcbs);
+        eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);'])
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
     end
 end
 
@@ -87,8 +90,8 @@ function schema = getRCRClear(callbackInfo)
 end
 
 function RCRclearCallback(callbackInfo)
-    global reachCoreachObject;
-    reachCoreachObject.clear();
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
+    eval([bdroot(gcs) '_reachCoreachObject.clear();'])
 end
 
 function schema = getRCRSlice(callbackInfo)
@@ -99,14 +102,14 @@ function schema = getRCRSlice(callbackInfo)
 end
 
 function RCRsliceCallback(callbackInfo)
-    global reachCoreachObject;
-    reachCoreachObject.slice();
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
+    eval([bdroot(gcs) '_reachCoreachObject.slice();'])
 end
 
 % Grey out menu options for clear and slice when 
 % the currently selected block is not a Data Store block
 function state = RCRFilter(callbackInfo)
-    if (exist('reachCoreachObject', 'var')==1)
+    if (exist([bdroot(gcs) '_reachCoreachObject'], 'var')==1)
             state = 'Enabled';
     else
             state = 'Disabled';
