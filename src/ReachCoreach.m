@@ -20,6 +20,19 @@ classdef ReachCoreach < handle
     methods
         
         function object = ReachCoreach(RootSystemName)
+            % Check parameter RootSystemName
+            % 1) Ensure the model corresponding to RootSystemName is open.
+            try
+                assert(ischar(RootSystemName));
+                assert(bdIsLoaded(RootSystemName));
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid RootSystemName. Model corresponding ' ...
+                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
+                help(mfilename)
+                return
+            end
+            
             % Initialize a new instance of ReachCoreach.
             object.RootSystemName = RootSystemName;
             object.ReachedObjects = [];
@@ -60,6 +73,36 @@ classdef ReachCoreach < handle
         
         function reachAll(object, selection)
             % Public function to reach from all of a selection of blocks.
+            
+            % Check object parameter RootSystemName
+            % 1) Ensure the model corresponding to RootSystemName is open.
+            try
+                assert(ischar(object.RootSystemName));
+                assert(bdIsLoaded(object.RootSystemName));
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid RootSystemName. Model corresponding ' ...
+                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
+                help(mfilename)
+                return
+            end
+            
+            % 2) Check that model M is unlocked
+            try
+                assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
+            catch E
+                if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
+                        strcmp(E.identifier, 'MATLAB:assertion:failed')
+                    disp(['Error using ' mfilename ':' char(10) ...
+                        ' File is locked.'])
+                    return
+                else
+                    disp(['Error using ' mfilename ':' char(10) ...
+                        ' Invalid RootSystemName.' char(10)])
+                    help(mfilename)
+                    return
+                end
+            end
                         
             % Get the ports/blocks of selected blocks that are special
             % cases
@@ -166,6 +209,36 @@ classdef ReachCoreach < handle
         
         function coreachAll(object, selection)
             % Public function to get the coreach of a selection of blocks
+            
+            % Check object parameter RootSystemName
+            % 1) Ensure the model corresponding to RootSystemName is open.
+            try
+                assert(ischar(object.RootSystemName));
+                assert(bdIsLoaded(object.RootSystemName));
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid RootSystemName. Model corresponding ' ...
+                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
+                help(mfilename)
+                return
+            end
+            
+            % 2) Check that model M is unlocked
+            try
+                assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
+            catch E
+                if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
+                        strcmp(E.identifier, 'MATLAB:assertion:failed')
+                    disp(['Error using ' mfilename ':' char(10) ...
+                        ' File is locked.'])
+                    return
+                else
+                    disp(['Error using ' mfilename ':' char(10) ...
+                        ' Invalid RootSystemName.' char(10)])
+                    help(mfilename)
+                    return
+                end
+            end
             
             % Get the ports/blocks of selected blocks that are special
             % cases
