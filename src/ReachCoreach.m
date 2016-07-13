@@ -42,6 +42,7 @@ classdef ReachCoreach < handle
                     ' Invalid RootSystemName. Given RootSystemName is not ' ...
                     'the root level of its model' char(10)])
                 help(mfilename)
+                return
             end
             
             % Initialize a new instance of ReachCoreach.
@@ -62,6 +63,7 @@ classdef ReachCoreach < handle
                     ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
                 help(mfilename)
+                return
             end
             
             % ensure that the colour selected are acceptable
@@ -75,6 +77,7 @@ classdef ReachCoreach < handle
                     ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
                 help(mfilename)
+                return
             end
             % Set the desired colors for highlighting.
             HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', color1, 'BackgroundColor', color2);
@@ -976,6 +979,7 @@ classdef ReachCoreach < handle
                     dest=[];
                     exit=[];
                 end
+                %for each of the destination blocks
                 for h=1:length(dstBlocks)
                     next=dstBlocks(h);
                     portHandles=get_param(block(g), 'PortHandles');
@@ -986,6 +990,8 @@ classdef ReachCoreach < handle
                     blockType=get_param(next, 'BlockType');
                     switch blockType
                         case 'BusCreator'
+                            %if next block is bus creator, call the
+                            %traverse function recursively.
                             blockLines=get_param(block(g), 'LineHandles');
                             blockLines=blockLines.Outport;
                             nextLines=get_param(next, 'LineHandles');
@@ -1025,7 +1031,9 @@ classdef ReachCoreach < handle
                                 end
                             end
                         case 'BusSelector'
-                            %base case for recursion
+                            %base case for recursion, get the exiting
+                            %port from the bus selector and pass out all
+                            %other relevant information
                             blockList(end+1)=get_param(next ,'handle');
                             outputs=get_param(next, 'OutputSignals');
                             outputs=regexp(outputs, ',', 'split');
@@ -1041,6 +1049,7 @@ classdef ReachCoreach < handle
                                 exit=[];
                             end
                         case 'Goto'
+                            %follow bused signal through goto
                             blockList(end+1)=get_param(next ,'handle');
                             froms=findFromsInScope(next);
                             dest=[];
@@ -1054,6 +1063,7 @@ classdef ReachCoreach < handle
                                 path=[path, tempPath];
                             end
                         case 'SubSystem'
+                            %follow bused signal into subsystem
                             blockList(end+1)=get_param(next ,'handle');
                             blockLines=get_param(block(g), 'LineHandles');
                             blockLines=blockLines.Outport;
@@ -1070,6 +1080,7 @@ classdef ReachCoreach < handle
                                     signal, path, blockList);
                             end
                         case 'Outport'
+                            %follow bused signal out of subsystem
                             blockList(end+1)=get_param(next ,'handle');
                             portNum=get_param(next, 'Port');
                             parent=get_param(next, 'parent');
@@ -1085,6 +1096,11 @@ classdef ReachCoreach < handle
                                 dest=[];
                                 exit=[];
                             end
+                        case 'BusToVector'
+                            blockList(end+1)=get_param(next ,'handle');
+                            exit=get_param(next, 'PortHandles');
+                            exit=exit.Outport;
+                            dest=[];
                         otherwise
                             [dest, path, blockList, exit]=object.traverseBusForwards(get_param(next, 'handle'), ...
                                 signal, path, blockList);
@@ -1115,6 +1131,8 @@ classdef ReachCoreach < handle
             %dest and exit
             switch blockType
                 case 'BusSelector'
+                    % if another bus selector is encountered, call the
+                    % function recursively
                     [intermediate,path,blockList,exit]=object.traverseBusBackwards(get_param(next, 'handle'), ...
                         signal, path, blockList);
                     path=[path exit];
@@ -1129,7 +1147,8 @@ classdef ReachCoreach < handle
                         path=[path, tempPath];
                     end
                 case 'BusCreator'
-                    %base case for recursion
+                    %case where the exit of the current bused signal is
+                    %found
                     blockList(end+1)=next;
                     inputs=get_param(next, 'LineHandles');
                     inputs=inputs.Inport;
@@ -1145,6 +1164,7 @@ classdef ReachCoreach < handle
                     exit=exit.Inport;
                     exit=exit(portNum);
                 case 'From'
+                    %follow the bus through the from blocks
                     blockList(end+1)=next;
                     gotos=findGotosInScope(next);
                     dest=[];
@@ -1158,6 +1178,7 @@ classdef ReachCoreach < handle
                         path=[path, tempPath];
                     end
                 case 'SubSystem'
+                    %follow the bus into a subsystem
                     blockList(end+1)=next;
                     blockLines=get_param(block, 'LineHandles');
                     nextLines=get_param(next, 'LineHandles');
@@ -1170,6 +1191,7 @@ classdef ReachCoreach < handle
                         [dest, path, blockList, exit]=object.traverseBusBackwards(get_param(inport, 'handle'), signal, path, blockList);
                     end
                 case 'Inport'
+                    %follow the bus out of the subsystem or end
                     portNum=get_param(next, 'Port');
                     parent=get_param(next, 'parent');
                     if isempty(get_param(parent, 'parent'))

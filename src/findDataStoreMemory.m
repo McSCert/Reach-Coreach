@@ -2,6 +2,18 @@ function mem = findDataStoreMemory(block)
 %FINDDATASTOREMEMORY finds the associated data store memory block to a data
 %store read or write
 
+    %make sure input is a valid data store read/write block
+    try
+        assert(strcmp(get_param(block, 'type'), 'block'));
+        blockType=get_param(block, 'BlockType');
+        assert(strcmp(blockType, 'DataStoreRead')||strcmp(blockType, 'DataStoreWrite'));
+    catch
+        disp(['Error using ' mfilename ':' char(10) ...
+            'Block parameter is not a read or write block.' char(10)])
+        help(mfilename)
+        return
+    end
+
     dataStoreName=get_param(block, 'DataStoreName');
     dataStoreMems=find_system(bdroot(block), 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
     level=get_param(block, 'parent');
