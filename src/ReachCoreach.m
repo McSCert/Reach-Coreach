@@ -465,7 +465,7 @@ classdef ReachCoreach < handle
             % and adds all objects encountered to coreached objects
                         
             %check if this port was already traversed
-            if any(object.TraversedPorts==port)
+            if any(object.TraversedPortsCo==port)
                 return
             end
             
