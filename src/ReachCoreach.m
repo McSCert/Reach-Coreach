@@ -1061,6 +1061,10 @@ classdef ReachCoreach < handle
                                 exit=[exit tempExit];
                                 blockList=[blockList tempBlockList];
                                 path=[path, tempPath];
+                                tag=findVisibilityTag(froms{i});
+                                if~isempty(tag)
+                                    blockList(end+1)=get_param(tag, 'Handle');
+                                end
                             end
                         case 'SubSystem'
                             %follow bused signal into subsystem
@@ -1176,6 +1180,10 @@ classdef ReachCoreach < handle
                         exit=[exit tempExit];
                         blockList=[blockList tempBlockList];
                         path=[path, tempPath];
+                        tag=findVisibilityTag(gotos{i});
+                        if~isempty(tag)
+                            blockList(end+1)=get_param(tag, 'Handle');
+                        end
                     end
                 case 'SubSystem'
                     %follow the bus into a subsystem

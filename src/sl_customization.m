@@ -39,8 +39,8 @@ function RCRReachCallback(callbackInfo)
     if flag
         eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
     else
-        eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);'])
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);'])
+        eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
     end
 end
 
@@ -53,12 +53,12 @@ end
 
 function RCRCoreachCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');'])
+    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');']);
     if flag
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     else
-        eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);'])
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
+        eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
 end
 
@@ -70,15 +70,15 @@ function schema = getRCRBothSel(callbackInfo)
 end
 
 function RCRbothCallback(callbackInfo)
-    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');'])
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');']);
     if flag
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);'])
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     else
-        eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);'])
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);'])
+        eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
 end
 
@@ -90,8 +90,8 @@ function schema = getRCRClear(callbackInfo)
 end
 
 function RCRclearCallback(callbackInfo)
-    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-    eval([bdroot(gcs) '_reachCoreachObject.clear();'])
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+    eval([bdroot(gcs) '_reachCoreachObject.clear();']);
 end
 
 function schema = getRCRSlice(callbackInfo)
@@ -102,8 +102,8 @@ function schema = getRCRSlice(callbackInfo)
 end
 
 function RCRsliceCallback(callbackInfo)
-    eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-    eval([bdroot(gcs) '_reachCoreachObject.slice();'])
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+    eval([bdroot(gcs) '_reachCoreachObject.slice();']);
 end
 
 % Grey out menu options for clear and slice when 
