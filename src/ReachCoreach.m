@@ -106,6 +106,11 @@ classdef ReachCoreach < handle
                     if ~isempty(mem)
                         object.ReachedObjects(end+1)=get_param(mem, 'Handle');
                     end
+                elseif strcmp(selectionType, 'DataStoreRead')
+                    mem=findDataStoreMemory(selection{i});
+                    if ~isempty(mem)
+                        object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                    end
                 elseif strcmp(selectionType, 'Goto')
                     %add from blocks to reach, and ports to list to
                     %traverse
@@ -115,6 +120,11 @@ classdef ReachCoreach < handle
                         ports = get_param(froms{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                    tag=findVisibilityTag(selection{i});
+                    if ~isempty(tag)
+                        object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                    end
+                elseif strcmp(selectionType, 'From')
                     tag=findVisibilityTag(selection{i});
                     if ~isempty(tag)
                         object.ReachedObjects(end+1)=get_param(tag, 'Handle');
@@ -193,6 +203,11 @@ classdef ReachCoreach < handle
                     if~isempty(tag)
                         object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
                     end
+                elseif strcmp(selectionType, 'Goto')
+                    tag=findVisibilityTag(selection{i});
+                    if~isempty(tag)
+                        object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
+                    end
                 elseif strcmp(selectionType, 'DataStoreRead')
                     %add write blocks to coreach, and ports to list to
                     %traverse
@@ -202,6 +217,11 @@ classdef ReachCoreach < handle
                         ports = get_param(writes{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
+                    mem=findDataStoreMemory(selection{i});
+                    if ~isempty(mem)
+                        object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
+                    end
+                elseif strcmp(selectionType, 'DataStoreWrite')
                     mem=findDataStoreMemory(selection{i});
                     if ~isempty(mem)
                         object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
