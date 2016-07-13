@@ -53,6 +53,29 @@ classdef ReachCoreach < handle
         end
         
         function setColor(object, color1, color2)
+            % ensure that the parameters are strings
+            try
+                assert(ischar(color1))
+                assert(ischar(color2))
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
+                    '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
+                help(mfilename)
+            end
+            
+            % ensure that the colour selected are acceptable
+            try
+                acceptedColors={'cyan', 'red', 'blue', 'green', 'magenta', ...
+                    'yellow', 'white', 'black'};
+                assert(isempty(setdiff(color1, acceptedColors)))
+                assert(isempty(setdiff(color2, acceptedColors)))
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
+                    '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
+                help(mfilename)
+            end
             % Set the desired colors for highlighting.
             HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', color1, 'BackgroundColor', color2);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
@@ -893,6 +916,8 @@ classdef ReachCoreach < handle
         end
         
         function blocks=getInterfaceIn(object, subsystem)
+            %get all the source blocks for the subsystem, including gotos
+            %and data store writes
             blocks={};
             gotos={};
             writes={};
@@ -915,6 +940,8 @@ classdef ReachCoreach < handle
         end
         
         function blocks=getInterfaceOut(object, subsystem)
+            %get all the destination blocks for the subsystem, including
+            %froms and data store reads
             blocks={};
             froms={};
             reads={};
@@ -943,6 +970,8 @@ classdef ReachCoreach < handle
                 blockList(end+1)=get_param(block(g), 'Handle');
                 portConnectivity=get_param(block(g), 'PortConnectivity');
                 dstBlocks=portConnectivity(end).DstBlock;
+                %if the bus ends early (not at bus selector) output empty
+                %dest and exit
                 if isempty(dstBlocks)
                     dest=[];
                     exit=[];
@@ -1082,6 +1111,8 @@ classdef ReachCoreach < handle
             portLine=get_param(port, 'line');
             blockList(end+1)=portLine;
             blockType=get_param(next, 'BlockType');
+            %if the bus ends early (not at bus selector) output empty
+            %dest and exit
             switch blockType
                 case 'BusSelector'
                     [intermediate,path,blockList,exit]=object.traverseBusBackwards(get_param(next, 'handle'), ...
