@@ -887,6 +887,10 @@ classdef ReachCoreach < handle
                 blockList(end+1)=get_param(block(g), 'Handle');
                 portConnectivity=get_param(block(g), 'PortConnectivity');
                 dstBlocks=portConnectivity(end).DstBlock;
+                if isempty(dstBlocks)
+                    dest=[];
+                    exit=[];
+                end
                 for h=1:length(dstBlocks)
                     next=dstBlocks(h);
                     portHandles=get_param(block(g), 'PortHandles');
@@ -908,23 +912,27 @@ classdef ReachCoreach < handle
                                 dstPort=get_param(line, 'DstPortHandle');
                                 portNum=get_param(dstPort, 'PortNumber');
                                 signalName=['signal' num2str(portNum)];
-                                [intermediate,path,blockList,exit]=object.traverseBusForwards(next, signalName, path, blockList);
+                                [intermediate,path,blockList,exit]=object.traverseBusForwards(get_param(next, 'handle'), ...
+                                    signalName, path, blockList);
                                 path=[path exit];
                                 dest=[];
                                 exit=[];
                                 for i=1:length(intermediate)
-                                    [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusForwards(intermediate(i), signal, path, blockList);
+                                    [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusForwards(get_param(intermediate(i), 'handle'), ...
+                                        signal, path, blockList);
                                     dest=[dest tempDest];
                                     exit=[exit tempExit];
                                     blockList=[blockList tempBlockList];
                                     path=[path, tempPath];
                                 end
                             else
-                                [intermediate, path, blockList, ~]=object.traverseBusForwards(next, signalName, path, blockList);
+                                [intermediate, path, blockList, ~]=object.traverseBusForwards(get_param(next, 'handle'), ...
+                                    signalName, path, blockList);
                                 dest=[];
                                 exit=[];
                                 for i=1:length(intermediate)
-                                    [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusForwards(intermediate(i), signal, path, blockList);
+                                    [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusForwards(get_param(intermediate(i), 'handle'), ...
+                                        signal, path, blockList);
                                     dest=[dest tempDest];
                                     exit=[exit tempExit];
                                     blockList=[blockList tempBlockList];
@@ -933,7 +941,7 @@ classdef ReachCoreach < handle
                             end
                         case 'BusSelector'
                             %base case for recursion
-                            blockList(end+1)=next;
+                            blockList(end+1)=get_param(next ,'handle');
                             outputs=get_param(next, 'OutputSignals');
                             outputs=regexp(outputs, ',', 'split');
                             portNum=find(strcmp(outputs(:), signal));
@@ -948,47 +956,53 @@ classdef ReachCoreach < handle
                                 exit=[];
                             end
                         case 'Goto'
-                            blockList(end+1)=next;
+                            blockList(end+1)=get_param(next ,'handle');
                             froms=findFromsInScope(next);
                             dest=[];
                             exit=[];
                             for i=1:length(froms)
-                                [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusForwards(froms(i), signal, path, blockList);
+                                [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusForwards(get_param(froms{i}, 'handle'), ...
+                                    signal, path, blockList);
                                 dest=[dest tempDest];
                                 exit=[exit tempExit];
                                 blockList=[blockList tempBlockList];
                                 path=[path, tempPath];
                             end
                         case 'SubSystem'
-                            blockList(end+1)=next;
+                            blockList(end+1)=get_param(next ,'handle');
                             blockLines=get_param(block(g), 'LineHandles');
+                            blockLines=blockLines.Outport;
                             nextLines=get_param(next, 'LineHandles');
+                            nextLines=nextLines.Inport;
                             line=intersect(blockLines, nextLines);
                             line=intersect(line, portline);
                             blockList(end+1)=line;
                             dstPorts=get_param(line, 'DstPortHandle');
                             for j=1:length(dstPorts)
                                 portNum=get_param(dstPorts(j), 'PortNumber');
-                                inport=find_system(next, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', portNum);
-                                [dest, path, blockList, exit]=object.traverseBusForwards(inport, signal, path, blockList);
+                                inport=find_system(next, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
+                                [dest, path, blockList, exit]=object.traverseBusForwards(get_param(inport, 'handle'), ...
+                                    signal, path, blockList);
                             end
                         case 'Outport'
+                            blockList(end+1)=get_param(next ,'handle');
                             portNum=get_param(next, 'Port');
                             parent=get_param(next, 'parent');
                             if ~isempty(get_param(parent, 'parent'))
                                 blockList(end+1)=get_param(parent, 'Handle');
                                 port=find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                                    'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', portNum);
+                                    'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                                 path(end+1)=port;
-                                connectedBlock=get_param(port, 'DstBlock');
-                                [dest, path, blockList, exit]=object.traverseBusForwards(connectedBlock, signal, path, blockList);
+                                connectedBlock=get_param(get_param(port, 'line'), 'DstBlockHandle');
+                                [dest, path, blockList, exit]=object.traverseBusForwards(get_param(connectedBlock, 'handle'), ...
+                                    signal, path, blockList);
                             else
                                 dest=[];
                                 exit=[];
-                                blockList(end+1)=next;
                             end
                         otherwise
-                            [dest, path, blockList, exit]=object.traverseBusForwards(next, signal, path, blockList);
+                            [dest, path, blockList, exit]=object.traverseBusForwards(get_param(next, 'handle'), ...
+                                signal, path, blockList);
                     end
                 end
             end
@@ -1000,6 +1014,11 @@ classdef ReachCoreach < handle
             blockList(end+1)=get_param(block, 'Handle');
             portConnectivity=get_param(block, 'PortConnectivity');
             srcBlocks=portConnectivity(1).SrcBlock;
+            if isempty(srcBlocks)
+                dest=[];
+                exit=[];
+                return
+            end
             next=srcBlocks(1);
             portHandles=get_param(block, 'PortHandles');
             port=portHandles.Inport;
@@ -1009,12 +1028,14 @@ classdef ReachCoreach < handle
             blockType=get_param(next, 'BlockType');
             switch blockType
                 case 'BusSelector'
-                    [intermediate,path,blockList,exit]=object.traverseBusBackwards(next, signal, path, blockList);
+                    [intermediate,path,blockList,exit]=object.traverseBusBackwards(get_param(next, 'handle'), ...
+                        signal, path, blockList);
                     path=[path exit];
                     dest=[];
                     exit=[];
                     for i=1:length(intermediate)
-                        [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusBackwards(intermediate(i), signal, path, blockList);
+                        [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusBackwards(get_param(intermediate(i), 'handle'), ...
+                            signal, path, blockList);
                         dest=[dest tempDest];
                         exit=[exit tempExit];
                         blockList=[blockList tempBlockList];
@@ -1042,7 +1063,8 @@ classdef ReachCoreach < handle
                     dest=[];
                     exit=[];
                     for i=1:length(gotos)
-                        [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusBackwards(gotos(i), signal, path, blockList);
+                        [tempDest, tempPath, tempBlockList, tempExit]=object.traverseBusBackwards(get_param(gotos{i}, 'handle'), ...
+                            signal, path, blockList);
                         dest=[dest tempDest];
                         exit=[exit tempExit];
                         blockList=[blockList tempBlockList];
@@ -1057,8 +1079,8 @@ classdef ReachCoreach < handle
                     srcPorts=get_param(line, 'SrcPortHandle');
                     for j=1:length(srcPorts)
                         portNum=get_param(srcPorts(j), 'PortNumber');
-                        inport=find_system(next, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', portNum);
-                        [dest, path, blockList, exit]=object.traverseBusBackwards(inport, signal, path, blockList);
+                        inport=find_system(next, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
+                        [dest, path, blockList, exit]=object.traverseBusBackwards(get_param(inport, 'handle'), signal, path, blockList);
                     end
                 case 'Inport'
                     portNum=get_param(next, 'Port');
@@ -1066,17 +1088,17 @@ classdef ReachCoreach < handle
                     if isempty(get_param(parent, 'parent'))
                         blockList(end+1)=get_param(parent, 'Handle');
                         port=find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                            'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', portNum);
+                            'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
                         path(end+1)=port;
-                        connectedBlock=get_param(port, 'SrcBlock');
-                        [dest, path, blockList, exit]=object.traverseBusBackwards(connectedBlock, signal, path, blockList);
+                        connectedBlock=get_param(get_param(port, 'line'), 'SrcBlockHandle');
+                        [dest, path, blockList, exit]=object.traverseBusBackwards(get_param(connectedBlock, 'handle'), signal, path, blockList);
                     else
                         dest=[];
                         exit=[];
                         blockList(end+1)=next;
                     end
                 otherwise
-                    [dest, path, blockList, exit]=object.traverseBusBackwards(next, signal, path, blockList);
+                    [dest, path, blockList, exit]=object.traverseBusBackwards(get_param(next, 'handle'), signal, path, blockList);
             end
         end
     end
