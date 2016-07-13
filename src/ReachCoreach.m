@@ -69,7 +69,7 @@ classdef ReachCoreach < handle
                     %get all outgoing interface from subsystem, and add
                     %blocks to reach, as well as ports to the list of ports
                     %to traverse
-                    outBlocks=getInterfaceOut(selection{i});
+                    outBlocks=object.getInterfaceOut(selection{i});
                     for j=1:length(outBlocks)
                         object.ReachedObjects(end + 1) = get_param(outBlocks{j}, 'handle');
                         ports = get_param(outBlocks{j}, 'PortHandles');
@@ -152,7 +152,7 @@ classdef ReachCoreach < handle
                     %get all incoming interface to subsystem, and add
                     %blocks to coreach, as well as ports to the list of ports
                     %to traverse
-                    inBlocks=getInterfaceIn(selection{i});
+                    inBlocks=object.getInterfaceIn(selection{i});
                     for j=1:length(inBlocks)
                         object.CoreachedObjects(end + 1) = get_param(inBlocks{j}, 'handle');
                         ports = get_param(inBlocks{j}, 'PortHandles');
@@ -675,7 +675,7 @@ classdef ReachCoreach < handle
             end
         end
         
-        function blocks=getInterfaceIn(subsystem)
+        function blocks=getInterfaceIn(object, subsystem)
             blocks={};
             gotos={};
             writes={};
@@ -697,7 +697,7 @@ classdef ReachCoreach < handle
             end
         end
         
-        function blocks=getInterfaceOut(subsystem)
+        function blocks=getInterfaceOut(object, subsystem)
             blocks={};
             froms={};
             reads={};
