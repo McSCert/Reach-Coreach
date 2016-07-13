@@ -119,6 +119,7 @@ classdef ReachCoreach < handle
                         strcmp(selectionType, 'ActionPort') || ...
                         strcmp(selectionType, 'TriggerPort') || ...
                         strcmp(selectionType, 'WhileIterator') || ...
+                        strcmp(selectionType, 'ForEach') || ...
                         strcmp(selectionType, 'ForIterator'))
                     %add everything to in a subsystem to the reach if one
                     %of the listed block types is in the selection
@@ -624,6 +625,8 @@ classdef ReachCoreach < handle
             for i=1:length(blocks)
                 object.ReachedObjects(end+1)=get_param(blocks{i}, 'handle');
             end
+            lines = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+            object.ReachedObjects=[object.ReachedObjects lines.'];
             ports = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
             portsToExclude=get_param(system, 'PortHandles');
             portsToExclude=portsToExclude.Outport;
