@@ -75,6 +75,15 @@ classdef ReachCoreach < handle
                         ports = get_param(outBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                elseif strcmp(selectionType, 'Outport')
+                    portNum = get_param(selection{i}, 'Port');
+                    parent = get_param(selection{i}, 'parent');
+                    if ~isempty(get_param(parent, 'parent'))
+                        portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                            'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
+                        object.ReachedObjects(end + 1) = get_param(parent, 'handle');
+                        object.PortsToTraverse(end + 1) = portSub;
+                    end
                 elseif strcmp(selectionType, 'GotoTagVisibility')
                     %add goto and from blocks to reach, and ports to list to
                     %traverse
@@ -171,6 +180,15 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects(end + 1) = get_param(inBlocks{j}, 'handle');
                         ports = get_param(inBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    end
+                elseif strcmp(selectionType, 'Inport')
+                    portNum = get_param(selection{i}, 'Port');
+                    parent = get_param(selection{i}, 'parent');
+                    if ~isempty(get_param(parent, 'parent'))
+                        portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                            'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
+                        object.CoreachedObjects(end + 1) = get_param(parent, 'handle');
+                        object.PortsToTraverseCo(end + 1) = portSub;
                     end
                 elseif strcmp(selectionType, 'GotoTagVisibility')
                     %add goto and from blocks to coreach, and ports to list to
@@ -379,10 +397,10 @@ classdef ReachCoreach < handle
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         if ~isempty(get_param(parent, 'parent'))
-                            port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                            portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                             object.ReachedObjects(end + 1) = get_param(parent, 'handle');
-                            object.PortsToTraverse(end + 1) = port;
+                            object.PortsToTraverse(end + 1) = portSub;
                         end
                         
                     case {'WhileIterator', 'ForIterator'}
