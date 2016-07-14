@@ -136,6 +136,8 @@ classdef ReachCoreach < handle
             toKeep = [toKeep; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
             toDelete = setdiff(allObjects, toKeep);
             delete(toDelete);
+            brokenLines=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
+            delete_line(brokenLines);
         end
         
         function clear(object)
