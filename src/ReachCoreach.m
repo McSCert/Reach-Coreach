@@ -124,10 +124,14 @@ classdef ReachCoreach < handle
             %
             % EXAMPLE 
             %   obj.hiliteObjects()
+            openSys=find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
             hilite_system(object.ReachedObjects, 'user2');
             hilite_system(object.CoreachedObjects, 'user2');
+            allOpenSys=find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
+            sysToClose=setdiff(allOpenSys, openSys);
+            close_system(sysToClose);
         end
         
         function slice(object)
@@ -135,6 +139,7 @@ classdef ReachCoreach < handle
             %
             % EXAMPLE
             %   obj.slice()
+            openSys=find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
             allObjects = [allObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
@@ -143,6 +148,9 @@ classdef ReachCoreach < handle
             delete(toDelete);
             brokenLines=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
             delete_line(brokenLines);
+            allOpenSys=find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
+            sysToClose=setdiff(allOpenSys, openSys);
+            close_system(sysToClose);
         end
         
         function clear(object)
@@ -150,6 +158,7 @@ classdef ReachCoreach < handle
             %
             % EXAMPLE
             %   obj.clear()
+            openSys=find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
             hilite_system(hilitedObjects, 'none');
@@ -157,6 +166,9 @@ classdef ReachCoreach < handle
             object.CoreachedObjects = [];
             object.TraversedPorts=[];
             object.TraversedPortsCo=[];
+            allOpenSys=find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
+            sysToClose=setdiff(allOpenSys, openSys);
+            close_system(sysToClose);
         end
         
         function reachAll(object, selection)
