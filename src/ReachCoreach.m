@@ -2,7 +2,12 @@ classdef ReachCoreach < handle
 %REACHCOREACH A class that enables performing reachability/coreachability
 %analysis on blocks in a model.
 %
-%   Detailed explanation goes here.
+%   A reachability analysis is finding all blocks and lines that the
+%   starting blocks effect via control flow and data flow, and a
+%   coreachability analysis finds all blocks that effect starting blocks
+%   via control flow or data flow. After creating a ReachCoreach object, a
+%   user may use the reachAll and coreachAll methods to perform said
+%   analyses, and highlight all the blocks in the reach and coreach.
 
     properties
         RootSystemName      % Simulink model name (or top-level system name).
