@@ -1001,13 +1001,7 @@ classdef ReachCoreach < handle
                         case 'BusCreator'
                             %if next block is bus creator, call the
                             %traverse function recursively.
-                            blockLines=get_param(block(g), 'LineHandles');
-                            blockLines=blockLines.Outport;
-                            nextLines=get_param(next, 'LineHandles');
-                            nextLines=nextLines.Inport;
-                            line=intersect(blockLines, nextLines);
-                            line=intersect(line, portline);
-                            signalName=get_param(line, 'Name');
+                            signalName=get_param(portline, 'Name');
                             if ~isempty(signalName)
                                 dstPort=get_param(line, 'DstPortHandle');
                                 portNum=get_param(dstPort, 'PortNumber');
@@ -1078,14 +1072,8 @@ classdef ReachCoreach < handle
                         case 'SubSystem'
                             %follow bused signal into subsystem
                             blockList(end+1)=get_param(next ,'handle');
-                            blockLines=get_param(block(g), 'LineHandles');
-                            blockLines=blockLines.Outport;
-                            nextLines=get_param(next, 'LineHandles');
-                            nextLines=nextLines.Inport;
-                            line=intersect(blockLines, nextLines);
-                            line=intersect(line, portline);
-                            blockList(end+1)=line;
-                            dstPorts=get_param(line, 'DstPortHandle');
+                            blockList(end+1)=portline;
+                            dstPorts=get_param(portline, 'DstPortHandle');
                             for j=1:length(dstPorts)
                                 portNum=get_param(dstPorts(j), 'PortNumber');
                                 inport=find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
@@ -1197,10 +1185,7 @@ classdef ReachCoreach < handle
                 case 'SubSystem'
                     %follow the bus into a subsystem
                     blockList(end+1)=next;
-                    blockLines=get_param(block, 'LineHandles');
-                    nextLines=get_param(next, 'LineHandles');
-                    line=intersect(blockLines, nextLines);
-                    blockList(end+1)=line;
+                    blockList(end+1)=portline;
                     srcPorts=get_param(line, 'SrcPortHandle');
                     for j=1:length(srcPorts)
                         portNum=get_param(srcPorts(j), 'PortNumber');

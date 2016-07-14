@@ -134,7 +134,8 @@ if ~(whichstring==1)&&~(whichstring2==1)
     eval([bdroot(gcs) '_reachCoreachObject.hiliteObjects()']);
     close(handles.rcrgui)
 else
-    disp('Please select two colours.')
+    disp(['Error using ' mfilename ':' char(10) ...
+        'Please select two colours.' char(10)])
 end
 
 
