@@ -40,7 +40,7 @@ function RCRSetColorCallback(callbackInfo)
         eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(bdroot(gcs));']);
     end
     rcrGUI
-    collectGarbage();
+    collectGarbageRCR();
 end
 
 function schema = getRCRReachSel(callbackInfo)
@@ -71,7 +71,7 @@ function RCRReachCallback(callbackInfo)
         eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(bdroot(gcs));']);
         eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
     end
-    collectGarbage();
+    collectGarbageRCR();
 end
 
 function schema = getRCRCoreachSel(callbackInfo)
@@ -102,7 +102,7 @@ function RCRCoreachCallback(callbackInfo)
         eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(bdroot(gcs));']);
         eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
-    collectGarbage();
+    collectGarbageRCR();
 end
 
 function schema = getRCRBothSel(callbackInfo)
@@ -137,7 +137,7 @@ function RCRBothCallback(callbackInfo)
         eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
         eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
-    collectGarbage();
+    collectGarbageRCR();
 end
 
 function schema = getRCRClear(callbackInfo)
@@ -151,7 +151,7 @@ end
 function RCRclearCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval([bdroot(gcs) '_reachCoreachObject.clear();']);
-    collectGarbage();
+    collectGarbageRCR();
 end
 
 function schema = getRCRSlice(callbackInfo)
@@ -165,7 +165,7 @@ end
 function RCRsliceCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval([bdroot(gcs) '_reachCoreachObject.slice();']);
-    collectGarbage();
+    collectGarbageRCR();
 end
 
 % Grey out menu options for clear and slice when 
@@ -196,7 +196,7 @@ function state = RCRFilter(callbackInfo)
     end
 end
 
-function collectGarbage()
+function collectGarbageRCR()
     globals = who('global');
     sys = cellfun(@(x) x(1:end-19), globals, 'un', 0);
     opensys = find_system('SearchDepth', 0);
