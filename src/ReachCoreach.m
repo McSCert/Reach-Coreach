@@ -654,15 +654,19 @@ classdef ReachCoreach < handle
                         %and out to its next block once the bus is
                         %separated.
                         signalName = get_param(line, 'Name');
-                        if isempty(signalName)
-                            dstPort = get_param(line, 'DstPortHandle');
-                            portNum = get_param(dstPort, 'PortNumber');
-                            signalName = ['signal' num2str(portNum)];
+                        dstPort = get_param(line, 'DstPortHandle');
+                        for j=1:length(dstPort)
+                            if isempty(signalName)
+                                portNum = get_param(dstPort(j), 'PortNumber');
+                                signalName = ['signal' num2str(portNum)];
+                            end
+                            if strcmp(get_param(get_param(dstPort(i),'parent'), 'BlockType'), 'BusCreator')
+                                [~, path, blockList, exit] = object.traverseBusForwards(nextBlocks(i), signalName, [], []);
+                                object.TraversedPorts = [object.TraversedPorts path];
+                                object.ReachedObjects = [object.ReachedObjects blockList];
+                                object.PortsToTraverse = [object.PortsToTraverse exit];
+                            end
                         end
-                        [~, path, blockList, exit] = object.traverseBusForwards(nextBlocks(i), signalName, [], []);
-                        object.TraversedPorts = [object.TraversedPorts path];
-                        object.ReachedObjects = [object.ReachedObjects blockList];
-                        object.PortsToTraverse = [object.PortsToTraverse exit];
                     case 'If'
                         %handles the case where the next block is an if
                         %block, reaches each port where the corresponding
@@ -670,19 +674,26 @@ classdef ReachCoreach < handle
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
                         dstPort = get_param(line, 'DstPortHandle');
-                        portNum = get_param(dstPort, 'PortNumber');
-                        cond = ['u' num2str(portNum)];
-                        expressions = get_param(nextBlocks(i), 'ElseIfExpressions');
-                        if ~isempty(expressions)
-                            expressions = regexp(expressions, ',', 'split');
-                            expressions = [{get_param(nextBlocks(i), 'IfExpression')} expressions];
-                        else
-                            expressions = {};
-                            expressions{end + 1} = get_param(nextBlocks(i), 'IfExpression');
-                        end
-                        for j = 1:length(expressions)
-                            if regexp(expressions{j}, cond)
-                                object.PortsToTraverse(end + 1) = outports(j);
+                        for j=1:length(dstPort)
+                            if strcmp(get_param(get_param(dstPort(i),'parent'), 'BlockType'), 'If')
+                                portNum = get_param(dstPort(i), 'PortNumber');
+                                cond = ['u' num2str(portNum)];
+                                expressions = get_param(nextBlocks(i), 'ElseIfExpressions');
+                                if ~isempty(expressions)
+                                    expressions = regexp(expressions, ',', 'split');
+                                    expressions = [{get_param(nextBlocks(i), 'IfExpression')} expressions];
+                                else
+                                    expressions = {};
+                                    expressions{end + 1} = get_param(nextBlocks(i), 'IfExpression');
+                                end
+                                for j = 1:length(expressions)
+                                    if regexp(expressions{j}, cond)
+                                        object.PortsToTraverse(end + 1) = outports(j);
+                                    end
+                                end
+                                if strcmp(get_param(nextBlocks(i), 'ShowElse'), 'on')
+                                    object.PortsToTraverse(end + 1) = outports(end);
+                                end
                             end
                         end
                     otherwise
