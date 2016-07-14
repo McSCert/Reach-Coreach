@@ -15,7 +15,7 @@ function mem = findDataStoreMemory(block)
     end
 
     dataStoreName=get_param(block, 'DataStoreName');
-    dataStoreMems=find_system(bdroot(block), 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+    dataStoreMems=find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
     level=get_param(block, 'parent');
     currentLevel='';
     
@@ -41,7 +41,7 @@ function mem = findDataStoreMemory(block)
     end
     
     if ~isempty(currentLevel)
-        mem=find_system(currentLevel, 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+        mem=find_system(currentLevel,'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
         mem=mem{1};
     else
         mem={};

@@ -5,7 +5,7 @@ function blockList = findReadWritesInScope(block)
     %get all other data store memory blocks
     dataStoreName=get_param(block, 'DataStoreName');
     blockParent=get_param(block, 'parent');
-    memsSameName=find_system(blockParent, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+    memsSameName=find_system(blockParent, 'FollowLinks', 'on', 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
     memsSameName=setdiff(memsSameName, block);
     
     %any read/write blocks in the scope of other data store memory blocks
@@ -14,14 +14,14 @@ function blockList = findReadWritesInScope(block)
     blocksToExclude={};
     for i=1:length(memsSameName)
         memParent=get_param(memsSameName{i}, 'parent');
-        blocksToExclude=[blocksToExclude; find_system(memParent, 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName)];
-        blocksToExclude=[blocksToExclude; find_system(memParent, 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName)];
+        blocksToExclude=[blocksToExclude; find_system(memParent,'FollowLinks', 'on', 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName)];
+        blocksToExclude=[blocksToExclude; find_system(memParent, 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName)];
     end
     
     %removes the blocks to exclude from the list of reads/writes with the
     %same name as input data store memory block
-    blockList=find_system(blockParent, 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName);
-    blockList=[blockList; find_system(blockParent, 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName)];
+    blockList=find_system(blockParent, 'FollowLinks', 'on', 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName);
+    blockList=[blockList; find_system(blockParent, 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName)];
     blockList=setdiff(blockList, blocksToExclude);
 
 end
