@@ -617,10 +617,12 @@ classdef ReachCoreach < handle
                             else
                                 inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
                                     'BlockType', 'Inport', 'Port', num2str(portNum));
-                                object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
-                                outport = get_param(inport, 'PortHandles');
-                                outport = outport.Outport;
-                                object.PortsToTraverse(end + 1) = outport;
+                                if ~isempty(inport)
+                                    object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
+                                    outport = get_param(inport, 'PortHandles');
+                                    outport = outport.Outport;
+                                    object.PortsToTraverse(end + 1) = outport;
+                                end
                             end
                         end
                     case 'Outport'
@@ -777,10 +779,12 @@ classdef ReachCoreach < handle
                         for j = 1:length(srcPorts)
                             portNum = get_param(srcPorts(j), 'PortNumber');
                             outport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
-                            object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
-                            inport = get_param(outport, 'PortHandles');
-                            inport = inport.Inport;
-                            object.PortsToTraverseCo(end + 1) = inport;
+                            if ~isempty(outport)
+                                object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
+                                inport = get_param(outport, 'PortHandles');
+                                inport = inport.Inport;
+                                object.PortsToTraverseCo(end + 1) = inport;
+                            end
                         end
                     case 'Inport'
                         %handles the case where the next block is an
