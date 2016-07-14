@@ -966,7 +966,7 @@ classdef ReachCoreach < handle
             object.TraversedPorts = [object.TraversedPorts ports];
             
             %handles outports same as the reach function
-            outports = find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'Outport');
+            outports = find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport');
             for j = 1:length(outports)
                 portNum = get_param(outports{j}, 'Port');
                 parent = get_param(outports{j}, 'parent');

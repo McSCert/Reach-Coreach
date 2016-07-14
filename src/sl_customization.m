@@ -142,7 +142,7 @@ end
 
 function schema = getRCRClear(callbackInfo)
     schema = sl_action_schema;
-    schema.label = 'Clear Highlighting';
+    schema.label = 'Clear Reach/Coreach';
     schema.tag = 'McMasterTool:RCRclear';
     schema.userdata = 'RCRclear';
     schema.callback = @RCRclearCallback;
