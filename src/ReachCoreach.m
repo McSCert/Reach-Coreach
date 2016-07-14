@@ -1033,7 +1033,7 @@ classdef ReachCoreach < handle
             
             reads = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead');
             for i = 1:length(reads)
-                writes = [writes; findReadsInScope(reads{i})];
+                writes = [writes; findWritesInScope(reads{i})];
                 mem = findDataStoreMemory(reads{i});
                 if ~isempty(mem)
                     object.CoreachedObjects(end+1) = get_param(mem, 'Handle');
