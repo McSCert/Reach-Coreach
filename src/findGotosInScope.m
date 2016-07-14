@@ -14,7 +14,7 @@ function goto = findGotosInScope(block)
     end
     
     tag = get_param(block, 'GotoTag');
-    goto = find_system(get_param(block, 'parent'), 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
+    goto = find_system(get_param(block, 'parent'),'SearchDepth', 1, 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
     if ~isempty(goto)
         return
     end
