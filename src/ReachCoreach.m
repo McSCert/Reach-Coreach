@@ -1,5 +1,7 @@
 classdef ReachCoreach < handle
-%REACHCOREACH Summary of this function goes here.
+%REACHCOREACH A class that enables performing reachability/coreachability
+%analysis on blocks in a model.
+%
 %   Detailed explanation goes here.
 
     properties
@@ -1136,6 +1138,7 @@ classdef ReachCoreach < handle
                                 port=find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                                 path(end+1)=port;
+                                blockList(end+1)=get_param(port, 'line');
                                 connectedBlock=get_param(get_param(port, 'line'), 'DstBlockHandle');
                                 [dest, path, blockList, exit]=object.traverseBusForwards(get_param(connectedBlock, 'handle'), ...
                                     signal, path, blockList);
@@ -1247,6 +1250,7 @@ classdef ReachCoreach < handle
                         port=find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                             'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
                         path(end+1)=port;
+                        blockList=get_param(port, 'line');
                         connectedBlock=get_param(get_param(port, 'line'), 'SrcBlockHandle');
                         [dest, path, blockList, exit]=object.traverseBusBackwards(get_param(connectedBlock, 'handle'), signal, path, blockList);
                     else
