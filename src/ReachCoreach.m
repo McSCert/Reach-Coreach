@@ -810,7 +810,7 @@ classdef ReachCoreach < handle
                         portBus = get_param(line, 'SrcPortHandle');
                         portNum = get_param(portBus, 'PortNumber');
                         signal = get_param(nextBlocks(i), 'OutputSignals');
-                        signal = regexp(signal, ', ', 'split');
+                        signal = regexp(signal, ',', 'split');
                         signal = signal{portNum};
                         [~, path, blockList, exit] = object.traverseBusBackwards(nextBlocks(i), signal, [], []);
                         object.TraversedPortsCo = [object.TraversedPortsCo path];

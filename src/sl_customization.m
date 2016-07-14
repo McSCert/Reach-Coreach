@@ -133,7 +133,7 @@ function RCRBothCallback(callbackInfo)
             eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
         end
     else
-        eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+        eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
         eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
         eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
