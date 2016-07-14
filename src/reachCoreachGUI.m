@@ -91,8 +91,8 @@ function popupmenufore_CreateFcn(hObject, eventdata, handles)
 
 % Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+if ispc && isequal(get(hObject, 'BackgroundColor'), get(0, 'defaultUicontrolBackgroundColor'))
+    set(hObject, 'BackgroundColor', 'white');
 end
 
 
@@ -114,8 +114,8 @@ function popupmenuback_CreateFcn(hObject, eventdata, handles)
 
 % Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+if ispc && isequal(get(hObject, 'BackgroundColor'), get(0, 'defaultUicontrolBackgroundColor'))
+    set(hObject, 'BackgroundColor', 'white');
 end
 
 
@@ -125,11 +125,11 @@ function confirmbutton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
-colstring=get(handles.popupmenuback, 'String');
-colstring2=get(handles.popupmenufore, 'String');
-whichstring=get(handles.popupmenuback, 'Value');
-whichstring2=get(handles.popupmenufore, 'Value');
-if ~(whichstring==1)&&~(whichstring2==1)
+colstring = get(handles.popupmenuback, 'String');
+colstring2 = get(handles.popupmenufore, 'String');
+whichstring = get(handles.popupmenuback, 'Value');
+whichstring2 = get(handles.popupmenufore, 'Value');
+if ~(whichstring == 1) &&~(whichstring2 == 1)
     eval([bdroot(gcs) '_reachCoreachObject.setColor(colstring2{whichstring2}, colstring{whichstring});']);
     eval([bdroot(gcs) '_reachCoreachObject.hiliteObjects()']);
     close(handles.reachCoreachGUI)
