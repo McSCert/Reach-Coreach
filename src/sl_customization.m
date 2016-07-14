@@ -12,7 +12,7 @@ end
 function schema = getRCRContainer(callbackInfo)
     schema = sl_container_schema;
     schema.label = 'Reach/Coreach';
-    schema.childrenFcns = {@getRCRSetColor, @getRCRReachSel, @getRCRCoreachSel, @getRCRBothSel, @getRCRClear, @getRCRSlice};
+    schema.childrenFcns = {@getRCRReachSel, @getRCRCoreachSel, @getRCRBothSel, @getRCRClear, @getRCRSlice, @getRCRSetColor};
 end
 
 function schema = getRCRSetColor(callbackInfo)
@@ -28,7 +28,7 @@ function RCRSetColorCallback(callbackInfo)
     if x
         eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
-            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
             else
                 eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
@@ -56,7 +56,7 @@ function RCRReachCallback(callbackInfo)
     if x
         eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
-            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)';]);
             if z
                 eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
             else
@@ -87,7 +87,7 @@ function RCRCoreachCallback(callbackInfo)
     if x
         eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
-            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
                 eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
             else
@@ -118,7 +118,7 @@ function RCRBothCallback(callbackInfo)
     if x
         eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
-            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
                 eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
                 eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
@@ -172,14 +172,19 @@ end
 % the currently selected block is not a Data Store block
 function state = RCRFilter(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
-    eval(['w=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
-    if w
-        eval(['x=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
-        if x
-            eval(['y=~isempty(' bdroot(gcs) '_reachCoreachObject.ReachedObjects);']);
-            eval(['z=~isempty(' bdroot(gcs) '_reachCoreachObject.CoreachedObjects);']);
-            if y || z
-                state = 'Enabled';
+    eval(['v=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
+    if v
+        eval(['w=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
+        if w
+            eval(['x=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
+            if x
+                eval(['y=~isempty(' bdroot(gcs) '_reachCoreachObject.ReachedObjects);']);
+                eval(['z=~isempty(' bdroot(gcs) '_reachCoreachObject.CoreachedObjects);']);
+                if y || z
+                    state = 'Enabled';
+                else
+                    state = 'Disabled';
+                end
             else
                 state = 'Disabled';
             end
