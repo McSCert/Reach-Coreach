@@ -945,10 +945,13 @@ classdef ReachCoreach < handle
             lines = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
             object.ReachedObjects=[object.ReachedObjects lines.'];
             ports = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
+            if iscolumn(ports)
+                ports=ports.';
+            end
             portsToExclude=get_param(system, 'PortHandles');
             portsToExclude=portsToExclude.Outport;
             ports=setdiff(ports, portsToExclude);
-            object.TraversedPorts = [object.TraversedPorts ports.'];
+            object.TraversedPorts = [object.TraversedPorts ports];
             
             %handles outports same as the reach function
             outports = find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'Outport');
