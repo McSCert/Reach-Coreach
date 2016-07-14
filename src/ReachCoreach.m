@@ -16,6 +16,9 @@ classdef ReachCoreach < handle
     properties(Access=private)
         PortsToTraverse     % Ports remaining to traverse in reach operation
         PortsToTraverseCo   % Ports remaining to traverse in coreach operation
+        
+        Color               % Foreground color of highlight
+        BGColor             % Background color of highlight
     end
     
     methods
@@ -51,8 +54,8 @@ classdef ReachCoreach < handle
             object.RootSystemHandle = get_param(RootSystemName, 'handle');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
-            HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', 'red', 'BackgroundColor', 'yellow');
-            set_param(0, 'HiliteAncestorsData', HILITE_DATA);
+            object.Color='red';
+            object.BGColor='yellow';
         end
         
         function setColor(object, color1, color2)
@@ -82,12 +85,14 @@ classdef ReachCoreach < handle
                 return
             end
             % Set the desired colors for highlighting.
-            HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', color1, 'BackgroundColor', color2);
-            set_param(0, 'HiliteAncestorsData', HILITE_DATA);
+            object.Color=color1;
+            object.BGColor=color2;
         end
         
         function hiliteObjects(object)
             % Highlight the reached/coreached blocks and lines.
+            HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
+            set_param(0, 'HiliteAncestorsData', HILITE_DATA);
             hilite_system(object.ReachedObjects, 'user2');
             hilite_system(object.CoreachedObjects, 'user2');
         end
