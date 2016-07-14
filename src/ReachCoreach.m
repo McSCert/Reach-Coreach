@@ -1023,7 +1023,7 @@ classdef ReachCoreach < handle
             writes ={};
             froms = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From');
             for i = 1:length(froms)
-                gotos = [gotos; findFromsInScope(froms{i})];
+                gotos = [gotos; findGotosInScope(froms{i})];
                 tag = findVisibilityTag(froms{i});
                 if ~isempty(tag)
                     object.CoreachedObjects(end+1) = get_param(tag, 'Handle');
