@@ -525,10 +525,16 @@ classdef ReachCoreach < handle
             
             %get line from the port, and then get the destination blocks
             line = get_param(port, 'line');
+            if (line==-1)
+                return
+            end
             object.ReachedObjects(end + 1) = line;
             nextBlocks = get_param(line, 'DstBlockHandle');
             
             for i = 1:length(nextBlocks)
+                if (nextBlocks(i)==-1)
+                    break
+                end
                 %add block to list of reached objects
                 object.ReachedObjects(end + 1) = nextBlocks(i);
                 %get blocktype for switch case
@@ -696,10 +702,16 @@ classdef ReachCoreach < handle
             
             %get line from the port, and then get the destination blocks
             line = get_param(port, 'line');
+            if (line == -1)
+                return
+            end
             object.CoreachedObjects(end + 1) = line;
             nextBlocks = get_param(line, 'SrcBlockHandle');
             
             for i = 1:length(nextBlocks)
+                if (nextBlocks(i)==-1)
+                    break
+                end
                 %add block to list of coreached objects
                 object.CoreachedObjects(end + 1) = nextBlocks(i);
                 %get blocktype for switch case
