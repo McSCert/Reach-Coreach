@@ -986,10 +986,12 @@ classdef ReachCoreach < handle
             froms=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From');
             for i=1:length(froms)
                 gotos=findFromsInScope(froms{i});
+                gotos=setdiff(gotos, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From'));
             end
             reads=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead');
             for i=1:length(reads)
                 writes=findReadsInScope(reads{i});
+                writes=setdiff(writes, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
             end
             implicits=[gotos writes];
             for i=1:length(implicits)
@@ -1010,10 +1012,12 @@ classdef ReachCoreach < handle
             gotos=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto');
             for i=1:length(gotos)
                 froms=findFromsInScope(gotos{i});
+                froms=setdiff(froms, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto'));
             end
             writes=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite');
             for i=1:length(writes)
                 reads=findReadsInScope(writes{i});
+                reads=setdiff(reads, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
             end
             implicits=[froms reads];
             for i=1:length(implicits)
