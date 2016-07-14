@@ -56,7 +56,7 @@ function RCRReachCallback(callbackInfo)
     if x
         eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
-            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)';]);
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
                 eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
             else
