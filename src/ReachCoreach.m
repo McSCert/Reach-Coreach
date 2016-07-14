@@ -990,14 +990,28 @@ classdef ReachCoreach < handle
             writes={};
             froms=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From');
             for i=1:length(froms)
-                gotos=findFromsInScope(froms{i});
-                gotos=setdiff(gotos, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From'));
+                gotos=[gotos; findFromsInScope(froms{i})];
             end
+            gotos=setdiff(gotos, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From'));
+            for i=1:length(gotos)
+                tag=findVisibilityTag(gotos{i});
+                if ~isempty(tag)
+                    object.CoreachedObjects(end+1)=get_param(tag, 'Handle');
+                end
+            end
+            
             reads=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead');
             for i=1:length(reads)
-                writes=findReadsInScope(reads{i});
-                writes=setdiff(writes, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
+                writes=[writes; findReadsInScope(reads{i})];
             end
+            writes=setdiff(writes, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
+            for i=1:length(writes)
+                mem=findDataStoreMemory(writes{i});
+                if ~isempty(mem)
+                    object.CoreachedObjects(end+1)=get_param(mem, 'Handle');
+                end
+            end
+            
             implicits=[gotos writes];
             for i=1:length(implicits)
                 name=getfullname(implicits{i});
@@ -1016,14 +1030,28 @@ classdef ReachCoreach < handle
             reads={};
             gotos=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto');
             for i=1:length(gotos)
-                froms=findFromsInScope(gotos{i});
-                froms=setdiff(froms, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto'));
+                froms=[froms; findFromsInScope(gotos{i})];
             end
+            froms=setdiff(froms, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto'));
+            for i=1:length(froms)
+                tag=findVisibilityTag(froms{i});
+                if ~isempty(tag)
+                    object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                end
+            end
+            
             writes=find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite');
             for i=1:length(writes)
-                reads=findReadsInScope(writes{i});
-                reads=setdiff(reads, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
+                reads=[reads; findReadsInScope(writes{i})];
             end
+            reads=setdiff(reads, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
+            for i=1:length(reads)
+                mem=findDataStoreMemory(reads{i});
+                if ~isempty(mem)
+                    object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                end
+            end
+            
             implicits=[froms reads];
             for i=1:length(implicits)
                 name=getfullname(implicits{i});
