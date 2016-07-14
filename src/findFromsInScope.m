@@ -2,6 +2,18 @@ function froms=findFromsInScope(block)
     %FINDFROMSINSCOPE function for finding all associated froms for a goto
     %block
     
+    %make sure block parameter is a valid goto block
+    try
+        assert(strcmp(get_param(block, 'type'), 'block'));
+        blockType=get_param(block, 'BlockType');
+        assert(strcmp(blockType, 'Goto'));
+    catch
+        disp(['Error using ' mfilename ':' char(10) ...
+            'Block parameter is not a goto block.' char(10)])
+        help(mfilename)
+        return
+    end
+    
     tag=get_param(block, 'GotoTag');
     scopedTags=find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
     level=get_param(block, 'parent');

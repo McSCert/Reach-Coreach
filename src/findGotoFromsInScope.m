@@ -1,6 +1,18 @@
 function blockList = findGotoFromsInScope(block)
 %FINDGOTOFROMSINSCOPE This function finds all the associated goto and from
 %blocks of a goto tag visibility block
+
+    %make sure input is a valid goto tag visibility block
+    try
+        assert(strcmp(get_param(block, 'type'), 'block'));
+        blockType=get_param(block, 'BlockType');
+        assert(strcmp(blockType, 'GotoTagVisibility'));
+    catch
+        disp(['Error using ' mfilename ':' char(10) ...
+            'Block parameter is not a goto tag visibility block.' char(10)])
+        help(mfilename)
+        return
+    end
     
     %get all other goto tag visibility blocks
     gotoTag=get_param(block, 'GotoTag');

@@ -3,6 +3,18 @@ function visBlock = findVisibilityTag(block)
 %FINDVISIBILITYTAG Function that finds the associated visibility tag of a
 %scoped goto or from.
 
+    %make sure input is a valid goto/from block
+    try
+        assert(strcmp(get_param(block, 'type'), 'block'));
+        blockType=get_param(block, 'BlockType');
+        assert(strcmp(blockType, 'Goto')||strcmp(blockType, 'From'));
+    catch
+        disp(['Error using ' mfilename ':' char(10) ...
+            'Block parameter is not a goto or from block.' char(10)])
+        help(mfilename)
+        return
+    end
+
     tag=get_param(block, 'GotoTag');
     scopedTags=find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
     level=get_param(block, 'parent');
