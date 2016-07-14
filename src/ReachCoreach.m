@@ -150,11 +150,9 @@ classdef ReachCoreach < handle
             %
             % EXAMPLE
             %   obj.clear()
-            allObjects=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On');
-            reachedCoreachedObjects=[object.ReachedObjects object.CoreachedObjects];
-            missingElements=setdiff(reachedCoreachedObjects, allObjects);
-            reachedCoreachedObjects=setdiff(reachedCoreachedObjects, missingElements);
-            hilite_system(reachedCoreachedObjects, 'none');
+            hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
+            hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
+            hilite_system(hilitedObjects, 'none');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             object.TraversedPorts=[];
