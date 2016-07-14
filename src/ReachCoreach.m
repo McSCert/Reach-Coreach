@@ -976,7 +976,9 @@ classdef ReachCoreach < handle
                     object.PortsToTraverse(end + 1) = outport;
                 end
                 tag=findVisibilityTag(gotos{j});
-                object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                if ~isempty(tag)
+                    object.ReachedObjects(end+1)=get_param(tag, 'Handle');
+                end
             end
             
             %handles writes same as the reach function
@@ -990,7 +992,9 @@ classdef ReachCoreach < handle
                     object.PortsToTraverse(end + 1) = outport;
                 end
                 mem=findDataStoreMemory(writes{j});
-                object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                if ~isempty(mem)
+                    object.ReachedObjects(end+1)=get_param(mem, 'Handle');
+                end
             end
         end
         
