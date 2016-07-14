@@ -1,35 +1,35 @@
-function varargout = rcrGUI(varargin)
-% RCRGUI MATLAB code for rcrGUI.fig
-%      RCRGUI, by itself, creates a new RCRGUI or raises the existing
+function varargout = reachCoreachGUI(varargin)
+% REACHCOREACHGUI MATLAB code for reachCoreachGUI.fig
+%      REACHCOREACHGUI, by itself, creates a new REACHCOREACHGUI or raises the existing
 %      singleton*.
 %
-%      H = RCRGUI returns the handle to a new RCRGUI or the handle to
+%      H = REACHCOREACHGUI returns the handle to a new REACHCOREACHGUI or the handle to
 %      the existing singleton*.
 %
-%      RCRGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in RCRGUI.M with the given input arguments.
+%      REACHCOREACHGUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in REACHCOREACHGUI.M with the given input arguments.
 %
-%      RCRGUI('Property','Value',...) creates a new RCRGUI or raises the
+%      REACHCOREACHGUI('Property','Value',...) creates a new REACHCOREACHGUI or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before rcrGUI_OpeningFcn gets called.  An
+%      applied to the GUI before reachCoreachGUI_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to rcrGUI_OpeningFcn via varargin.
+%      stop.  All inputs are passed to reachCoreachGUI_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help rcrGUI
+% Edit the above text to modify the response to help reachCoreachGUI
 
-% Last Modified by GUIDE v2.5 11-Jun-2015 14:56:12
+% Last Modified by GUIDE v2.5 14-Jul-2016 11:43:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @rcrGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @rcrGUI_OutputFcn, ...
+                   'gui_OpeningFcn', @reachCoreachGUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @reachCoreachGUI_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,26 +44,26 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before rcrGUI is made visible.
-function rcrGUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before reachCoreachGUI is made visible.
+function reachCoreachGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to rcrGUI (see VARARGIN)
+% varargin   command line arguments to reachCoreachGUI (see VARARGIN)
 
-% Choose default command line output for rcrGUI
+% Choose default command line output for reachCoreachGUI
 handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes rcrGUI wait for user response (see UIRESUME)
-% uiwait(handles.rcrgui);
+% UIWAIT makes reachCoreachGUI wait for user response (see UIRESUME)
+% uiwait(handles.reachCoreachGUI);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = rcrGUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = reachCoreachGUI_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -132,15 +132,8 @@ whichstring2=get(handles.popupmenufore, 'Value');
 if ~(whichstring==1)&&~(whichstring2==1)
     eval([bdroot(gcs) '_reachCoreachObject.setColor(colstring2{whichstring2}, colstring{whichstring});']);
     eval([bdroot(gcs) '_reachCoreachObject.hiliteObjects()']);
-    close(handles.rcrgui)
+    close(handles.reachCoreachGUI)
 else
     disp(['Error using ' mfilename ':' char(10) ...
         'Please select two colours.' char(10)])
 end
-
-
-% --- Executes during object creation, after setting all properties.
-function rcrgui_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to rcrgui (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called

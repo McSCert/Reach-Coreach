@@ -39,7 +39,7 @@ function RCRSetColorCallback(callbackInfo)
     else
         eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(bdroot(gcs));']);
     end
-    rcrGUI
+    reachCoreachGUI
     collectGarbageRCR();
 end
 

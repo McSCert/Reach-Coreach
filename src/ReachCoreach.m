@@ -3,27 +3,36 @@ classdef ReachCoreach < handle
 %   Detailed explanation goes here.
 
     properties
-        RootSystemName      % Simulink model name (or top-level system name)
-        RootSystemHandle    % Handle of top level subsystem
+        RootSystemName      % Simulink model name (or top-level system name).
+        RootSystemHandle    % Handle of top level subsystem.
         
-        ReachedObjects      % List of blocks and lines reached
-        CoreachedObjects    % List of blocks and lines coreached
+        ReachedObjects      % List of blocks and lines reached.
+        CoreachedObjects    % List of blocks and lines coreached.
         
-        TraversedPorts      % Ports already traversed in reach operation
-        TraversedPortsCo    % Ports already traversed in coreach operation
+        TraversedPorts      % Ports already traversed in reach operation.
+        TraversedPortsCo    % Ports already traversed in coreach operation.
     end
     
     properties(Access=private)
-        PortsToTraverse     % Ports remaining to traverse in reach operation
-        PortsToTraverseCo   % Ports remaining to traverse in coreach operation
+        PortsToTraverse     % Ports remaining to traverse in reach operation.
+        PortsToTraverseCo   % Ports remaining to traverse in coreach operation.
         
-        Color               % Foreground color of highlight
-        BGColor             % Background color of highlight
+        Color               % Foreground color of highlight.
+        BGColor             % Background color of highlight.
     end
     
     methods
         
         function object = ReachCoreach(RootSystemName)
+            % Constructor method for the ReachCoreach object.
+            %
+            % PARAMETERS
+            % RootSystemName: Parameter name of the top level system in the model
+            % hierarchy the reach/coreach operations are to be run on.
+            %
+            % EXAMPLE
+            %   obj=ReachCoreach('ModelName')
+            
             % Check parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open.
             try
@@ -59,6 +68,20 @@ classdef ReachCoreach < handle
         end
         
         function setColor(object, color1, color2)
+            % Set the highlight colours for the reach/coreach.
+            %
+            % PARAMETERS
+            % color1: Parameter for the highlight foreground colour.
+            % Accepted values are 'red', 'green', 'blue', 'cyan',
+            % 'magenta', 'yellow', 'black', 'white'.
+            %
+            % color2: Parameter for the highlight background colour.
+            % Accepted values are 'red', 'green', 'blue', 'cyan',
+            % 'magenta', 'yellow', 'black', 'white'.
+            %
+            % EXAMPLE
+            %   obj.setColor('red', 'blue')
+            
             % ensure that the parameters are strings
             try
                 assert(ischar(color1))
@@ -91,6 +114,9 @@ classdef ReachCoreach < handle
         
         function hiliteObjects(object)
             % Highlight the reached/coreached blocks and lines.
+            %
+            % EXAMPLE 
+            %   obj.hiliteObjects()
             HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
             hilite_system(object.ReachedObjects, 'user2');
@@ -98,7 +124,10 @@ classdef ReachCoreach < handle
         end
         
         function slice(object)
-            % Isolate the reached/coreached blocks.
+            % Isolate the reached/coreached blocks by removing unhighlighted blocks.
+            %
+            % EXAMPLE
+            %   obj.slice()
             allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
             allObjects = [allObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
@@ -108,7 +137,10 @@ classdef ReachCoreach < handle
         end
         
         function clear(object)
-            % Remove the reached/coreached blocks from selection.
+            % Remove all items from the list of objects that have been reached/coreached.
+            %
+            % EXAMPLE
+            %   obj.clear()
             allObjects=find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On');
             reachedCoreachedObjects=[object.ReachedObjects object.CoreachedObjects];
             missingElements=setdiff(reachedCoreachedObjects, allObjects);
@@ -121,7 +153,14 @@ classdef ReachCoreach < handle
         end
         
         function reachAll(object, selection)
-            % Public function to reach from all of a selection of blocks.
+            % Reach from a selection of blocks.
+            % 
+            % PARAMETERS
+            % selection: a cell array of strings representing the full
+            % names of blocks.
+            %
+            % EXAMPLE
+            %   obj.reachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
             
             % Check object parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open.
@@ -278,7 +317,14 @@ classdef ReachCoreach < handle
         end
         
         function coreachAll(object, selection)
-            % Public function to get the coreach of a selection of blocks
+            % Coreach from a selection of blocks.
+            %
+            % PARAMETERS
+            % selection: a cell array of strings representing the full
+            % names of blocks.
+            %
+            % EXAMPLE
+            %   obj.coreachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
             
             % Check object parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open.
