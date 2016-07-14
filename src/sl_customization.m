@@ -17,7 +17,7 @@ end
 
 function schema = getRCRSetColor(callbackInfo)
     schema = sl_action_schema;
-    schema.label = 'Set Color';
+    schema.label = 'Set Colour';
     schema.userdata = 'RCRsetColor';
     schema.callback = @RCRSetColorCallback;
 end
@@ -197,12 +197,12 @@ function state = RCRFilter(callbackInfo)
 end
 
 function collectGarbage()
-    globals=who('global');
-    sys=cellfun(@(x) x(1:end-19), globals, 'un', 0);
-    opensys=find_system('SearchDepth', 0);
-    indicesToKeep=ismember(sys, opensys);
-    for i=1:length(globals)
-        if (indicesToKeep(i)==0)
+    globals = who('global');
+    sys = cellfun(@(x) x(1:end-19), globals, 'un', 0);
+    opensys = find_system('SearchDepth', 0);
+    indicesToKeep = ismember(sys, opensys);
+    for i = 1:length(globals)
+        if (indicesToKeep(i) == 0)
             eval(['global ' globals{i} ';'])
             eval(['x=~isempty(' globals{i} ');']);
             if x
