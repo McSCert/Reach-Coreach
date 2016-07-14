@@ -23,7 +23,24 @@ function schema = getRCRSetColor(callbackInfo)
 end
 
 function RCRSetColorCallback(callbackInfo)
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+    eval(['x=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
+    if x
+        eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
+        if y
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            if z
+            else
+                eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+            end
+        else
+            eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+        end
+    else
+        eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+    end
     rcrGUI
+    collectGarbage();
 end
 
 function schema = getRCRReachSel(callbackInfo)
@@ -35,13 +52,26 @@ end
 
 function RCRReachCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');'])
-    if flag
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+    eval(['x=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
+    if x
+        eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
+        if y
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            if z
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+            else
+                eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+            end
+        else
+            eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
+            eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+        end
     else
         eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
         eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
     end
+    collectGarbage();
 end
 
 function schema = getRCRCoreachSel(callbackInfo)
@@ -53,38 +83,67 @@ end
 
 function RCRCoreachCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;'])
-    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');']);
-    if flag
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+    eval(['x=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
+    if x
+        eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
+        if y
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            if z
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+            else
+                eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+            end
+        else
+            eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
+            eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+        end
     else
         eval([bdroot(gcs) '_reachCoreachObject=ReachCoreach(gcs);']);
         eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
+    collectGarbage();
 end
 
 function schema = getRCRBothSel(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Reach/Coreach From Selected';
     schema.userdata = 'RCRbothSel';
-    schema.callback = @RCRbothCallback;
+    schema.callback = @RCRBothCallback;
 end
 
-function RCRbothCallback(callbackInfo)
+function RCRBothCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
-    eval(['flag=isa(' bdroot(gcs) '_reachCoreachObject, ''ReachCoreach'');']);
-    if flag
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+    eval(['x=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
+    if x
+        eval(['y=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
+        if y
+            eval(['z=(get_param(bdroot(gcs), ''handle'')==' bdroot(gcs) '_reachCoreachObject.RootSystemHandle)']);
+            if z
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+            else
+                eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+            end
+        else
+            eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+            eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+            eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+        end
     else
         eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
         eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
         eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
     end
+    collectGarbage();
 end
 
 function schema = getRCRClear(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Clear Highlighting';
+    schema.tag = 'McMasterTool:RCRclear';
     schema.userdata = 'RCRclear';
     schema.callback = @RCRclearCallback;
 end
@@ -92,11 +151,13 @@ end
 function RCRclearCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval([bdroot(gcs) '_reachCoreachObject.clear();']);
+    collectGarbage();
 end
 
 function schema = getRCRSlice(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Slice';
+    schema.tag = 'McMasterTool:RCRslice';
     schema.userdata = 'RCRslice';
     schema.callback = @RCRsliceCallback;
 end
@@ -104,14 +165,44 @@ end
 function RCRsliceCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval([bdroot(gcs) '_reachCoreachObject.slice();']);
+    collectGarbage();
 end
 
 % Grey out menu options for clear and slice when 
 % the currently selected block is not a Data Store block
 function state = RCRFilter(callbackInfo)
-    if (exist([bdroot(gcs) '_reachCoreachObject'], 'var')==1)
-            state = 'Enabled';
-    else
+    eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+    eval(['w=~isempty(' bdroot(gcs) '_reachCoreachObject);']);
+    if w
+        eval(['x=isvalid(' bdroot(gcs) '_reachCoreachObject);']);
+        if x
+            eval(['y=~isempty(' bdroot(gcs) '_reachCoreachObject.ReachedObjects);']);
+            eval(['z=~isempty(' bdroot(gcs) '_reachCoreachObject.CoreachedObjects);']);
+            if y || z
+                state = 'Enabled';
+            else
+                state = 'Disabled';
+            end
+        else
             state = 'Disabled';
+        end
+    else
+        state = 'Disabled';
+    end
+end
+
+function collectGarbage()
+    globals=who('global');
+    sys=cellfun(@(x) x(1:end-19), globals, 'un', 0);
+    opensys=find_system('SearchDepth', 0);
+    indicesToKeep=ismember(sys, opensys);
+    for i=1:length(globals)
+        if (indicesToKeep(i)==0)
+            eval(['global ' globals{i} ';'])
+            eval(['x=~isempty(' globals{i} ');']);
+            if x
+                eval([globals{i} '.delete;']);
+            end
+        end
     end
 end

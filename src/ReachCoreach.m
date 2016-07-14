@@ -4,6 +4,7 @@ classdef ReachCoreach < handle
 
     properties
         RootSystemName      % Simulink model name (or top-level system name)
+        RootSystemHandle    % Handle of top level subsystem
         
         ReachedObjects      % List of blocks and lines reached
         CoreachedObjects    % List of blocks and lines coreached
@@ -27,7 +28,7 @@ classdef ReachCoreach < handle
                 assert(bdIsLoaded(RootSystemName));
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
-                    ' Invalid RootSystemName. Model corresponding ' ...
+                    'Invalid RootSystemName. Model corresponding ' ...
                     'to RootSystemName may not be loaded or name is invalid.' char(10)])
                 help(mfilename)
                 return
@@ -39,7 +40,7 @@ classdef ReachCoreach < handle
                 assert(strcmp(RootSystemName, bdroot(RootSystemName)))
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
-                    ' Invalid RootSystemName. Given RootSystemName is not ' ...
+                    'Invalid RootSystemName. Given RootSystemName is not ' ...
                     'the root level of its model' char(10)])
                 help(mfilename)
                 return
@@ -47,6 +48,7 @@ classdef ReachCoreach < handle
             
             % Initialize a new instance of ReachCoreach.
             object.RootSystemName = RootSystemName;
+            object.RootSystemHandle = get_param(RootSystemName, 'handle');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             HILITE_DATA=struct('HiliteType', 'user2', 'ForegroundColor', 'red', 'BackgroundColor', 'yellow');
@@ -93,9 +95,9 @@ classdef ReachCoreach < handle
         function slice(object)
             % Isolate the reached/coreached blocks.
             allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
-            allObjects = [allObjects find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
+            allObjects = [allObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
             toDelete = setdiff(allObjects, object.ReachedObjects);
-            delete_block(toDelete);
+            delete(toDelete);
         end
         
         function clear(object)
