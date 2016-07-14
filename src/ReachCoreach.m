@@ -674,7 +674,7 @@ classdef ReachCoreach < handle
                         cond = ['u' num2str(portNum)];
                         expressions = get_param(nextBlocks(i), 'ElseIfExpressions');
                         if ~isempty(expressions)
-                            expressions = regexp(expressions, ', ', 'split');
+                            expressions = regexp(expressions, ',', 'split');
                             expressions = [{get_param(nextBlocks(i), 'IfExpression')} expressions];
                         else
                             expressions = {};
@@ -1151,7 +1151,7 @@ classdef ReachCoreach < handle
                             %other relevant information
                             blockList(end+1) = get_param(next , 'handle');
                             outputs = get_param(next, 'OutputSignals');
-                            outputs = regexp(outputs, ', ', 'split');
+                            outputs = regexp(outputs, ',', 'split');
                             portNum = find(strcmp(outputs(:), signal));
                             if ~isempty(portNum)
                                 dest = get_param(next, 'PortConnectivity');
