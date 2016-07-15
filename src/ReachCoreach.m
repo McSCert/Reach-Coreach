@@ -331,6 +331,18 @@ classdef ReachCoreach < handle
                 object.PortsToTraverse(end) = [];
                 reach(object, port)
             end
+            %get foreach blocks
+            forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
+            for i = 1:length(forEach)
+                system = get_param(forEach{i}, 'parent');
+                sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
+                sysObjects = setdiff(sysObjects, get_param(system, 'handle'));
+                if ~isempty(intersect(sysObjects, object.ReachedObjects))
+                    if isempty(intersect(get_param(forEach{i}, 'Handle'), object.ReachedObjects))
+                        object.ReachedObjects(end + 1) = get_param(forEach{i}, 'Handle');
+                    end
+                end
+            end
             %highlight all objects reached
             object.hiliteObjects();
         end
@@ -1005,6 +1017,9 @@ classdef ReachCoreach < handle
                 end
                 tag = findVisibilityTag(gotos{j});
                 if ~isempty(tag)
+                    if iscell(tag)
+                        tag=tag{1};
+                    end
                     object.ReachedObjects(end+1) = get_param(tag, 'Handle');
                 end
             end
@@ -1021,6 +1036,9 @@ classdef ReachCoreach < handle
                 end
                 mem = findDataStoreMemory(writes{j});
                 if ~isempty(mem)
+                    if iscell(mem)
+                        mem=mem{1};
+                    end
                     object.ReachedObjects(end+1) = get_param(mem, 'Handle');
                 end
             end
@@ -1039,6 +1057,9 @@ classdef ReachCoreach < handle
                 tag = findVisibilityTag(froms{i});
                 tag = setdiff(tag, allTags);
                 if ~isempty(tag)
+                    if iscell(tag)
+                        tag=tag{1};
+                    end
                     object.CoreachedObjects(end+1) = get_param(tag, 'Handle');
                 end
             end
@@ -1051,6 +1072,9 @@ classdef ReachCoreach < handle
                 mem = findDataStoreMemory(reads{i});
                 mem = setdiff(mem, allMems);
                 if ~isempty(mem)
+                    if iscell(mem)
+                        mem=mem{1};
+                    end
                     object.CoreachedObjects(end+1) = get_param(mem, 'Handle');
                 end
             end
