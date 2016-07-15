@@ -38,16 +38,16 @@ Model {
       BusObject		      ""
       BusOutputAsStruct	      "off"
       SignalName	      "signal3"
-      Name		      "Out4"
+      Name		      "Out2"
     }
     Outport {
       BusObject		      ""
       BusOutputAsStruct	      "off"
       SignalName	      "signal2"
-      Name		      "Out5"
+      Name		      "Out3"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.16"
+    ComputedModelVersion    "1.17"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -68,9 +68,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "T6684MB"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Jul 15 08:55:10 2016"
-  RTWModifiedTimeStamp	  390473709
-  ModelVersionFormat	  "1.%<AutoIncrement:16>"
+  LastModifiedDate	  "Fri Jul 15 09:30:38 2016"
+  RTWModifiedTimeStamp	  390475837
+  ModelVersionFormat	  "1.%<AutoIncrement:17>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -108,6 +108,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "ReachCorechDemo"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -1203,7 +1204,7 @@ Model {
     }
     Block {
       BlockType		      Outport
-      Name		      "Out4"
+      Name		      "Out2"
       SID		      "50"
       Position		      [895, 413, 925, 427]
       ZOrder		      -23
@@ -1212,7 +1213,7 @@ Model {
     }
     Block {
       BlockType		      Outport
-      Name		      "Out5"
+      Name		      "Out3"
       SID		      "51"
       Position		      [895, 463, 925, 477]
       ZOrder		      -23
@@ -1307,7 +1308,7 @@ Model {
       Labels		      [0, 0]
       SrcBlock		      "Bus\nSelector1"
       SrcPort		      1
-      DstBlock		      "Out4"
+      DstBlock		      "Out2"
       DstPort		      1
     }
     Line {
@@ -1315,7 +1316,7 @@ Model {
       Labels		      [0, 0]
       SrcBlock		      "Bus\nSelector1"
       SrcPort		      2
-      DstBlock		      "Out5"
+      DstBlock		      "Out3"
       DstPort		      1
     }
     Line {
