@@ -246,6 +246,20 @@ classdef ReachCoreach < handle
                         ports = get_param(outBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                    moreBlocks = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                    for j = 1:length(moreBlocks)
+                        object.ReachedObjects(end+1) = get_param(moreBlocks{j}, 'handle');
+                    end
+                    lines = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                    object.ReachedObjects = [object.ReachedObjects lines.'];
+                    morePorts = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
+                    if iscolumn(morePorts)
+                        morePorts = morePorts.';
+                    end
+                    portsToExclude = get_param(selection{i}, 'PortHandles');
+                    portsToExclude = portsToExclude.Outport;
+                    morePorts = setdiff(morePorts, portsToExclude);
+                    object.TraversedPorts = [object.TraversedPorts morePorts];
                 elseif strcmp(selectionType, 'Outport')
                     portNum = get_param(selection{i}, 'Port');
                     parent = get_param(selection{i}, 'parent');
@@ -422,6 +436,20 @@ classdef ReachCoreach < handle
                         ports = get_param(inBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
+                    moreBlocks = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                    for j = 1:length(moreBlocks)
+                        object.CoreachedObjects(end+1) = get_param(moreBlocks{j}, 'handle');
+                    end
+                    lines = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                    object.CoreachedObjects = [object.CoreachedObjects lines.'];
+                    morePorts = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
+                    if iscolumn(morePorts)
+                        morePorts = morePorts.';
+                    end
+                    portsToExclude = get_param(selection{i}, 'PortHandles');
+                    portsToExclude = portsToExclude.Inport;
+                    morePorts = setdiff(morePorts, portsToExclude);
+                    object.TraversedPortsCo = [object.TraversedPortsCo morePorts];
                 elseif strcmp(selectionType, 'Inport')
                     portNum = get_param(selection{i}, 'Port');
                     parent = get_param(selection{i}, 'parent');
