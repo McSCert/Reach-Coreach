@@ -1131,6 +1131,9 @@ classdef ReachCoreach < handle
                 tag = findVisibilityTag(gotos{i});
                 tag = setdiff(tag, allTags);
                 if ~isempty(tag)
+                    if iscell(tag)
+                        tag=tag{1};
+                    end
                     object.ReachedObjects(end+1) = get_param(tag, 'Handle');
                 end
             end
@@ -1143,6 +1146,9 @@ classdef ReachCoreach < handle
                 mem = findDataStoreMemory(writes{i});
                 mem = setdiff(mem, allMems);
                 if ~isempty(mem)
+                    if iscell(mem)
+                        mem=mem{1};
+                    end
                     object.ReachedObjects(end+1) = get_param(mem, 'Handle');
                 end
             end
