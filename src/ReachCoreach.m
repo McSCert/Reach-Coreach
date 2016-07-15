@@ -446,8 +446,8 @@ classdef ReachCoreach < handle
                     if iscolumn(morePorts)
                         morePorts = morePorts.';
                     end
-                    portsToExclude = get_param(selection{i}, 'PortHandles');
-                    portsToExclude = portsToExclude.Inport;
+                    portsSub = get_param(selection{i}, 'PortHandles');
+                    portsToExclude = [portsSub.Inport portsSub.Trigger portsSub.Enable portsSub.Ifaction];
                     morePorts = setdiff(morePorts, portsToExclude);
                     object.TraversedPortsCo = [object.TraversedPortsCo morePorts];
                 elseif strcmp(selectionType, 'Inport')
