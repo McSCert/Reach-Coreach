@@ -11,6 +11,7 @@ function blockList = findReadWritesInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a data store memory block.' char(10)])
         help(mfilename)
+        blockList={};
         return
     end
 
