@@ -47,7 +47,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     'Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
+                    'to RootSystemName may not be open or its name is invalid.' char(10)])
                 help(mfilename)
                 return
             end
@@ -59,7 +59,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     'Invalid RootSystemName. Given RootSystemName is not ' ...
-                    'the root level of its model' char(10)])
+                    'the root level of its model.' char(10)])
                 help(mfilename)
                 return
             end
@@ -188,7 +188,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
+                    'to RootSystemName may not be open or its name is invalid.' char(10)])
                 help(mfilename)
                 return
             end
@@ -230,7 +230,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
+                       selection{i} ' is not a block in system ' object.RootSystemName char(10)])
                     help(mfilename)
                     break
                 end
@@ -375,7 +375,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
+                    'to RootSystemName may not be open or its name is invalid.' char(10)])
                 help(mfilename)
                 return
             end
@@ -417,7 +417,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
+                       selection{i} ' is not a block in system ' object.RootSystemName char(10)])
                     help(mfilename)
                     break
                 end
