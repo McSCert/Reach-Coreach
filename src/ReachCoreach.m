@@ -47,7 +47,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     'Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be open or its name is invalid.' char(10)])
+                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
                 help(mfilename)
                 return
             end
@@ -59,7 +59,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     'Invalid RootSystemName. Given RootSystemName is not ' ...
-                    'the root level of its model.' char(10)])
+                    'the root level of its model' char(10)])
                 help(mfilename)
                 return
             end
@@ -188,7 +188,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be open or its name is invalid.' char(10)])
+                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
                 help(mfilename)
                 return
             end
@@ -230,7 +230,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} ' is not a block in system ' object.RootSystemName char(10)])
+                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
                     help(mfilename)
                     break
                 end
@@ -319,6 +319,23 @@ classdef ReachCoreach < handle
                     if ~isempty(tag)
                         object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                     end
+                elseif strcmp(selectionType, 'BusCreator')
+                    busInports = get_param(selection{i}, 'PortHandles');
+                    busInports = busInports.Inport;
+                    for j = 1:length(busInports)
+                        line = get_param(busInports(j), 'line');
+                        signalName = get_param(line, 'Name');
+                        if isempty(signalName)
+                            portNum = get_param(busInports(j), 'PortNumber');
+                            signalName = ['signal' num2str(portNum)];
+                        end
+                        busPort = get_param(selection{i}, 'PortHandles');
+                        busPort = busPort.Outport;
+                        [path, blockList, exit] = object.traverseBusForwards(busPort, signalName, [], []);
+                        object.TraversedPorts = [object.TraversedPorts path];
+                        object.ReachedObjects = [object.ReachedObjects blockList];
+                        object.PortsToTraverse = [object.PortsToTraverse exit];
+                    end
                 elseif (strcmp(selectionType, 'EnablePort') || ...
                         strcmp(selectionType, 'ActionPort') || ...
                         strcmp(selectionType, 'TriggerPort') || ...
@@ -375,7 +392,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be open or its name is invalid.' char(10)])
+                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
                 help(mfilename)
                 return
             end
@@ -417,7 +434,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} ' is not a block in system ' object.RootSystemName char(10)])
+                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
                     help(mfilename)
                     break
                 end
@@ -508,6 +525,20 @@ classdef ReachCoreach < handle
                     mem = findDataStoreMemory(selection{i});
                     if ~isempty(mem)
                         object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
+                    end
+                elseif strcmp(selectionType, 'BusSelector')
+                    busOutports = get_param(selection{i}, 'PortHandles');
+                    busOutports = busOutports.Outport;
+                    for j = 1:length(busOutports)
+                        portNum = get_param(busOutports(j), 'PortNumber');
+                        signal = get_param(selection{i}, 'OutputSignals');
+                        signal = regexp(signal, ',', 'split');
+                        signal = signal{portNum};
+                        busPort=get_param(selection{i}, 'PortHandles');
+                        [path, blockList, exit] = object.traverseBusBackwards(busPort.Inport, signal, [], []);
+                        object.TraversedPortsCo = [object.TraversedPortsCo path];
+                        object.CoreachedObjects = [object.CoreachedObjects blockList];
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
                     end
                 end
                 % Add blocks to coreach from selection, and their ports to the
@@ -697,8 +728,10 @@ classdef ReachCoreach < handle
                                 portNum = get_param(dstPort(j), 'PortNumber');
                                 signalName = ['signal' num2str(portNum)];
                             end
-                            if strcmp(get_param(get_param(dstPort(i),'parent'), 'BlockType'), 'BusCreator')
-                                [~, path, blockList, exit] = object.traverseBusForwards(nextBlocks(i), signalName, [], []);
+                            if strcmp(get_param(get_param(dstPort(j), 'parent'), 'BlockType'), 'BusCreator')
+                                busPort = get_param(nextBlocks(i), 'PortHandles');
+                                busPort = busPort.Outport;
+                                [path, blockList, exit] = object.traverseBusForwards(busPort, signalName, [], []);
                                 object.TraversedPorts = [object.TraversedPorts path];
                                 object.ReachedObjects = [object.ReachedObjects blockList];
                                 object.PortsToTraverse = [object.PortsToTraverse exit];
@@ -867,10 +900,11 @@ classdef ReachCoreach < handle
                         signal = get_param(nextBlocks(i), 'OutputSignals');
                         signal = regexp(signal, ',', 'split');
                         signal = signal{portNum};
-                        [~, path, blockList, exit] = object.traverseBusBackwards(nextBlocks(i), signal, [], []);
+                        busPort=get_param(nextBlocks(i), 'PortHandles');
+                        [path, blockList, exit] = object.traverseBusBackwards(busPort.Inport, signal, [], []);
                         object.TraversedPortsCo = [object.TraversedPortsCo path];
                         object.CoreachedObjects = [object.CoreachedObjects blockList];
-                        object.PortsToTraverseCo(end + 1) = exit;
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
 
                     case 'If'
                         % Handles the case where the next block is an if
@@ -1167,13 +1201,15 @@ classdef ReachCoreach < handle
             end
         end
         
-        function [dest, path, blockList, exit] = traverseBusForwards(object, block, signal, path, blockList)
+        function [path, blockList, exit] = traverseBusForwards(object, oport, signal, path, blockList)
             % Go until a bus creator is enoucntered. Then return the path 
             % taken there as well as the exiting port.
-            for g = 1:length(block)
-                blockList(end + 1) = get_param(block(g), 'Handle');
-                portConnectivity = get_param(block(g), 'PortConnectivity');
-                dstBlocks = portConnectivity(end).DstBlock;
+            for g = 1:length(oport)
+                blockList(end + 1) = get_param(get_param(oport(g), 'parent'), 'Handle');
+                portline = get_param(oport(g), 'line');
+                dstBlocks = get_param(portline, 'DstBlockHandle');
+                blockList(end + 1) = portline;
+                path(end +1) = oport(g);
                
                 % If the bus ends early (not at bus selector) output empty
                 % dest and exit
@@ -1185,11 +1221,6 @@ classdef ReachCoreach < handle
                 % For each of the destination blocks
                 for h = 1:length(dstBlocks)
                     next = dstBlocks(h);
-                    portHandles = get_param(block(g), 'PortHandles');
-                    port = portHandles.Outport;
-                    path(end + 1) = port;
-                    portline = get_param(port, 'line');
-                    blockList(end + 1) = portline;
                     blockType = get_param(next, 'BlockType');
 
                     switch blockType
@@ -1197,32 +1228,36 @@ classdef ReachCoreach < handle
                             % if next block is bus creator, call the
                             % traverse function recursively.
                             signalName = get_param(portline, 'Name');
-                            if ~isempty(signalName)
-                                dstPort = get_param(line, 'DstPortHandle');
-                                portNum = get_param(dstPort, 'PortNumber');
-                                signalName = ['signal' num2str(portNum)];
-                                [intermediate, path, blockList, exit] = object.traverseBusForwards(get_param(next, 'handle'), ...
-                                    signalName, path, blockList);
-                                path = [path exit];
-                                dest = [];
-                                exit = [];
-                                for i = 1:length(intermediate)
-                                    [tempDest, tempPath, tempBlockList, tempExit] = object.traverseBusForwards(get_param(intermediate(i), 'handle'), ...
-                                        signal, path, blockList);
-                                    dest = [dest tempDest];
-                                    exit = [exit tempExit];
-                                    blockList = [blockList tempBlockList];
-                                    path = [path, tempPath];
+                            
+                            %get all destination ports from the signal
+                            %line into the bus creator
+                            dstPort = get_param(portline, 'DstPortHandle');
+                            nextports = get_param(next, 'PortHandles');
+                            inports = nextports.Inport;
+                            dstPort=intersect(dstPort, inports);
+                            if isempty(signalName)
+                                for i=1:length(dstPort)
+                                    portNum = get_param(dstPort(g), 'PortNumber');
+                                    signalName = ['signal' num2str(portNum)];
+                                    [path, blockList, intermediate] = object.traverseBusForwards(nextports.Outport, ...
+                                        signalName, path, blockList);
+                                    path = [path intermediate];
+                                    exit = [];
+                                    for j = 1:length(intermediate)
+                                        [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(intermediate(j), ...
+                                            signal, path, blockList);
+                                        exit = [exit tempExit];
+                                        blockList = [blockList tempBlockList];
+                                        path = [path, tempPath];
+                                    end
                                 end
                             else
-                                [intermediate, path, blockList, ~] = object.traverseBusForwards(get_param(next, 'handle'), ...
+                                [path, blockList, intermediate] = object.traverseBusForwards(nextports.Outport, ...
                                     signalName, path, blockList);
-                                dest = [];
                                 exit = [];
                                 for i = 1:length(intermediate)
-                                    [tempDest, tempPath, tempBlockList, tempExit] = object.traverseBusForwards(get_param(intermediate(i), 'handle'), ...
+                                    [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(intermediate(i), ...
                                         signal, path, blockList);
-                                    dest = [dest tempDest];
                                     exit = [exit tempExit];
                                     blockList = [blockList tempBlockList];
                                     path = [path, tempPath];
@@ -1238,13 +1273,10 @@ classdef ReachCoreach < handle
                             outputs = regexp(outputs, ',', 'split');
                             portNum = find(strcmp(outputs(:), signal));
                             if ~isempty(portNum)
-                                dest = get_param(next, 'PortConnectivity');
-                                dest = dest(1+ portNum).DstBlock;
                                 exit = get_param(next, 'PortHandles');
                                 exit = exit.Outport;
                                 exit = exit(portNum);
                             else
-                                dest = [];
                                 exit = [];
                             end
 
@@ -1252,15 +1284,15 @@ classdef ReachCoreach < handle
                             % Follow bused signal through goto
                             blockList(end + 1) = get_param(next , 'handle');
                             froms = findFromsInScope(next);
-                            dest = [];
                             exit = [];
                             for i = 1:length(froms)
-                                [tempDest, tempPath, tempBlockList, tempExit] = object.traverseBusForwards(get_param(froms{i}, 'handle'), ...
+                                outport=get_param(froms{i}, 'PortHandles');
+                                outport=outport.Outport;
+                                [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(outport, ...
                                     signal, path, blockList);
-                                dest = [dest tempDest];
                                 exit = [exit tempExit];
                                 blockList = [blockList tempBlockList];
-                                path = [path, tempPath];
+                                path = [path tempPath];
                                 tag = findVisibilityTag(froms{i});
                                 if ~isempty(tag)
                                     blockList(end + 1) = get_param(tag, 'Handle');
@@ -1270,13 +1302,18 @@ classdef ReachCoreach < handle
                         case 'SubSystem'
                             % Follow bused signal into subsystem
                             blockList(end + 1) = get_param(next , 'handle');
-                            blockList(end + 1) = portline;
                             dstPorts = get_param(portline, 'DstPortHandle');
+                            exit=[];
                             for j = 1:length(dstPorts)
-                                portNum = get_param(dstPorts(j), 'PortNumber');
-                                inport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
-                                [dest, path, blockList, exit] = object.traverseBusForwards(get_param(inport, 'handle'), ...
-                                    signal, path, blockList);
+                                if strcmp(get_param(dstPorts(j), 'parent'), getfullname(next))
+                                    portNum = get_param(dstPorts(j), 'PortNumber');
+                                    inport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
+                                    inportPort = get_param(inport, 'PortHandles');
+                                    inportPort = inportPort.Outport;
+                                    [path, blockList, tempExit] = object.traverseBusForwards(inportPort, ...
+                                        signal, path, blockList);
+                                    exit=[exit tempExit];
+                                end
                             end
 
                         case 'Outport'
@@ -1291,10 +1328,9 @@ classdef ReachCoreach < handle
                                 path(end + 1) = port;
                                 blockList(end + 1) = get_param(port, 'line');
                                 connectedBlock = get_param(get_param(port, 'line'), 'DstBlockHandle');
-                                [dest, path, blockList, exit] = object.traverseBusForwards(get_param(connectedBlock, 'handle'), ...
+                                [path, blockList, exit] = object.traverseBusForwards(port, ...
                                     signal, path, blockList);
                             else
-                                dest = [];
                                 exit = [];
                             end
 
@@ -1302,293 +1338,126 @@ classdef ReachCoreach < handle
                             blockList(end + 1) = get_param(next , 'handle');
                             exit = get_param(next, 'PortHandles');
                             exit = exit.Outport;
-                            dest = [];
 
                         otherwise
-                            [dest, path, blockList, exit] = object.traverseBusForwards(get_param(next, 'handle'), ...
+                            nextPorts = get_param(next, 'PortHandles');
+                            nextPorts = nextPorts.Outport;
+                            [path, blockList, exit] = object.traverseBusForwards(nextPorts, ...
                                 signal, path, blockList);
                     end
                 end
             end
         end
         
-        function [dest, path, blockList, exit] = traverseBusBackwards(object, block, signal, path, blockList)
+        function [path, blockList, exit] = traverseBusBackwards(object, iport, signal, path, blockList)
             % Go until you encounter a bus creator, then return the path 
             % taken there as well as the exiting port
-            blockList(end + 1) = get_param(block, 'Handle');
-            portConnectivity = get_param(block, 'PortConnectivity');
-            srcBlocks = portConnectivity(1).SrcBlock;
-
-            if isempty(srcBlocks)
-                dest = [];
-                exit = [];
-                return
-            end
-
-            next = srcBlocks(1);
-            portHandles = get_param(block, 'PortHandles');
-            port = portHandles.Inport;
-            path(end + 1) = port;
-            portLine = get_param(port, 'line');
-            blockList(end + 1) = portLine;
-            blockType = get_param(next, 'BlockType');
-
-            % If the bus ends early (not at bus selector) output empty
-            % dest and exit
-            switch blockType
-                case 'BusSelector'
-                    %  If another bus selector is encountered, call the
-                    %  function recursively
-                    [intermediate, path, blockList, exit] = object.traverseBusBackwards(get_param(next, 'handle'), ...
-                        signal, path, blockList);
-                    path = [path exit];
-                    dest = [];
+            for h = length(iport)
+                blockList(end + 1) = get_param(get_param(iport(h), 'parent'), 'Handle');
+                portLine = get_param(iport(h), 'line');
+                srcBlocks = get_param(portLine, 'SrcBlockHandle');
+                path(end + 1) = iport(h);
+                blockList(end + 1) = portLine;
+                
+                if isempty(srcBlocks)
                     exit = [];
-                    for i = 1:length(intermediate)
-                        [tempDest, tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(get_param(intermediate(i), 'handle'), ...
-                            signal, path, blockList);
-                        dest = [dest tempDest];
-                        exit = [exit tempExit];
-                        blockList = [blockList tempBlockList];
-                        path = [path, tempPath];
-                    end
-
-                case 'BusCreator'
-                    % case where the exit of the current bused signal is
-                    % found
-                    blockList(end + 1) = next;
-                    inputs = get_param(next, 'LineHandles');
-                    inputs = inputs.Inport;
-                    inputs = get_param(inputs, 'Name');
-                    portNum = find(strcmp(signal, inputs));
-                    if isempty(portNum)
-                        portNum = regexp(signal, '[1-9]*$', 'match');
-                        portNum = str2num(portNum{1});
-                    end
-                    dest = get_param(next, 'PortConnectivity');
-                    dest = dest(1+portNum).SrcBlock;
-                    exit = get_param(next, 'PortHandles');
-                    exit = exit.Inport;
-                    exit = exit(portNum);
-
-                case 'From'
-                    % Follow the bus through the from blocks
-                    blockList(end + 1) = next;
-                    gotos = findGotosInScope(next);
-                    dest = [];
-                    exit = [];
-                    for i = 1:length(gotos)
-                        [tempDest, tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(get_param(gotos{i}, 'handle'), ...
-                            signal, path, blockList);
-                        dest = [dest tempDest];
-                        exit = [exit tempExit];
-                        blockList = [blockList tempBlockList];
-                        path = [path, tempPath];
-                        tag = findVisibilityTag(gotos{i});
-                        if ~isempty(tag)
-                            blockList(end + 1) = get_param(tag, 'Handle');
-                        end
-                    end
-
-                case 'SubSystem'
-                    % Follow the bus into a subsystem
-                    blockList(end + 1) = next;
-                    blockList(end + 1) = portline;
-                    srcPorts = get_param(line, 'SrcPortHandle');
-                    for j = 1:length(srcPorts)
-                        portNum = get_param(srcPorts(j), 'PortNumber');
-                        inport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
-                        [dest, path, blockList, exit] = object.traverseBusBackwards(get_param(inport, 'handle'), signal, path, blockList);
-                    end
-
-                case 'Inport'
-                    % Follow the bus out of the subsystem or end
-                    portNum = get_param(next, 'Port');
-                    parent = get_param(next, 'parent');
-                    if isempty(get_param(parent, 'parent'))
-                        blockList(end + 1) = get_param(parent, 'Handle');
-                        port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                            'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
-                        path(end + 1) = port;
-                        blockList = get_param(port, 'line');
-                        connectedBlock = get_param(get_param(port, 'line'), 'SrcBlockHandle');
-                        [dest, path, blockList, exit] = object.traverseBusBackwards(get_param(connectedBlock, 'handle'), signal, path, blockList);
-                    else
-                        dest = [];
-                        exit = [];
-                        blockList(end + 1) = next;
-                    end
-                    
-                otherwise
-                    [dest, path, blockList, exit] = object.traverseBusBackwards(get_param(next, 'handle'), signal, path, blockList);
-            end
-        end
-        
-        function [dest, path, blockList, exit] = traverseMuxForwards(object, block, signal, path, blockList)
-            %go until you hit a bus creator, then return the path taken there as
-            %well as the exiting port
-            for g = 1:length(block)
-                blockList(end+1) = get_param(block(g), 'Handle');
-                portConnectivity = get_param(block(g), 'PortConnectivity');
-                dstBlocks = portConnectivity(end).DstBlock;
-                %if the bus ends early (not at bus selector) output empty
-                %dest and exit
-                if isempty(dstBlocks)
-                    dest = [];
-                    exit = [];
+                    return
                 end
-                %for each of the destination blocks
-                for h = 1:length(dstBlocks)
-                    next = dstBlocks(h);
-                    portHandles = get_param(block(g), 'PortHandles');
-                    port = portHandles.Outport;
-                    path(end+1) = port;
-                    portline = get_param(port, 'line');
-                    blockList(end+1) = portline;
-                    blockType = get_param(next, 'BlockType');
-                    switch blockType
-                        case 'Demux'
-                            %base case for recursion, get the exiting
-                            %port from the mux and pass out all
-                            %other relevant information
-                            portHandles = get_param(dstBlocks(h), 'PortHandles');
-                            portHandles = portHandles.Outport;
-                            exit = portHandles(signal);
-                            blockList(end+1) = dstBlocks(h);
-                            dest = get_param(exit, 'DstBlockHandle');
-                        case 'Goto'
-                            %follow bused signal through goto
-                            blockList(end+1) = get_param(next , 'handle');
-                            froms = findFromsInScope(next);
-                            dest = [];
-                            exit = [];
-                            for i = 1:length(froms)
-                                [tempDest, tempPath, tempBlockList, tempExit] = object.traverseMuxForwards(get_param(froms{i}, 'handle'), ...
-                                    signal, path, blockList);
-                                dest = [dest tempDest];
-                                exit = [exit tempExit];
-                                blockList = [blockList tempBlockList];
-                                path = [path, tempPath];
-                                tag = findVisibilityTag(froms{i});
-                                if ~isempty(tag)
-                                    blockList(end+1) = get_param(tag, 'Handle');
-                                end
-                            end
-                        case 'SubSystem'
-                            %follow bused signal into subsystem
-                            blockList(end+1) = get_param(next , 'handle');
-                            blockList(end+1) = portline;
-                            dstPorts = get_param(portline, 'DstPortHandle');
-                            for j = 1:length(dstPorts)
-                                portNum = get_param(dstPorts(j), 'PortNumber');
-                                inport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
-                                [dest, path, blockList, exit] = object.traverseMuxForwards(get_param(inport, 'handle'), ...
-                                    signal, path, blockList);
-                            end
-                        case 'Outport'
-                            %follow bused signal out of subsystem
-                            blockList(end+1) = get_param(next , 'handle');
-                            portNum = get_param(next, 'Port');
-                            parent = get_param(next, 'parent');
-                            if ~isempty(get_param(parent, 'parent'))
-                                blockList(end+1) = get_param(parent, 'Handle');
-                                port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                                    'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
-                                path(end+1) = port;
-                                blockList(end+1) = get_param(port, 'line');
-                                connectedBlock = get_param(get_param(port, 'line'), 'DstBlockHandle');
-                                [dest, path, blockList, exit] = object.traverseMuxForwards(get_param(connectedBlock, 'handle'), ...
-                                    signal, path, blockList);
-                            else
-                                dest = [];
-                                exit = [];
-                            end
-                        otherwise
-                            [dest, path, blockList, exit] = object.traverseMuxForwards(get_param(next, 'handle'), ...
+                
+                next = srcBlocks(1);
+                next = get_param(next, 'Handle');
+                blockType = get_param(next, 'BlockType');
+                nextPorts = get_param(next, 'PortHandles');
+                
+                % If the bus ends early (not at bus selector) output empty
+                % dest and exit
+                switch blockType
+                    case 'BusSelector'
+                        %  If another bus selector is encountered, call the
+                        %  function recursively
+                        srcPort=get_param(portLine, 'SrcPortHandle');
+                        portNum = get_param(srcPort, 'PortNumber');
+                        tempSignal = get_param(next, 'OutputSignals');
+                        tempSignal = regexp(tempSignal, ',', 'split');
+                        tempSignal = tempSignal{portNum};
+                        [path, blockList, intermediate] = object.traverseBusBackwards(nextPorts.Inport, ...
+                            tempSignal, path, blockList);
+                        path = [path intermediate];
+                        exit = [];
+                        for i = 1:length(intermediate)
+                            [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(intermediate(i), ...
                                 signal, path, blockList);
-                    end
-                end
-            end
-        end
-        
-        function [dest, path, blockList, exit] = traverseMuxBackwards(object, block, signal, path, blockList)
-            %go until you hit a bus creator, then return the path taken there as
-            %well as the exiting port
-            blockList(end+1) = get_param(block, 'Handle');
-            portConnectivity = get_param(block, 'PortConnectivity');
-            srcBlocks = portConnectivity(1).SrcBlock;
-            if isempty(srcBlocks)
-                dest = [];
-                exit = [];
-                return
-            end
-            next = srcBlocks(1);
-            portHandles = get_param(block, 'PortHandles');
-            port = portHandles.Inport;
-            path(end+1) = port;
-            portLine = get_param(port, 'line');
-            blockList(end+1) = portLine;
-            blockType = get_param(next, 'BlockType');
-            %if the bus ends early (not at bus selector) output empty
-            %dest and exit
-            switch blockType
-                case 'Mux'
-                    %case where the exit of the current bused signal is
-                    %found
-                    portHandles=get_param(next, 'PortHandles');
-                    portHandles=portHandles.Inport;
-                    exit=portHandles(signal);
-                    blockList(end+1)= next;
-                    dest=get_param(exit, 'DstBlockHandle');
-                case 'From'
-                    %follow the bus through the from blocks
-                    blockList(end+1) = next;
-                    gotos = findGotosInScope(next);
-                    dest = [];
-                    exit = [];
-                    for i = 1:length(gotos)
-                        [tempDest, tempPath, tempBlockList, tempExit] = object.traverseMuxBackwards(get_param(gotos{i}, 'handle'), ...
-                            signal, path, blockList);
-                        dest = [dest tempDest];
-                        exit = [exit tempExit];
-                        blockList = [blockList tempBlockList];
-                        path = [path, tempPath];
-                        tag = findVisibilityTag(gotos{i});
-                        if ~isempty(tag)
-                            blockList(end+1) = get_param(tag, 'Handle');
+                            exit = [exit tempExit];
+                            blockList = [blockList tempBlockList];
+                            path = [path, tempPath];
                         end
-                    end
-                case 'SubSystem'
-                    %follow the bus into a subsystem
-                    blockList(end+1) = next;
-                    blockList(end+1) = portline;
-                    srcPorts = get_param(line, 'SrcPortHandle');
-                    for j = 1:length(srcPorts)
-                        portNum = get_param(srcPorts(j), 'PortNumber');
-                        inport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
-                        [dest, path, blockList, exit] = object.traverseMuxBackwards(get_param(inport, 'handle'), signal, path, blockList);
-                    end
-                case 'Inport'
-                    %follow the bus out of the subsystem or end
-                    portNum = get_param(next, 'Port');
-                    parent = get_param(next, 'parent');
-                    if isempty(get_param(parent, 'parent'))
-                        blockList(end+1) = get_param(parent, 'Handle');
-                        port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                            'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
-                        path(end+1) = port;
-                        blockList = get_param(port, 'line');
-                        connectedBlock = get_param(get_param(port, 'line'), 'SrcBlockHandle');
-                        [dest, path, blockList, exit] = object.traverseMuxBackwards(get_param(connectedBlock, 'handle'), signal, path, blockList);
-                    else
-                        dest = [];
+                        
+                    case 'BusCreator'
+                        % case where the exit of the current bused signal is
+                        % found
+                        blockList(end + 1) = next;
+                        inputs = get_param(next, 'LineHandles');
+                        inputs = inputs.Inport;
+                        inputs = get_param(inputs, 'Name');
+                        portNum = find(strcmp(signal, inputs));
+                        if isempty(portNum)
+                            portNum = regexp(signal, '[1-9]*$', 'match');
+                            portNum = str2num(portNum{1});
+                        end
+                        exit = get_param(next, 'PortHandles');
+                        exit = exit.Inport;
+                        exit = exit(portNum);
+                        
+                    case 'From'
+                        % Follow the bus through the from blocks
+                        blockList(end + 1) = next;
+                        gotos = findGotosInScope(next);
                         exit = [];
-                        blockList(end+1) = next;
-                    end
-                case 'BusToVector'
-                    
-                otherwise
-                    [dest, path, blockList, exit] = object.traverseMuxBackwards(get_param(next, 'handle'), signal, path, blockList);
+                        for i = 1:length(gotos)
+                            gotoPort = get_param(gotos{i}, 'PortHandles');
+                            gotoPort = gotoPort.Inport;
+                            [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(gotoPort, ...
+                                signal, path, blockList);
+                            exit = [exit tempExit];
+                            blockList = [blockList tempBlockList];
+                            path = [path, tempPath];
+                            tag = findVisibilityTag(gotos{i});
+                            if ~isempty(tag)
+                                blockList(end + 1) = get_param(tag, 'Handle');
+                            end
+                        end
+                        
+                    case 'SubSystem'
+                        % Follow the bus into a subsystem
+                        blockList(end + 1) = next;
+                        srcPorts = get_param(portLine, 'SrcPortHandle');
+                        for j = 1:length(srcPorts)
+                            portNum = get_param(srcPorts(j), 'PortNumber');
+                            outport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
+                            outportPort = get_param(outport, 'PortHandles');
+                            outportPort = outportPort.Inport;
+                            [path, blockList, exit] = object.traverseBusBackwards(outportPort, signal, path, blockList);
+                        end
+                        
+                    case 'Inport'
+                        % Follow the bus out of the subsystem or end
+                        portNum = get_param(next, 'Port');
+                        parent = get_param(next, 'parent');
+                        if ~isempty(get_param(parent, 'parent'))
+                            blockList(end + 1) = get_param(parent, 'Handle');
+                            blockList(end + 1) = get_param(next, 'Handle');
+                            port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
+                            path(end + 1) = port;
+                            [path, blockList, exit] = object.traverseBusBackwards(port, signal, path, blockList);
+                        else
+                            exit = [];
+                            blockList(end + 1) = get_param(next, 'Handle');
+                        end
+                        
+                    otherwise
+                        [path, blockList, exit] = object.traverseBusBackwards(nextPorts.Inport, signal, path, blockList);
+                end
             end
         end
     end

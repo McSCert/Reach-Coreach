@@ -11,6 +11,7 @@ function writes = findWritesInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a read block.' char(10)])
         help(mfilename)
+        writes={};
         return
     end
 

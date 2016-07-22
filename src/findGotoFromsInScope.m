@@ -11,6 +11,7 @@ function blockList = findGotoFromsInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a goto tag visibility block.' char(10)])
         help(mfilename)
+        blockList={};
         return
     end
     

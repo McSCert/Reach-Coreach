@@ -12,6 +12,7 @@ function visBlock = findVisibilityTag(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a goto or from block.' char(10)])
         help(mfilename)
+        visBlock={};
         return
     end
 

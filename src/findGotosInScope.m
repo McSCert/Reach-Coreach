@@ -10,6 +10,7 @@ function goto = findGotosInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a from block.' char(10)])
         help(mfilename)
+        goto={};
         return
     end
     
