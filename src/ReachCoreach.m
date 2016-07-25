@@ -94,7 +94,7 @@ classdef ReachCoreach < handle
                 assert(ischar(color2))
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
-                    ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
+                    ' Invalid color(s). Accepted colors are ''red'', ''green'', ' ...
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
                 help(mfilename)
                 return
@@ -102,7 +102,7 @@ classdef ReachCoreach < handle
             
             % Ensure that the colour selected are acceptable
             try
-                acceptedColors ={'cyan', 'red', 'blue', 'green', 'magenta', ...
+                acceptedColors = {'cyan', 'red', 'blue', 'green', 'magenta', ...
                     'yellow', 'white', 'black'};
                 assert(isempty(setdiff(color1, acceptedColors)))
                 assert(isempty(setdiff(color2, acceptedColors)))
@@ -161,7 +161,7 @@ classdef ReachCoreach < handle
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             toKeep = [toKeep; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
             toDelete = setdiff(allObjects, toKeep);
-            warningID='MATLAB:DELETE:FileNotFound';
+            warningID = 'MATLAB:DELETE:FileNotFound';
             warning('off', warningID);
             delete(toDelete);
             warning('on', warningID);
@@ -561,17 +561,17 @@ classdef ReachCoreach < handle
                         object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
                     end
                 elseif strcmp(selectionType, 'TriggerPort')
-                    parent=get_param(selection{i}, 'parent');
+                    parent = get_param(selection{i}, 'parent');
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'trigger');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
                 elseif strcmp(selectionType, 'EnablePort')
-                    parent=get_param(selection{i}, 'parent');
+                    parent = get_param(selection{i}, 'parent');
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'enable');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
                 elseif strcmp(selectionType, 'ActionPort')
-                    parent=get_param(selection{i}, 'parent');
+                    parent = get_param(selection{i}, 'parent');
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'ifaction');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
@@ -758,7 +758,7 @@ classdef ReachCoreach < handle
                         % separated.
                         signalName = get_param(line, 'Name');
                         dstPort = get_param(line, 'DstPortHandle');
-                        for j=1:length(dstPort)
+                        for j = 1:length(dstPort)
                             if isempty(signalName)
                                 portNum = get_param(dstPort(j), 'PortNumber');
                                 signalName = ['signal' num2str(portNum)];
@@ -780,7 +780,7 @@ classdef ReachCoreach < handle
                         ports = get_param(nextBlocks(i), 'PortHandles');
                         outports = ports.Outport;
                         dstPort = get_param(line, 'DstPortHandle');
-                        for j=1:length(dstPort)
+                        for j = 1:length(dstPort)
                             if strcmp(get_param(get_param(dstPort(i),'parent'), 'BlockType'), 'If')
                                 portNum = get_param(dstPort(i), 'PortNumber');
                                 cond = ['u' num2str(portNum)];
