@@ -143,6 +143,18 @@ classdef ReachCoreach < handle
         %
         % EXAMPLE
         %   obj.slice()
+        
+            % Ensure that there is a selection before slicing.
+            try
+                assert(~isempty(object.ReachedObjects))
+                assert(~isempty(object.CoreachedObjects))
+            catch
+                disp(['Error using ' mfilename ':' char(10) ...
+                    'There are no reached/coreached objects' ...
+                    ' to slice.' char(10)])
+                help(mfilename)
+                return
+            end
 
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
