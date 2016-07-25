@@ -50,6 +50,4 @@ function mem = findDataStoreMemory(block)
     else
         mem = {};
     end
-
 end
-

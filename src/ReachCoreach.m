@@ -47,8 +47,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     'Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
-                help(mfilename)
+                    'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
             
@@ -59,8 +58,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     'Invalid RootSystemName. Given RootSystemName is not ' ...
-                    'the root level of its model' char(10)])
-                help(mfilename)
+                    'the root level of its model.'])
                 return
             end
             
@@ -95,8 +93,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid color(s). Accepted colors are ''red'', ''green'', ' ...
-                    '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
-                help(mfilename)
+                    '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
                 return
             end
             
@@ -109,8 +106,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
-                    '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.' char(10)])
-                help(mfilename)
+                    '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
                 return
             end
             % Set the desired colors for highlighting.
@@ -210,8 +206,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
-                help(mfilename)
+                    'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
             
@@ -226,8 +221,7 @@ classdef ReachCoreach < handle
                     return
                 else
                     disp(['Error using ' mfilename ':' char(10) ...
-                        ' Invalid RootSystemName.' char(10)])
-                    help(mfilename)
+                        ' Invalid RootSystemName.'])
                     return
                 end
             end
@@ -237,8 +231,7 @@ classdef ReachCoreach < handle
                 assert(iscell(selection));
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
-                    ' Invalid cell argument "selection".' char(10)])
-                help(mfilename)
+                    ' Invalid cell argument "selection".'])
                 return
             end
                         
@@ -252,7 +245,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} ' is not a block in system ' object.RootSystemName char(10)])
+                       selection{i} ' is not a block in system ' object.RootSystemName '.'])
                     break
                 end
                 selectionType = get_param(selection{i}, 'BlockType');
@@ -413,8 +406,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.' char(10)])
-                help(mfilename)
+                    'to RootSystemName may not be loaded or name is invalid.')]
                 return
             end
             
@@ -429,8 +421,7 @@ classdef ReachCoreach < handle
                     return
                 else
                     disp(['Error using ' mfilename ':' char(10) ...
-                        ' Invalid RootSystemName.' char(10)])
-                    help(mfilename)
+                        ' Invalid RootSystemName.'])
                     return
                 end
             end
@@ -440,8 +431,7 @@ classdef ReachCoreach < handle
                 assert(iscell(selection));
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
-                    ' Invalid cell argument "selection".' char(10)])
-                help(mfilename)
+                    ' Invalid cell argument "selection".'])
                 return
             end
             
@@ -455,7 +445,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} ' is not a block in system ' object.RootSystemName])
+                       selection{i} ' is not a block in system ' object.RootSystemName '.'])
                     break
                 end
                 selectionType = get_param(selection{i}, 'BlockType');

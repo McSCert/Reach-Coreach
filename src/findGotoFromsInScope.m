@@ -48,4 +48,3 @@ function blockList = findGotoFromsInScope(block)
     blockList = [blockList; find_system(blockParent, 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', gotoTag)];
     blockList = setdiff(blockList, blocksToExclude);
 end
-
