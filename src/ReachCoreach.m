@@ -252,8 +252,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
-                    help(mfilename)
+                       selection{i} ' is not a block in system ' object.RootSystemName char(10)])
                     break
                 end
                 selectionType = get_param(selection{i}, 'BlockType');
@@ -456,8 +455,7 @@ classdef ReachCoreach < handle
                     assert(strcmp(bdroot(selection{i}), object.RootSystemName));
                 catch
                     disp(['Error using ' mfilename ':' char(10) ...
-                       selection{i} 'is not a block in system ' object.RootSystemName char(10)])
-                    help(mfilename)
+                       selection{i} ' is not a block in system ' object.RootSystemName])
                     break
                 end
                 selectionType = get_param(selection{i}, 'BlockType');
