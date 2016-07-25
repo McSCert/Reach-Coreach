@@ -150,9 +150,8 @@ classdef ReachCoreach < handle
                 assert(~isempty(object.CoreachedObjects))
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
-                    'There are no reached/coreached objects' ...
-                    ' to slice.' char(10)])
-                help(mfilename)
+                    ' There are no reached/coreached objects' ...
+                    ' to slice.'])
                 return
             end
 
