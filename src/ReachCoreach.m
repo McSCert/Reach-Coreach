@@ -1252,9 +1252,9 @@ classdef ReachCoreach < handle
                                     end
                                 end
                             else
+                                signalName = [signalName '.' signal];
                                 [path, blockList, intermediate] = object.traverseBusForwards(nextports.Outport, ...
                                     signalName, path, blockList);
-                                exit = [];
                                 for i = 1:length(intermediate)
                                     [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(intermediate(i), ...
                                         signal, path, blockList);
@@ -1357,6 +1357,7 @@ classdef ReachCoreach < handle
         function [path, blockList, exit] = traverseBusBackwards(object, iport, signal, path, blockList)
             % Go until you encounter a bus creator, then return the path 
             % taken there as well as the exiting port
+            exit = [];
             for h = length(iport)
                 blockList(end + 1) = get_param(get_param(iport(h), 'parent'), 'Handle');
                 portLine = get_param(iport(h), 'line');
@@ -1388,7 +1389,6 @@ classdef ReachCoreach < handle
                         [path, blockList, intermediate] = object.traverseBusBackwards(nextPorts.Inport, ...
                             tempSignal, path, blockList);
                         path = [path intermediate];
-                        exit = [];
                         for i = 1:length(intermediate)
                             [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(intermediate(i), ...
                                 signal, path, blockList);
@@ -1406,18 +1406,30 @@ classdef ReachCoreach < handle
                         inputs = get_param(inputs, 'Name');
                         portNum = find(strcmp(signal, inputs));
                         if isempty(portNum)
-                            portNum = regexp(signal, '[1-9]*$', 'match');
+                            match = regexp(signal, '^signal[1-9]', 'match');
+                            portNum = regexp(match{1}, '[1-9]*$', 'match');
                             portNum = str2num(portNum{1});
                         end
-                        exit = get_param(next, 'PortHandles');
-                        exit = exit.Inport;
-                        exit = exit(portNum);
+                        temp = get_param(next, 'PortHandles');
+                        temp = temp.Inport;
+                        temp = temp(portNum);
+                        if ~isempty(regexp(signal, '^(([^\.]*)\.)+[^\.]*$', 'match'))
+                            cutoff = strfind(signal, '.');
+                            cutoff = cutoff(1);
+                            signalName = signal(cutoff+1:end);
+                            [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(temp, ...
+                                signalName, path, blockList);
+                            exit = [exit tempExit];
+                            blockList = [blockList tempBlockList];
+                            path = [path, tempPath];
+                        else
+                            exit = [exit temp];
+                        end
                         
                     case 'From'
                         % Follow the bus through the from blocks
                         blockList(end + 1) = next;
                         gotos = findGotosInScope(next);
-                        exit = [];
                         for i = 1:length(gotos)
                             gotoPort = get_param(gotos{i}, 'PortHandles');
                             gotoPort = gotoPort.Inport;
@@ -1441,7 +1453,8 @@ classdef ReachCoreach < handle
                             outport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
                             outportPort = get_param(outport, 'PortHandles');
                             outportPort = outportPort.Inport;
-                            [path, blockList, exit] = object.traverseBusBackwards(outportPort, signal, path, blockList);
+                            [path, blockList, temp] = object.traverseBusBackwards(outportPort, signal, path, blockList);
+                            exit = [exit temp];
                         end
                         
                     case 'Inport'
@@ -1454,14 +1467,15 @@ classdef ReachCoreach < handle
                             port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
                             path(end + 1) = port;
-                            [path, blockList, exit] = object.traverseBusBackwards(port, signal, path, blockList);
+                            [path, blockList, temp] = object.traverseBusBackwards(port, signal, path, blockList);
+                            exit = [exit temp];
                         else
-                            exit = [];
                             blockList(end + 1) = get_param(next, 'Handle');
                         end
                         
                     otherwise
-                        [path, blockList, exit] = object.traverseBusBackwards(nextPorts.Inport, signal, path, blockList);
+                        [path, blockList, temp] = object.traverseBusBackwards(nextPorts.Inport, signal, path, blockList);
+                        exit = [exit temp];
                 end
             end
         end
