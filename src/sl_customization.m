@@ -204,12 +204,15 @@ function collectGarbageRCR()
     indicesToKeep = ismember(sys, opensys);
     for i = 1:length(globals)
         if (indicesToKeep(i) == 0)
-            eval(['global ' globals{i} ';'])
-            eval(['x =~isempty(' globals{i} ');']);
-            if x
-                eval(['y =~isvalid(' globals{i} ');']);
-                if y
-                    eval([globals{i} '.delete;']);
+            w = strfind(globals{i}, 'reachCoreachObject');
+            if ~isempty(w)
+                eval(['global ' globals{i} ';'])
+                eval(['x =~isempty(' globals{i} ');']);
+                if x
+                    eval(['y =~isvalid(' globals{i} ');']);
+                    if y
+                        eval([globals{i} '.delete;']);
+                    end
                 end
             end
         end
