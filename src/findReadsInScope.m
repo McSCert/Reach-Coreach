@@ -3,6 +3,7 @@ function reads = findReadsInScope(block)
 % Store Write block.
 
     if isempty(block)
+        reads = {};
         return
     end
 

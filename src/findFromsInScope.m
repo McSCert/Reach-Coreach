@@ -2,6 +2,7 @@ function froms = findFromsInScope(block)
 % FINDFROMSINSCOPE Find all the From blocks associated with a Goto block.
 
     if isempty(block)
+        froms = {};
         return
     end
     

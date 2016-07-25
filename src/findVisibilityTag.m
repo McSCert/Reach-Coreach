@@ -4,6 +4,7 @@ function visBlock = findVisibilityTag(block)
 % scoped Goto or From block.
 
     if isempty(block)
+        visBlock = {};
         return
     end
 

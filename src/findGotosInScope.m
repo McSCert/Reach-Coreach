@@ -2,6 +2,7 @@ function goto = findGotosInScope(block)
 % FINDGOTOSINSCOPE Find the Goto block associated with a From block.
 
     if isempty(block)
+        goto = {};
         return
     end
 

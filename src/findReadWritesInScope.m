@@ -3,6 +3,7 @@ function blockList = findReadWritesInScope(block)
 % blocks associated with a Data Store Memory block.
 
     if isempty(block)
+        blockList = {};
         return
     end
 

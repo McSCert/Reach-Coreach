@@ -3,6 +3,7 @@ function mem = findDataStoreMemory(block)
 % Read or Write block.
 
     if isempty(block)
+        mem = {};
         return
     end
 

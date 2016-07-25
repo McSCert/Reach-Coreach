@@ -3,6 +3,7 @@ function blockList = findGotoFromsInScope(block)
 % Goto Tag Visibility block.
 
     if isempty(block)
+        blockList = {};
         return
     end
 
