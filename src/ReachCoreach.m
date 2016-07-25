@@ -1288,10 +1288,12 @@ classdef ReachCoreach < handle
                             else
                                 for i = 1:length(outputs)
                                     index = strfind(signal, outputs{i});
-                                    if index == 1
-                                        temp = get_param(next, 'PortHandles');
-                                        temp = temp.Outport;
-                                        exit = [exit temp(i)];
+                                    if ~isempty(index)
+                                        if index(1) == 1
+                                            temp = get_param(next, 'PortHandles');
+                                            temp = temp.Outport;
+                                            exit = [exit temp(i)];
+                                        end
                                     end
                                 end
                             end
