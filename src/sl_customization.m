@@ -207,7 +207,10 @@ function collectGarbageRCR()
             eval(['global ' globals{i} ';'])
             eval(['x =~isempty(' globals{i} ');']);
             if x
-                eval([globals{i} '.delete;']);
+                eval(['y =~isvalid(' globals{i} ');']);
+                if y
+                    eval([globals{i} '.delete;']);
+                end
             end
         end
     end
