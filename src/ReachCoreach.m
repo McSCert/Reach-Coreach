@@ -551,6 +551,21 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects = [object.CoreachedObjects blockList];
                         object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
                     end
+                elseif strcmp(selectionType, 'TriggerPort')
+                    parent=get_param(selection{i}, 'parent');
+                    portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', parent, 'PortType', 'trigger');
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
+                elseif strcmp(selectionType, 'EnablePort')
+                    parent=get_param(selection{i}, 'parent');
+                    portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', parent, 'PortType', 'enable');
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
+                elseif strcmp(selectionType, 'ActionPort')
+                    parent=get_param(selection{i}, 'parent');
+                    portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                'type', 'port', 'parent', parent, 'PortType', 'ifaction');
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
                 end
                 % Add blocks to coreach from selection, and their ports to the
                 % list to traverse
