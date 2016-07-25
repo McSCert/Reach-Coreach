@@ -406,7 +406,7 @@ classdef ReachCoreach < handle
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' Invalid RootSystemName. Model corresponding ' ...
-                    'to RootSystemName may not be loaded or name is invalid.')]
+                    'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
             
