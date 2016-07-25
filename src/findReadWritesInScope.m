@@ -9,7 +9,7 @@ function blockList = findReadWritesInScope(block)
         assert(strcmp(blockType, 'DataStoreMemory'));
     catch
         disp(['Error using ' mfilename ':' char(10) ...
-            ' Block parameter is not a data store memory block.' char(10)])
+            ' Block parameter is not a Data Store Memory block.' char(10)])
         help(mfilename)
         blockList = {};
         return

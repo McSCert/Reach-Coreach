@@ -9,7 +9,7 @@ function mem = findDataStoreMemory(block)
         assert(strcmp(blockType, 'DataStoreRead') || strcmp(blockType, 'DataStoreWrite'));
     catch
         disp(['Error using ' mfilename ':' char(10) ...
-            'Block parameter is not a Data Store Read or Write block.' char(10)])
+            ' Block parameter is not a Data Store Read or Write block.' char(10)])
         help(mfilename)
         mem = {};
         return

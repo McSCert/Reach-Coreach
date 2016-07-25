@@ -9,7 +9,7 @@ function blockList = findGotoFromsInScope(block)
         assert(strcmp(blockType, 'GotoTagVisibility'));
     catch
         disp(['Error using ' mfilename ':' char(10) ...
-            'Block parameter is not a goto tag visibility block.' char(10)])
+            ' Block parameter is not a Goto Tag Visibility block.' char(10)])
         help(mfilename)
         blockList = {};
         return

@@ -8,7 +8,7 @@ function goto = findGotosInScope(block)
         assert(strcmp(blockType, 'From'));
     catch
         disp(['Error using ' mfilename ':' char(10) ...
-            'Block parameter is not a from block.' char(10)])
+            ' Block parameter is not a From block.' char(10)])
         help(mfilename)
         goto = {};
         return
