@@ -1,8 +1,8 @@
 function writes = findWritesInScope(block)
-%FINDWRITESINSCOPE function for finding all associated writes of a data
-%store read block
+% FINDWRITESINSCOPE Find all the Data Store Writes associated with a Data
+% Store Read block.
 
-    %make sure input is a valid data store read block
+    % Ensure input is a valid Data Store Read block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
@@ -11,7 +11,7 @@ function writes = findWritesInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a read block.' char(10)])
         help(mfilename)
-        writes={};
+        writes = {};
         return
     end
 
@@ -20,5 +20,4 @@ function writes = findWritesInScope(block)
     writes = findReadWritesInScope(memBlock);
     blocksToExclude = find_system(get_param(memBlock, 'parent'), 'FollowLinks', 'on', 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName);
     writes = setdiff(writes, blocksToExclude);
-
 end

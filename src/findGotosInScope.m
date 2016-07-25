@@ -1,7 +1,7 @@
 function goto = findGotosInScope(block)
-%FINDGOTOSINSCOPE function that finds associated goto for a from block
+% FINDGOTOSINSCOPE Find the Goto block associated with a From block.
 
-    %make sure block parameter is a valid from block
+    % Ensure block parameter is a valid From block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
@@ -10,7 +10,7 @@ function goto = findGotosInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a from block.' char(10)])
         help(mfilename)
-        goto={};
+        goto = {};
         return
     end
     
@@ -20,8 +20,8 @@ function goto = findGotosInScope(block)
         return
     end
     
-    % Get the corresponding gotos for a given from that's in the
-    % correct scope.
+    % Get the corresponding Gotos for a given From that are in the
+    % correct scope
     visibilityBlock = findVisibilityTag(block);
     if isempty(visibilityBlock)
         goto = find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'global');

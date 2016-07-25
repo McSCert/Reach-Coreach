@@ -1,17 +1,17 @@
 function mem = findDataStoreMemory(block)
-%FINDDATASTOREMEMORY finds the associated data store memory block to a data
-%store read or write
+% FINDDATASTOREMEMORY Find the Data Store Memory block of a Data Store
+% Read or Write block.
 
-    %make sure input is a valid data store read/write block
+    % Ensure input block is a valid Data Store Read/Write block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
         assert(strcmp(blockType, 'DataStoreRead') || strcmp(blockType, 'DataStoreWrite'));
     catch
         disp(['Error using ' mfilename ':' char(10) ...
-            'Block parameter is not a read or write block.' char(10)])
+            'Block parameter is not a Data Store Read or Write block.' char(10)])
         help(mfilename)
-        mem={};
+        mem = {};
         return
     end
 
@@ -20,21 +20,19 @@ function mem = findDataStoreMemory(block)
     level = get_param(block, 'parent');
     currentLevel = '';
     
-    %level of the data store write block being split into subsystem name
-    %tokens
+    % Level of the Data Store Read/Write being split into subsystem name tokens
     levelSplit = regexp(level, '/', 'split');
     
     for i = 1:length(dataStoreMems)
-        %get level of subsystem for data store mem
+        % Get level of subsystem for the Data Store Memory
         memScope = get_param(dataStoreMems{i}, 'parent');
         memScopeSplit = regexp(memScope, '/', 'split');
         inter = intersect(memScopeSplit, levelSplit);
-        %check if the data store memory is above the write in system
-        %hierarchy
+        % Check if the Data Store Memory is above the write in system hierarchy
         if (length(inter) == length(memScopeSplit))
             currentLevelSplit = regexp(currentLevel, '/', 'split');
-            %if it's the closest to the write, note that as the correct
-            %scope for the data store memory block
+            % If it is closest to the Read/Write, note that as the correct
+            % scope for the Data Store Memory block
             if isempty(currentLevel) || length(currentLevelSplit) < length(memScopeSplit)
                 currentLevel = memScope;
             end
@@ -45,7 +43,7 @@ function mem = findDataStoreMemory(block)
         mem = find_system(currentLevel, 'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
         mem = mem{1};
     else
-        mem ={};
+        mem = {};
     end
 
 end

@@ -1,9 +1,9 @@
 
 function visBlock = findVisibilityTag(block)
-%FINDVISIBILITYTAG Function that finds the associated visibility tag of a
-%scoped goto or from.
+% FINDVISIBILITYTAG Find the Goto Visibility Tag block associated with a
+% scoped Goto or From block.
 
-    %make sure input is a valid goto/from block
+    % Ensure input is a valid Goto/From block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
@@ -12,7 +12,7 @@ function visBlock = findVisibilityTag(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a goto or from block.' char(10)])
         help(mfilename)
-        visBlock={};
+        visBlock = {};
         return
     end
 
@@ -23,19 +23,19 @@ function visBlock = findVisibilityTag(block)
 
     currentLevel = '';
 
-    %finds goto tag visibility block with the closest above the block in
-    %the subsystem hierarchy by comparing their addresses in loop
+    % Find the Goto Tag Visibility block that is the closest, but above the 
+    % block, in the subsystem hierarchy by comparing their addresses
     for i = 1:length(scopedTags)
-        %get level of tag visibility block
+        % Get the level of tag visibility block
         tagScope = get_param(scopedTags{i}, 'parent');
         tagScopeSplit = regexp(tagScope, '/', 'split');
         inter = intersect(tagScopeSplit, levelSplit);
         
-        %check if it's above the block
+        % Check if it is above the block
         if (length(inter) == length(tagScopeSplit))
             currentLevelSplit = regexp(currentLevel, '/', 'split');
-            %if it's the closest to the goto/from, note that as the correct
-            %scope for the visibility block
+            % If it is the closest to the Goto/From, note that as the correct
+            % scope for the visibility block
             if isempty(currentLevel) || length(currentLevelSplit) < length(tagScopeSplit)
                 currentLevel = tagScope;
             end
@@ -46,7 +46,6 @@ function visBlock = findVisibilityTag(block)
         visBlock = find_system(currentLevel, 'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
         visBlock = visBlock{1};
     else
-        visBlock ={};
+        visBlock = {};
     end
-
 end

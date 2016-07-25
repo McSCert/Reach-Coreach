@@ -1,8 +1,7 @@
 function froms = findFromsInScope(block)
-    %FINDFROMSINSCOPE function for finding all associated froms for a goto
-    %block
+% FINDFROMSINSCOPE Find all the From blocks associated with a Goto block.
     
-    %make sure block parameter is a valid goto block
+    % Ensure block parameter is a valid Goto block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
@@ -11,7 +10,7 @@ function froms = findFromsInScope(block)
         disp(['Error using ' mfilename ':' char(10) ...
             'Block parameter is not a goto block.' char(10)])
         help(mfilename)
-        froms={};
+        froms = {};
         return
     end
     
@@ -19,8 +18,9 @@ function froms = findFromsInScope(block)
     scopedTags = find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
     level = get_param(block, 'parent');
     tagVis = get_param(block, 'TagVisibility');
-    %if there are no corresponding tags, goto is assumed to be
-    %local, and all local froms corresponding to the tag are found
+
+    % If there are no corresponding tags, Goto is assumed to be
+    % local, and all local Froms corresponding to the tag are found
     if strcmp(tagVis, 'local')
         froms = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'From', 'GotoTag', tag);
         return
@@ -30,7 +30,7 @@ function froms = findFromsInScope(block)
         blocksToExclude = find_system(get_param(visibilityBlock, 'parent'), 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag);
         froms = setdiff(froms, blocksToExclude);
     else
-        fromsToExclude ={};
+        fromsToExclude = {};
         for i = 1:length(scopedTags)
             fromsToExclude = [fromsToExclude find_system(get_param(scopedTags{i}, 'parent'), ...
                 'FollowLinks', 'on', 'BlockType', 'From', 'GotoTag', tag)];
