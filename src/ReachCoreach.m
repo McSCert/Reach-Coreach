@@ -135,6 +135,7 @@ classdef ReachCoreach < handle
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
+            sfclose('all');
         end
         
         function slice(object)
@@ -158,6 +159,7 @@ classdef ReachCoreach < handle
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
+            sfclose('all');
         end
         
         function clear(object)
