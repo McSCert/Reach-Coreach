@@ -1007,12 +1007,22 @@ classdef ReachCoreach < handle
         % and adds them to the coreach, as well as adding their
         % corresponding port in the parent subsystem block to the list
         % of ports to traverse.
-
+        
+            forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
+            triggerPorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'TriggerPort');
             actionPorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ActionPort');
+            enablePorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'EnablePort');
+            excludeBlocks = [forEach; triggerPorts; actionPorts; enablePorts];
+            toExclude=[];
+            for i = 1:length(excludeBlocks)
+                toExclude(end + 1) = get_param(excludeBlocks{i}, 'handle');
+            end
+            
             for i = 1:length(actionPorts)
                 system = get_param(actionPorts{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
                 sysObjects = setdiff(sysObjects, get_param(system, 'handle'));
+                sysObjects = setdiff(sysObjects, toExclude);
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(actionPorts{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(actionPorts{i}, 'Handle');
@@ -1022,11 +1032,12 @@ classdef ReachCoreach < handle
                 end
             end
             
-            triggerPorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'TriggerPort');
+            
             for i = 1:length(triggerPorts)
                 system = get_param(triggerPorts{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
                 sysObjects = setdiff(sysObjects, get_param(system, 'handle'));
+                sysObjects = setdiff(sysObjects, toExclude);
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(triggerPorts{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(triggerPorts{i}, 'Handle');
@@ -1036,11 +1047,11 @@ classdef ReachCoreach < handle
                 end
             end
             
-            enablePorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'EnablePort');
             for i = 1:length(enablePorts)
                 system = get_param(enablePorts{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
                 sysObjects = setdiff(sysObjects, get_param(system, 'handle'));
+                sysObjects = setdiff(sysObjects, toExclude);
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(enablePorts{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(enablePorts{i}, 'Handle');
@@ -1050,11 +1061,11 @@ classdef ReachCoreach < handle
                 end
             end
             
-            forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
             for i = 1:length(forEach)
                 system = get_param(forEach{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
                 sysObjects = setdiff(sysObjects, get_param(system, 'handle'));
+                sysObjects = setdiff(sysObjects, toExclude);
                 if ~isempty(intersect(sysObjects, object.CoreachedObjects))
                     if isempty(intersect(get_param(forEach{i}, 'Handle'), object.CoreachedObjects))
                         object.CoreachedObjects(end + 1) = get_param(forEach{i}, 'Handle');
