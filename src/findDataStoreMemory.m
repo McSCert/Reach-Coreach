@@ -2,6 +2,10 @@ function mem = findDataStoreMemory(block)
 % FINDDATASTOREMEMORY Find the Data Store Memory block of a Data Store
 % Read or Write block.
 
+    if isempty(block)
+        return
+    end
+
     % Ensure input block is a valid Data Store Read/Write block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));

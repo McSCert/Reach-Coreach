@@ -2,6 +2,10 @@ function blockList = findGotoFromsInScope(block)
 % FINDGOTOFROMSINSCOPE Find all the Goto and From blocks associated with a 
 % Goto Tag Visibility block.
 
+    if isempty(block)
+        return
+    end
+
     % Ensure input is a valid Goto Tag Visibility block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));

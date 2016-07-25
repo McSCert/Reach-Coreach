@@ -2,6 +2,10 @@ function reads = findReadsInScope(block)
 % FINDREADSINSCOPE Find all the Data Store Read blocks associated with a Data
 % Store Write block.
 
+    if isempty(block)
+        return
+    end
+
     % Ensure input is a valid data store write block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));

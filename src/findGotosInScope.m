@@ -1,6 +1,10 @@
 function goto = findGotosInScope(block)
 % FINDGOTOSINSCOPE Find the Goto block associated with a From block.
 
+    if isempty(block)
+        return
+    end
+
     % Ensure block parameter is a valid From block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));

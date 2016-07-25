@@ -3,6 +3,10 @@ function visBlock = findVisibilityTag(block)
 % FINDVISIBILITYTAG Find the Goto Visibility Tag block associated with a
 % scoped Goto or From block.
 
+    if isempty(block)
+        return
+    end
+
     % Ensure input is a valid Goto/From block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));

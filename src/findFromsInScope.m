@@ -1,5 +1,9 @@
 function froms = findFromsInScope(block)
 % FINDFROMSINSCOPE Find all the From blocks associated with a Goto block.
+
+    if isempty(block)
+        return
+    end
     
     % Ensure block parameter is a valid Goto block
     try

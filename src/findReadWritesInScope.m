@@ -2,7 +2,11 @@ function blockList = findReadWritesInScope(block)
 % FINDREADWRITESINSCOPE Find all the Data Store Read and Data Store Write 
 % blocks associated with a Data Store Memory block.
 
-    % Ensure input is a valid Data Store Read/Write block
+    if isempty(block)
+        return
+    end
+
+    % Ensure input is a valid Data Store Memory block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
