@@ -1819,7 +1819,7 @@ classdef ReachCoreach < handle
                             blockList(end+1) = get_param(next, 'handle');
                             portNum = get_param(next, 'Port');
                             parent = get_param(next, 'parent');
-                            if isempty(get_param(parent, 'parent'))
+                            if ~isempty(get_param(parent, 'parent'))
                                 blockList(end+1) = get_param(parent, 'Handle');
                                 port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
@@ -1848,22 +1848,34 @@ classdef ReachCoreach < handle
                             startPort = startPort.Inport;
                             prev = getPrevBlock(startPort);
                             prevType = get_param(prev, 'BlockType');
-                            while ~strcmp(prevType, 'BusCreator')
+                            while ~(strcmp(prevType, 'BusCreator') || strcmp(prevType, 'BusSelector'))
                                 intermPort = get_param(prev, 'PortHandles');
                                 intermPort = intermPort.Inport;
                                 prev = getPrevBlock(intermPort);
-                                prevType = get_param(prev, 'BlockType');
+                                try
+                                    prevType = get_param(prev, 'BlockType');
+                                catch
+                                    prevType = '';
+                                    break
+                                end
                             end
                             
-%                             nextPorts = get_param(next, 'PortHandles');
-%                             prevPorts = nextPorts.Inport;
-%                             nextPorts = nextPorts.Outport;
-%                             [~, ~, startPort] = object.traverseBusBackwards(prevPorts, ...
-%                                 signal, [], []);
-%                             signalNum = get_param(startPort, 'PortNumber');
-%                             [path, blockList, temp] = object.traverseMuxForwards(nextPorts, ...
-%                                 signalNum, path, blockList);
-%                             exit = [exit temp];
+                            if strcmp(prevType, 'BusCreator')
+                                inSignals = get_param(prev, 'LineHandles');
+                                inSignals = inSignals.Inport;
+                                sigName = get_param(inSignals(signal), 'Name');
+                                if isempty(sigName)
+                                    sigName = ['signal' num2str(signal)];
+                                end
+                                [path, blockList, tempExit] = object.traverseBusBackwards(startPort, sigName, path, blockList);
+                                exit = [exit, tempExit];
+                            elseif strcmp(prevType, 'BusSelector')
+                                sigName = get_param(prev, 'OutputSignals');
+                                sigName = regexp(sigName, ',', 'split');
+                                sigName = sigName{signal};
+                                [path, blockList, tempExit] = object.traverseBusBackwards(startPort, sigName, path, blockList);
+                                exit = [exit, tempExit];
+                            end
                             
                         otherwise
                             nextPort = get_param(next, 'PortHandles');
