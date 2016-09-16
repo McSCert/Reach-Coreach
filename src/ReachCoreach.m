@@ -800,9 +800,11 @@ classdef ReachCoreach < handle
                         dstPort = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPort)
                             muxPort = get_param(nextBlocks(i), 'PortHandles');
+                            numPorts = muxPort.Inport;
+                            numPorts = length(numPorts);
                             muxPort = muxPort.Outport;
                             portNum = get_param(dstPort(j), 'PortNumber');
-                            [path, blockList, exit] = object.traverseMuxForwards(muxPort, portNum, [], []);
+                            [path, blockList, exit] = object.traverseMuxForwards(muxPort, portNum, numPorts, [], []);
                             object.TraversedPorts = [object.TraversedPorts path];
                             object.ReachedObjects = [object.ReachedObjects blockList];
                             object.PortsToTraverse = [object.PortsToTraverse exit];
@@ -981,9 +983,11 @@ classdef ReachCoreach < handle
                         srcPort = get_param(line, 'SrcPortHandle');
                         for j = 1:length(srcPort)
                             muxPort = get_param(nextBlocks(i), 'PortHandles');
+                            numPorts = muxPort.Outport;
+                            numPorts = length(numPorts);
                             muxPort = muxPort.Inport;
                             portNum = get_param(srcPort(j), 'PortNumber');
-                            [path, blockList, exit] = object.traverseMuxBackwards(muxPort, portNum, [], []);
+                            [path, blockList, exit] = object.traverseMuxBackwards(muxPort, portNum, numPorts, [], []);
                             object.TraversedPortsCo = [object.TraversedPortsCo path];
                             object.CoreachedObjects = [object.CoreachedObjects blockList];
                             object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
@@ -1455,9 +1459,13 @@ classdef ReachCoreach < handle
                             nextPorts = nextPorts.Outport;
                             [~, ~, startPort] = object.traverseBusBackwards(prevPorts, ...
                                 signal, [], []);
+                            numPorts = get_param(startPort, 'parent');
+                            numPorts = get_param(numPorts, 'PortHandles');
+                            numPorts = numPorts.Inport;
+                            numPorts = length(numPorts);
                             signalNum = get_param(startPort, 'PortNumber');
                             [path, blockList, temp] = object.traverseMuxForwards(nextPorts, ...
-                                signalNum, path, blockList);
+                                signalNum, numPorts, path, blockList);
                             exit = [exit temp];
 
                         otherwise
@@ -1611,7 +1619,7 @@ classdef ReachCoreach < handle
             end
         end
         
-        function [path, blockList, exit] = traverseMuxForwards(object, oport, signal, path, blockList)
+        function [path, blockList, exit] = traverseMuxForwards(object, oport, signal, numSignals, path, blockList)
             %go until you hit a demux, then return the path taken there as
             %well as the exiting port
             exit = [];
@@ -1641,10 +1649,21 @@ classdef ReachCoreach < handle
                             %base case for recursion, get the exiting
                             %port from the mux and pass out all
                             %other relevant information
-                            portHandles = get_param(dstBlocks(h), 'PortHandles');
-                            portHandles = portHandles.Outport;
-                            exit = [exit portHandles(signal)];
-                            blockList(end+1) = get_param(next , 'handle');
+                            numOutputs = get_param(next, 'Outputs');
+                            numOutputs = str2num(numOutputs);
+                            if (numOutputs == numSignals)
+                                portHandles = get_param(dstBlocks(h), 'PortHandles');
+                                portHandles = portHandles.Outport;
+                                exit = [exit portHandles(signal)];
+                                blockList(end+1) = get_param(next , 'handle');
+                            elseif (numOutputs < numSignals)
+                                portHandles = get_param(dstBlocks(h), 'PortHandles');
+                                portHandles = portHandles.Outport;
+                                portNum = ceil(signal/ceil((numSignals/numOutputs)));
+                                newSignal = 1 + mod(signal-1, ceil((numSignals/numOutputs)));
+                                [path, blockList, tempExit] = object.traverseMuxForwards(portHandles(portNum), ...
+                                    newSignal, numOutputs, path, blockList);
+                            end
                         case 'Goto'
                             %follow bused signal through goto
                             blockList(end+1) = get_param(next , 'handle');
@@ -1654,7 +1673,7 @@ classdef ReachCoreach < handle
                                 fromPort = get_param(fromPort, 'PortHandles');
                                 fromPort = fromPort.Outport;
                                 [tempPath, tempBlockList, tempExit] = object.traverseMuxForwards(fromPort, ...
-                                    signal, path, blockList);
+                                    signal, numSignals, path, blockList);
                                 exit = [exit tempExit];
                                 blockList = [blockList tempBlockList];
                                 path = [path, tempPath];
@@ -1673,7 +1692,7 @@ classdef ReachCoreach < handle
                                 inport = get_param(inport, 'PortHandles');
                                 inport = inport.Outport;
                                 [path, blockList, tempExit] = object.traverseMuxForwards(inport, ...
-                                    signal, path, blockList);
+                                    signal, numSignals, path, blockList);
                                 exit = [exit tempExit];
                             end
                         case 'Outport'
@@ -1687,7 +1706,7 @@ classdef ReachCoreach < handle
                                     'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                                 path(end+1) = port;
                                 [path, blockList, tempExit] = object.traverseMuxForwards(port, ...
-                                    signal, path, blockList);
+                                    signal, numSignals, path, blockList);
                                 exit = [exit tempExit];
                             end
                         case 'BusCreator'
@@ -1704,7 +1723,7 @@ classdef ReachCoreach < handle
                                     [path, blockList, intermediate] = object.traverseBusForwards(busPort, signalName, path, blockList);
                                     for j = 1:length(intermediate)
                                         [path, blockList, tempExit] = object.traverseMuxForwards(intermediate(j), ...
-                                            signal, path, blockList);
+                                            signal, numSignals, path, blockList);
                                         exit = [exit tempExit];
                                     end
                                 end
@@ -1740,21 +1759,21 @@ classdef ReachCoreach < handle
                                 end
                             end
                             [path, blockList, tempExit] = object.traverseMuxForwards(busPort, ...
-                                signal, path, blockList);
+                                signal, numSignals, path, blockList);
                             exit = [exit tempExit];
                             
                         otherwise
                             nextPort = get_param(next, 'PortHandles');
                             nextPort = nextPort.Outport;
                             [path, blockList, tempExit] = object.traverseMuxForwards(nextPort, ...
-                                signal, path, blockList);
+                                signal, numSignals, path, blockList);
                             exit = [exit tempExit];
                     end
                 end
             end
         end
         
-        function [path, blockList, exit] = traverseMuxBackwards(object, iport, signal, path, blockList)
+        function [path, blockList, exit] = traverseMuxBackwards(object, iport, signal, numSignals, path, blockList)
             %go until you hit a mux, then return the path taken there as
             %well as the exiting port
             
@@ -1784,8 +1803,18 @@ classdef ReachCoreach < handle
                             %found
                             portHandles = get_param(next, 'PortHandles');
                             portHandles = portHandles.Inport;
-                            exit = [exit portHandles(signal)];
-                            blockList(end+1) = get_param(next, 'handle');
+                            numInputs = length(portHandles);
+                            if (numInputs == numSignals)
+                                exit = [exit portHandles(signal)];
+                                blockList(end+1) = get_param(next , 'handle');
+                            elseif (numInputs > numSignals)
+                                portHandles = get_param(dstBlocks(h), 'PortHandles');
+                                portHandles = portHandles.Outport;
+                                portNum = ceil(signal/ceil((numSignals/numOutputs)));
+                                newSignal = 1 + mod(signal-1, ceil((numSignals/numOutputs)));
+                                [path, blockList, tempExit] = object.traverseMuxForwards(portHandles(portNum), ...
+                                    newSignal, numOutputs, path, blockList);
+                            end
                             
                         case 'From'
                             %follow the bus through the from blocks
@@ -1795,7 +1824,7 @@ classdef ReachCoreach < handle
                                 gotoPort = get_param(gotos{i}, 'PortHandles');
                                 gotoPort = gotoPort.Inport;
                                 [path, blockList, tempExit] = object.traverseMuxBackwards(gotoPort, ...
-                                    signal, path, blockList);
+                                    signal, numSignals, path, blockList);
                                 exit = [exit tempExit];
                                 tag = findVisibilityTag(gotos{i});
                                 if ~isempty(tag)
@@ -1812,7 +1841,7 @@ classdef ReachCoreach < handle
                                 outport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
                                 outportPort = get_param(outport, 'PortHandles');
                                 outportPort = outportPort.Inport;
-                                [path, blockList, tempExit] = object.traverseMuxBackwards(outportPort, signal, path, blockList);
+                                [path, blockList, tempExit] = object.traverseMuxBackwards(outportPort, signal, numSignals, path, blockList);
                                 exit = [exit tempExit];
                             end
                             
@@ -1826,7 +1855,7 @@ classdef ReachCoreach < handle
                                 port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
                                 path(end+1) = port;
-                                [path, blockList, tempExit] = object.traverseMuxBackwards(port, signal, path, blockList);
+                                [path, blockList, tempExit] = object.traverseMuxBackwards(port, signal, numSignals, path, blockList);
                                 exit = [exit tempExit];
                             end
                             
@@ -1838,7 +1867,7 @@ classdef ReachCoreach < handle
                             busSignal = busSignal{portNum};
                             busPort=get_param(next, 'PortHandles');
                             [path, blockList, intermediate] = object.traverseBusBackwards(busPort.Inport, busSignal, path, blockList);
-                            [path, blockList, tempExit] = object.traverseMuxBackwards(intermediate, signal, path, blockList);
+                            [path, blockList, tempExit] = object.traverseMuxBackwards(intermediate, signal, numSignals, path, blockList);
                             exit = [exit tempExit];
                             
                         case 'BusToVector'
@@ -1882,7 +1911,7 @@ classdef ReachCoreach < handle
                         otherwise
                             nextPort = get_param(next, 'PortHandles');
                             nextPort = nextPort.Inport;
-                            [path, blockList, tempExit] = object.traverseMuxBackwards(nextPort, signal, path, blockList);
+                            [path, blockList, tempExit] = object.traverseMuxBackwards(nextPort, signal, numSignals, path, blockList);
                             exit = [exit tempExit];
                     end
                 end
