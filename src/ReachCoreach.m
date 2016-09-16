@@ -1307,7 +1307,7 @@ classdef ReachCoreach < handle
             exit = [];
             for g = 1:length(oport)
                 parentBlock = get_param(get_param(oport(g), 'parent'), 'Handle');
-                if strcmp(get_param(parentBlock, 'BlockType'), 'S-Function');
+                if strcmp(get_param(parentBlock, 'BlockType'), 'SFunction');
                     exit = [exit, oport(g)];
                     break
                 end
@@ -1617,7 +1617,7 @@ classdef ReachCoreach < handle
             exit = [];
             for g = 1:length(oport)
                 parentBlock = get_param(get_param(oport(g), 'parent'), 'Handle');
-                if strcmp(get_param(parentBlock, 'BlockType'), 'S-Function');
+                if strcmp(get_param(parentBlock, 'BlockType'), 'SFunction');
                     exit = [exit, oport(g)];
                     break
                 end
@@ -1634,6 +1634,7 @@ classdef ReachCoreach < handle
                 %for each of the destination blocks
                 for h = 1:length(dstBlocks)
                     next = dstBlocks(h);
+                    blockList(end+1) = next;
                     blockType = get_param(next, 'BlockType');
                     switch blockType
                         case 'Demux'
@@ -1772,6 +1773,7 @@ classdef ReachCoreach < handle
                 for h = 1:length(srcBlocks)
                     
                     next = srcBlocks(h);
+                    blockList(end+1) = next;
                     blockType = get_param(next, 'BlockType');
                     
                     %if the bus ends early (not at bus selector) output empty
