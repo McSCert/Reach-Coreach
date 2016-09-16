@@ -12,7 +12,7 @@ function prev = getPrevBlock(sourcePort)
                         'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
             line = get_param(newPort, 'line');
             prev = get_param(line, 'SrcBlockHandle');
-            if strcmp(get_param(prev, 'BlockType','SubSystem')
+            if strcmp(get_param(prev, 'BlockType'),'SubSystem')
                 port = get_param(line, 'SrcPortHandle');
                 portNum = get_param(port, 'PortNumber');
                 outport = find_system(prev, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
@@ -22,7 +22,7 @@ function prev = getPrevBlock(sourcePort)
         otherwise
             line = get_param(sourcePort, 'line');
             prev = get_param(line, 'SrcBlockHandle');
-            if strcmp(get_param(prev, 'BlockType','SubSystem')
+            if strcmp(get_param(prev, 'BlockType'),'SubSystem')
                 port = get_param(line, 'SrcPortHandle');
                 portNum = get_param(port, 'PortNumber');
                 outport = find_system(prev, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
