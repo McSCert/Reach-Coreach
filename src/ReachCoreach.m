@@ -773,28 +773,37 @@ classdef ReachCoreach < handle
                         inter = intersect(blockInports, dstPorts);
                         portNumbers = get_param(inter, 'PortNumber');
                         for j = 1:length(portNumbers)
-                            %for each port, iterate reaching through nested
-                            %buses
-                            if iscell(portNumbers)
-                                signalToReach = assignedSignals{portNumbers{j} - 1};
-                            else
-                                signalToReach = assignedSignals{portNumbers(j) - 1};
-                            end
-                            flag = true;
-                            while flag
-                                [path, blockList, exit] = object.traverseBusForwards(busPort, signalToReach, [], []);
-                                object.TraversedPorts = [object.TraversedPorts path];
-                                object.ReachedObjects = [object.ReachedObjects blockList];
-                                dots = strfind(signalToReach, '.');
-                                if isempty(dots)
-                                    flag = false;
+                            if (portNumbers(j) ~= 1)
+                                %for each port, iterate reaching through nested
+                                %buses
+                                if iscell(portNumbers)
+                                    signalToReach = assignedSignals{portNumbers{j} - 1};
                                 else
-                                    signalToReach = signalToReach(1:dots(end)-1);
+                                    signalToReach = assignedSignals{portNumbers(j) - 1};
                                 end
-                                busPort = exit;
+                                flag = true;
+                                while flag
+                                    [path, blockList, exit] = object.traverseBusForwards(busPort, signalToReach, [], []);
+                                    object.TraversedPorts = [object.TraversedPorts path];
+                                    object.ReachedObjects = [object.ReachedObjects blockList];
+                                    dots = strfind(signalToReach, '.');
+                                    if isempty(dots)
+                                        flag = false;
+                                    else
+                                        signalToReach = signalToReach(1:dots(end)-1);
+                                    end
+                                    busPort = exit;
+                                end
+                            else
+                                ports = get_param(nextBlocks(i), 'PortHandles');
+                                outports = ports.Outport;
+                                for k = 1:length(outports)
+                                    object.PortsToTraverse(end + 1) = outports(k);
+                                end
+                                exit = [];
                             end
+                            object.PortsToTraverse = [object.PortsToTraverse exit];
                         end
-                        object.PortsToTraverse = [object.PortsToTraverse exit];
 
                     case 'If'
                         % Handles the case where the next block is an if
@@ -1425,11 +1434,13 @@ classdef ReachCoreach < handle
                             %port that the signal originates from in the
                             %BusCreator, then use that as the signal num
                             %for traversing the bus
+                            blockList(end + 1) = get_param(next , 'handle');
                             nextPorts = get_param(next, 'PortHandles');
                             nextPorts = nextPorts.Outport;
                             exit = [exit nextPorts];
 
                         otherwise
+                            blockList(end + 1) = next;
                             nextPorts = get_param(next, 'PortHandles');
                             nextPorts = nextPorts.Outport;
                             [path, blockList, temp] = object.traverseBusForwards(nextPorts, ...
@@ -1574,6 +1585,7 @@ classdef ReachCoreach < handle
                         exit = [exit temp];
                         
                     otherwise
+                        blockList(end + 1) = next;
                         [path, blockList, temp] = object.traverseBusBackwards(nextPorts.Inport, signal, path, blockList);
                             exit = [exit temp];
                 end
