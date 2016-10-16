@@ -142,8 +142,7 @@ classdef ReachCoreach < handle
         
             % Ensure that there is a selection before slicing.
             try
-                assert(~isempty(object.ReachedObjects))
-                assert(~isempty(object.CoreachedObjects))
+                assert(~isempty(object.ReachedObjects)||~isempty(object.CoreachedObjects))
             catch
                 disp(['Error using ' mfilename ':' char(10) ...
                     ' There are no reached/coreached objects' ...
