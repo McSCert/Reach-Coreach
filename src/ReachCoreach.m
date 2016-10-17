@@ -149,8 +149,31 @@ classdef ReachCoreach < handle
                     ' to slice.'])
                 return
             end
-
+            
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
+            
+            %remove links
+            subsystems = find_system(object.RootSystemName, 'BlockType', 'SubSystem');
+            for i = 1:length(subsystems)
+                linkStatus = get_param(subsystems{i}, 'LinkStatus');
+                if strcmp(linkStatus, 'resolved')
+                    set_param(subsystems{i}, 'LinkStatus', 'inactive');
+                elseif strcmp(linkStatus, 'implicit')
+                    %if a subsystem higher in the hierarchy is linked find
+                    %it and make link inactive
+                    flag = 1;
+                    linkedSys = subsystems{i};
+                    while flag
+                        linkedSys = get_param(linkedSys, 'parent');
+                        linkStatus = get_param(linkedSys, 'LinkStatus');
+                        if strcmp(linkStatus, 'resolved')
+                            set_param(linkedSys, 'LinkStatus', 'inactive');
+                            flag = 0;
+                        end
+                    end
+                end
+            end
+
             allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
             allObjects = [allObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
