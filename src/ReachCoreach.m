@@ -153,7 +153,7 @@ classdef ReachCoreach < handle
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             
             %remove links
-            subsystems = find_system(object.RootSystemName, 'BlockType', 'SubSystem');
+            subsystems = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'SubSystem');
             for i = 1:length(subsystems)
                 linkStatus = get_param(subsystems{i}, 'LinkStatus');
                 if strcmp(linkStatus, 'resolved')
