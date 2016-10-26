@@ -174,14 +174,37 @@ classdef ReachCoreach < handle
                 end
             end
 
-            allObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
-            allObjects = [allObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block')];
+            
+            allBlocks = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block');
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             toKeep = [toKeep; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
-            toDelete = setdiff(allObjects, toKeep);
+            
+            blocksToDelete = setdiff(allBlocks, toKeep);
             warningID = 'MATLAB:DELETE:FileNotFound';
             warning('off', warningID);
-            delete(toDelete);
+            
+            for i = 1:length(blocksToDelete)
+                try
+                    delete_block(blocksToDelete(i));
+                catch E
+                    if ~strcmp(E.identifier, 'Simulink:Commands:InvSimulinkObjHandle')
+                        error(E);
+                    end
+                end
+            end
+            
+            allLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
+            linesToDelete = setdiff(allLines, toKeep);
+            for i = 1:length(linesToDelete)
+                try
+                    delete_block(linesToDelete(i));
+                catch E
+                    if ~strcmp(E.identifier, 'Simulink:Commands:InvSimulinkObjHandle')
+                        error(E);
+                    end
+                end
+            end
+            
             warning('on', warningID);
             brokenLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
             delete_line(brokenLines);
