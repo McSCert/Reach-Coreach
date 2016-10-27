@@ -109,9 +109,15 @@ classdef ReachCoreach < handle
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
                 return
             end
+            %record current open system
+            initialOpenSystem = gcs;
+            
             % Set the desired colors for highlighting.
             object.Color = color1;
             object.BGColor = color2;
+            
+            %make initial open system the active window
+            open_system(initialOpenSystem)
         end
         
         function hiliteObjects(object)
@@ -119,7 +125,8 @@ classdef ReachCoreach < handle
         %
         % EXAMPLE 
         %   obj.hiliteObjects()
-
+            
+            %hilite reached/coreached blocks
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             HILITE_DATA = struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
@@ -149,6 +156,9 @@ classdef ReachCoreach < handle
                     ' to slice.'])
                 return
             end
+            
+            %record current open system
+            initialOpenSystem = gcs;
             
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             
@@ -206,11 +216,17 @@ classdef ReachCoreach < handle
             
             warning('on', warningID);
             brokenLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
+            brokenLines = [brokenLines; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'SrcBlockHandle', -1)];
             delete_line(brokenLines);
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
             sfclose('all');
+            
+            %make initial open system the active window
+            if ~isempty(find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Name', initialOpenSystem))
+                open_system(initialOpenSystem)
+            end
         end
         
         function clear(object)
@@ -219,6 +235,10 @@ classdef ReachCoreach < handle
         % EXAMPLE
         %   obj.clear()
 
+            %record current open system
+            initialOpenSystem = gcs;
+            
+            %clear highlighting
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
@@ -230,6 +250,9 @@ classdef ReachCoreach < handle
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
+            
+            %make initial open system the active window
+            open_system(initialOpenSystem)
         end
         
         function reachAll(object, selection)
@@ -278,6 +301,9 @@ classdef ReachCoreach < handle
                     ' Invalid cell argument "selection".'])
                 return
             end
+            
+            %record current open system
+            initialOpenSystem = gcs;
                         
             % Get the ports/blocks of selected blocks that are special
             % cases
@@ -430,6 +456,9 @@ classdef ReachCoreach < handle
             end
             % Highlight all objects reached
             object.hiliteObjects();
+            
+            %make initial open system the active window
+            open_system(initialOpenSystem)
         end
         
         function coreachAll(object, selection)
@@ -478,6 +507,9 @@ classdef ReachCoreach < handle
                     ' Invalid cell argument "selection".'])
                 return
             end
+            
+            %record current open system
+            initialOpenSystem = gcs;
             
             % Get the ports/blocks of selected blocks that are special
             % cases
@@ -648,6 +680,9 @@ classdef ReachCoreach < handle
                 end
             end
             object.hiliteObjects();
+            
+            %make initial open system the active window
+            open_system(initialOpenSystem)
         end
     end
         
