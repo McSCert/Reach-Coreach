@@ -123,7 +123,7 @@ classdef ReachCoreach < handle
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             HILITE_DATA = struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
-            warningID='Simulink:blocks:HideContents';
+            warningID = 'Simulink:blocks:HideContents';
             warning('off', warningID);
             hilite_system(object.ReachedObjects, 'user2');
             hilite_system(object.CoreachedObjects, 'user2');
@@ -152,15 +152,15 @@ classdef ReachCoreach < handle
             
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             
-            %remove links
+            % Remove links
             subsystems = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'SubSystem');
             for i = 1:length(subsystems)
                 linkStatus = get_param(subsystems{i}, 'LinkStatus');
                 if strcmp(linkStatus, 'resolved')
                     set_param(subsystems{i}, 'LinkStatus', 'inactive');
                 elseif strcmp(linkStatus, 'implicit')
-                    %if a subsystem higher in the hierarchy is linked find
-                    %it and make link inactive
+                    % If a subsystem higher in the hierarchy is linked 
+                    % find it and make link inactive
                     flag = 1;
                     linkedSys = subsystems{i};
                     while flag
@@ -173,8 +173,7 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-
-            
+           
             allBlocks = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block');
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             toKeep = [toKeep; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
@@ -283,7 +282,7 @@ classdef ReachCoreach < handle
             % Get the ports/blocks of selected blocks that are special
             % cases
             for i = 1:length(selection)
-                % check that the elements of selection are existing blocks
+                % Check that the elements of selection are existing blocks
                 % in model RootSystemName
                 try
                     assert(strcmp(get_param(selection{i}, 'type'), 'block'));
@@ -1108,7 +1107,6 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-            
             
             for i = 1:length(triggerPorts)
                 system = get_param(triggerPorts{i}, 'parent');

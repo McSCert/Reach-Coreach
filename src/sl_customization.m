@@ -12,9 +12,11 @@ end
 function schema = getRCRContainer(callbackInfo)
     schema = sl_container_schema;
     schema.label = 'Reach/Coreach';
-    schema.childrenFcns = {@getRCRReachSel, @getRCRCoreachSel, @getRCRBothSel, @getRCRClear, @getRCRSlice, @getRCRSetColor};
+    schema.childrenFcns = {@getRCRReachSel, @getRCRCoreachSel, ...
+        @getRCRBothSel, @getRCRClear, @getRCRSlice, @getRCRSetColor};
 end
 
+%%  Define Color Option
 function schema = getRCRSetColor(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Set Colour';
@@ -43,6 +45,7 @@ function RCRSetColorCallback(callbackInfo)
     collectGarbageRCR();
 end
 
+%%  Define Reach Option
 function schema = getRCRReachSel(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Reach From Selected';
@@ -74,6 +77,7 @@ function RCRReachCallback(callbackInfo)
     collectGarbageRCR();
 end
 
+%%  Define Coreach Option
 function schema = getRCRCoreachSel(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Coreach From Selected';
@@ -105,6 +109,7 @@ function RCRCoreachCallback(callbackInfo)
     collectGarbageRCR();
 end
 
+%%  Define Reach/Coreach Option
 function schema = getRCRBothSel(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Reach/Coreach From Selected';
@@ -141,6 +146,7 @@ function RCRBothCallback(callbackInfo)
     collectGarbageRCR();
 end
 
+%%  Define Clear Option
 function schema = getRCRClear(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Clear Reach/Coreach';
@@ -155,6 +161,7 @@ function RCRclearCallback(callbackInfo)
     collectGarbageRCR();
 end
 
+%%  Define Slice Option
 function schema = getRCRSlice(callbackInfo)
     schema = sl_action_schema;
     schema.label = 'Slice';
@@ -169,8 +176,7 @@ function RCRsliceCallback(callbackInfo)
     collectGarbageRCR();
 end
 
-% Grey out menu options for clear and slice when 
-% the currently selected block is not a Data Store block
+% Grey out options for Clear and Slice when there is no ReachCoreach object
 function state = RCRFilter(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval(['v =~isempty(' bdroot(gcs) '_reachCoreachObject);']);
@@ -197,6 +203,7 @@ function state = RCRFilter(callbackInfo)
     end
 end
 
+%% Garbage collection for ReachCoreach objects
 function collectGarbageRCR()
     globals = who('global');
     sys = cellfun(@(x) x(1:end-19), globals, 'un', 0);
