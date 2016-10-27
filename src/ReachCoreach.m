@@ -764,35 +764,77 @@ classdef ReachCoreach < handle
                         % subsystem. Adds corresponding inports inside
                         % subsystem to reach and adds their outgoing ports
                         % to list of ports to traverse
-                        dstPorts = get_param(line, 'DstPortHandle');
-                        for j = 1:length(dstPorts)
-                            portNum = get_param(dstPorts(j), 'PortNumber');
-                            portType = get_param(dstPorts(j), 'PortType');
-                            % This if statement checks for trigger, enable,
-                            % or ifaction ports
-                            if strcmp(portType, 'trigger')
-                                object.reachEverythingInSub(getfullname(nextBlocks(i)));
-                                triggerBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
-                                    'FollowLinks', 'on', 'BlockType', 'TriggerPort');
-                                object.ReachedObjects(end + 1) = triggerBlocks;
-                            elseif strcmp(portType, 'enable')
-                                object.reachEverythingInSub(getfullname(nextBlocks(i)));
-                                enableBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
-                                    'FollowLinks', 'on', 'BlockType', 'EnablePort');
-                                object.ReachedObjects(end + 1) = enableBlocks;
-                            elseif strcmp(portType, 'ifaction')
-                                object.reachEverythingInSub(getfullname(nextBlocks(i)));
-                                actionBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
-                                    'FollowLinks', 'on', 'BlockType', 'ActionPort');
-                                object.ReachedObjects(end + 1) = actionBlocks;
-                            else
-                                inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
-                                    'BlockType', 'Inport', 'Port', num2str(portNum));
-                                if ~isempty(inport)
-                                    object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
-                                    outport = get_param(inport, 'PortHandles');
-                                    outport = outport.Outport;
-                                    object.PortsToTraverse(end + 1) = outport;
+                        isVariant = get_param(nextBlocks(i), 'variant');
+                        if strcmp(isVariant, 'on')
+                            dstPorts = get_param(line, 'DstPortHandle');
+                            for j = 1:length(dstPorts)
+                                portNum = get_param(dstPorts(j), 'PortNumber');
+                                portType = get_param(dstPorts(j), 'PortType');
+                                % This if statement checks for trigger, enable,
+                                % or ifaction ports
+                                if strcmp(portType, 'trigger')
+                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                    triggerBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                        'FollowLinks', 'on', 'BlockType', 'TriggerPort');
+                                    object.ReachedObjects(end + 1) = triggerBlocks;
+                                elseif strcmp(portType, 'enable')
+                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                    enableBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                        'FollowLinks', 'on', 'BlockType', 'EnablePort');
+                                    object.ReachedObjects(end + 1) = enableBlocks;
+                                elseif strcmp(portType, 'ifaction')
+                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                    actionBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                        'FollowLinks', 'on', 'BlockType', 'ActionPort');
+                                    object.ReachedObjects(end + 1) = actionBlocks;
+                                else
+                                    inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                                        'BlockType', 'Inport', 'Port', num2str(portNum));
+                                    if ~isempty(inport)
+                                        object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
+                                        inportNum = get_param(inport, 'Port');
+                                        subsystemVariants = find_system(nextBlocks(i), 'SearchDepth', 1, 'BlockType', 'SubSystem');
+                                        for k = 2:length(subsystemVariants)
+                                            variantInport = find_system(subsystemVariants(k), 'SearchDepth', 1, 'BlockType', 'Inport', 'Port', inportNum);
+                                            object.ReachedObjects(end + 1) = get_param(variantInport, 'Handle');
+                                            outport = get_param(variantInport, 'PortHandles');
+                                            outport = outport.Outport;
+                                            object.PortsToTraverse(end + 1) = outport;
+                                        end
+                                    end
+                                end
+                            end
+                        else
+                            dstPorts = get_param(line, 'DstPortHandle');
+                            for j = 1:length(dstPorts)
+                                portNum = get_param(dstPorts(j), 'PortNumber');
+                                portType = get_param(dstPorts(j), 'PortType');
+                                % This if statement checks for trigger, enable,
+                                % or ifaction ports
+                                if strcmp(portType, 'trigger')
+                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                    triggerBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                        'FollowLinks', 'on', 'BlockType', 'TriggerPort');
+                                    object.ReachedObjects(end + 1) = triggerBlocks;
+                                elseif strcmp(portType, 'enable')
+                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                    enableBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                        'FollowLinks', 'on', 'BlockType', 'EnablePort');
+                                    object.ReachedObjects(end + 1) = enableBlocks;
+                                elseif strcmp(portType, 'ifaction')
+                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                    actionBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                        'FollowLinks', 'on', 'BlockType', 'ActionPort');
+                                    object.ReachedObjects(end + 1) = actionBlocks;
+                                else
+                                    inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                                        'BlockType', 'Inport', 'Port', num2str(portNum));
+                                    if ~isempty(inport)
+                                        object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
+                                        outport = get_param(inport, 'PortHandles');
+                                        outport = outport.Outport;
+                                        object.PortsToTraverse(end + 1) = outport;
+                                    end
                                 end
                             end
                         end
@@ -805,11 +847,23 @@ classdef ReachCoreach < handle
                         % list of ports to traverse
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
-                        if ~isempty(get_param(parent, 'parent'))
-                            portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                                'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
+                        grandParent = get_param(parent, 'parent');
+                        isVariant = get_param(grandParent, 'Variant');
+                        if strcmp(isVariant, 'on')
                             object.ReachedObjects(end + 1) = get_param(parent, 'handle');
+                            nextOutport = find_system(grandParent, 'SearchDepth', 1, 'BlockType', 'Outport', 'Port', portNum);
+                            object.ReachedObjects(end + 1) = get_param(nextOutport{1}, 'handle');
+                            portSub = find_system(get_param(grandParent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                    'type', 'port', 'parent', grandParent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
+                            object.ReachedObjects(end + 1) = get_param(grandParent, 'handle');
                             object.PortsToTraverse(end + 1) = portSub;
+                        else
+                            if ~isempty(get_param(parent, 'parent'))
+                                portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                    'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
+                                object.ReachedObjects(end + 1) = get_param(parent, 'handle');
+                                object.PortsToTraverse(end + 1) = portSub;
+                            end
                         end
                         
                     case {'WhileIterator', 'ForIterator'}
@@ -1008,14 +1062,35 @@ classdef ReachCoreach < handle
                         % list of coreached objects, then adds its inport to
                         % the list of inports to traverse
                         srcPorts = get_param(line, 'SrcPortHandle');
-                        for j = 1:length(srcPorts)
-                            portNum = get_param(srcPorts(j), 'PortNumber');
-                            outport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
-                            if ~isempty(outport)
-                                object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
-                                inport = get_param(outport, 'PortHandles');
-                                inport = inport.Inport;
-                                object.PortsToTraverseCo(end + 1) = inport;
+                        isVariant = get_param(nextBlocks(i), 'Variant');
+                        if strcmp(isVariant, 'on')
+                            for j = 1:length(srcPorts)
+                                portNum = get_param(srcPorts(j), 'PortNumber');
+                                outport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                                    'BlockType', 'Outport', 'Port', num2str(portNum));
+                                if ~isempty(outport)
+                                    object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
+                                    outportNum = get_param(outport, 'Port');
+                                    subsystemVariants = find_system(nextBlocks(i), 'SearchDepth', 1, 'BlockType', 'SubSystem');
+                                    for k = 2:length(subsystemVariants)
+                                        variantInport = find_system(subsystemVariants(k), 'SearchDepth', 1, 'BlockType', 'Outport', 'Port', outportNum);
+                                        object.CoreachedObjects(end + 1) = get_param(variantInport, 'Handle');
+                                        inport = get_param(variantInport, 'PortHandles');
+                                        inport = inport.Inport;
+                                        object.PortsToTraverseCo(end + 1) = inport;
+                                    end
+                                end
+                            end
+                        else
+                            for j = 1:length(srcPorts)
+                                portNum = get_param(srcPorts(j), 'PortNumber');
+                                outport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport', 'Port', num2str(portNum));
+                                if ~isempty(outport)
+                                    object.CoreachedObjects(end + 1) = get_param(outport, 'Handle');
+                                    inport = get_param(outport, 'PortHandles');
+                                    inport = inport.Inport;
+                                    object.PortsToTraverseCo(end + 1) = inport;
+                                end
                             end
                         end
 
@@ -1027,11 +1102,23 @@ classdef ReachCoreach < handle
                         % subsystem to the list of ports to traverse
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
-                        if ~isempty(get_param(parent, 'parent'))
-                            portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
-                                'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
+                        grandParent = get_param(parent, 'parent');
+                        isVariant = get_param(grandParent, 'Variant');
+                        if strcmp(isVariant, 'on')
                             object.CoreachedObjects(end + 1) = get_param(parent, 'handle');
+                            nextInport = find_system(grandParent, 'SearchDepth', 1, 'BlockType', 'Inport', 'Port', portNum);
+                            object.CoreachedObjects(end + 1) = get_param(nextInport{1}, 'handle');
+                            portSub = find_system(get_param(grandParent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                    'type', 'port', 'parent', grandParent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
+                            object.CoreachedObjects(end + 1) = get_param(grandParent, 'handle');
                             object.PortsToTraverseCo(end + 1) = portSub;
+                        else
+                            if ~isempty(get_param(parent, 'parent'))
+                                portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
+                                    'type', 'port', 'parent', parent, 'PortType', 'inport', 'PortNumber', str2num(portNum));
+                                object.CoreachedObjects(end + 1) = get_param(parent, 'handle');
+                                object.PortsToTraverseCo(end + 1) = portSub;
+                            end
                         end
 
                     case 'BusSelector'
@@ -1650,6 +1737,7 @@ classdef ReachCoreach < handle
                         end
                         
                     case 'BusAssignment'
+                        % Follow the proper signal in a BusAssignment block
                         assignedSignals = get_param(next, 'AssignedSignals');
                         assignedSignals = regexp(assignedSignals, ',', 'split');
                         inputs = get_param(next, 'PortHandles');
