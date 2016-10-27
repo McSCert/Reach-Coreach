@@ -20,7 +20,8 @@ function goto = findGotosInScope(block)
     end
     
     tag = get_param(block, 'GotoTag');
-    goto = find_system(get_param(block, 'parent'),'SearchDepth', 1, 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
+    goto = find_system(get_param(block, 'parent'),'SearchDepth', 1,  ...
+        'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
     if ~isempty(goto)
         return
     end
@@ -29,10 +30,12 @@ function goto = findGotosInScope(block)
     % correct scope
     visibilityBlock = findVisibilityTag(block);
     if isempty(visibilityBlock)
-        goto = find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'global');
+        goto = find_system(bdroot(block), 'FollowLinks', 'on', ...
+            'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'global');
         return
     end
     goto = findGotoFromsInScope(visibilityBlock);
-    blocksToExclude = find_system(get_param(visibilityBlock, 'parent'), 'FollowLinks', 'on', 'BlockType', 'From', 'GotoTag', tag);
+    blocksToExclude = find_system(get_param(visibilityBlock, 'parent'), ...
+        'FollowLinks', 'on', 'BlockType', 'From', 'GotoTag', tag);
     goto = setdiff(goto, blocksToExclude);
 end

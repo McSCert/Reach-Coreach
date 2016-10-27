@@ -22,7 +22,8 @@ function visBlock = findVisibilityTag(block)
     end
 
     tag = get_param(block, 'GotoTag');
-    scopedTags = find_system(bdroot(block), 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+    scopedTags = find_system(bdroot(block), 'FollowLinks', 'on', ...
+        'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
     level = get_param(block, 'parent');
     levelSplit = regexp(level, '/', 'split');
 
@@ -48,7 +49,8 @@ function visBlock = findVisibilityTag(block)
     end
     
     if ~isempty(currentLevel)
-        visBlock = find_system(currentLevel, 'FollowLinks', 'on', 'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+        visBlock = find_system(currentLevel, 'FollowLinks', 'on', ...
+            'SearchDepth', 1, 'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
         visBlock = visBlock{1};
     else
         visBlock = {};
