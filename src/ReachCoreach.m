@@ -109,7 +109,7 @@ classdef ReachCoreach < handle
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
                 return
             end
-            %record current open system
+            % Record current open system
             initialOpenSystem = gcs;
             
             % Set the desired colors for highlighting.
@@ -126,7 +126,7 @@ classdef ReachCoreach < handle
         % EXAMPLE 
         %   obj.hiliteObjects()
             
-            %hilite reached/coreached blocks
+            % Hilite reached/coreached blocks
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             HILITE_DATA = struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
@@ -157,7 +157,7 @@ classdef ReachCoreach < handle
                 return
             end
             
-            %record current open system
+            % Record current open system
             initialOpenSystem = gcs;
             
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
@@ -223,7 +223,7 @@ classdef ReachCoreach < handle
             close_system(sysToClose);
             sfclose('all');
             
-            %make initial open system the active window
+            % Make initial open system the active window
             if ~isempty(find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Name', initialOpenSystem))
                 open_system(initialOpenSystem)
             end
@@ -235,10 +235,10 @@ classdef ReachCoreach < handle
         % EXAMPLE
         %   obj.clear()
 
-            %record current open system
+            % Record current open system
             initialOpenSystem = gcs;
             
-            %clear highlighting
+            % Clear highlighting
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
@@ -251,7 +251,7 @@ classdef ReachCoreach < handle
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
             
-            %make initial open system the active window
+            % Make initial open system the active window
             open_system(initialOpenSystem)
         end
         
@@ -302,7 +302,7 @@ classdef ReachCoreach < handle
                 return
             end
             
-            %record current open system
+            % Record current open system
             initialOpenSystem = gcs;
                         
             % Get the ports/blocks of selected blocks that are special
@@ -457,7 +457,7 @@ classdef ReachCoreach < handle
             % Highlight all objects reached
             object.hiliteObjects();
             
-            %make initial open system the active window
+            % Make initial open system the active window
             open_system(initialOpenSystem)
         end
         
@@ -508,7 +508,7 @@ classdef ReachCoreach < handle
                 return
             end
             
-            %record current open system
+            % Record current open system
             initialOpenSystem = gcs;
             
             % Get the ports/blocks of selected blocks that are special
@@ -681,7 +681,7 @@ classdef ReachCoreach < handle
             end
             object.hiliteObjects();
             
-            %make initial open system the active window
+            % Make initial open system the active window
             open_system(initialOpenSystem)
         end
     end
@@ -702,7 +702,7 @@ classdef ReachCoreach < handle
             % Mark this port as traversed
             object.TraversedPorts(end + 1) = port;
             
-            % gGet line from the port, and then get the destination blocks
+            % Get line from the port, and then get the destination blocks
             line = get_param(port, 'line');
             if (line == -1)
                 return
@@ -853,8 +853,8 @@ classdef ReachCoreach < handle
                         portNumbers = get_param(inter, 'PortNumber');
                         for j = 1:length(portNumbers)
                             if (portNumbers(j) ~= 1)
-                                %for each port, iterate reaching through nested
-                                %buses
+                                % For each port, iterate reaching through nested
+                                % buses
                                 if iscell(portNumbers)
                                     signalToReach = assignedSignals{portNumbers{j} - 1};
                                 else
