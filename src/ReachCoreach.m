@@ -848,7 +848,11 @@ classdef ReachCoreach < handle
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         grandParent = get_param(parent, 'parent');
-                        isVariant = get_param(grandParent, 'Variant');
+                        if ~strcmp(grandParent, '')
+                            isVariant = get_param(grandParent, 'Variant');
+                        else
+                            isVariant = 'off';
+                        end
                         if strcmp(isVariant, 'on')
                             object.ReachedObjects(end + 1) = get_param(parent, 'handle');
                             nextOutport = find_system(grandParent, 'SearchDepth', 1, 'BlockType', 'Outport', 'Port', portNum);
