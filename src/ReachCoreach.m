@@ -848,7 +848,7 @@ classdef ReachCoreach < handle
                         portNum = get_param(nextBlocks(i), 'Port');
                         parent = get_param(nextBlocks(i), 'parent');
                         grandParent = get_param(parent, 'parent');
-                        if ~strcmp(grandParent, '')
+                        if ~strcmp(grandParent, '') && ~strcmp(grandParent, object.RootSystemName)
                             isVariant = get_param(grandParent, 'Variant');
                         else
                             isVariant = 'off';
