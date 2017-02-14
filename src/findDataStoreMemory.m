@@ -33,7 +33,7 @@ function mem = findDataStoreMemory(block)
         % Get level of subsystem for the Data Store Memory
         memScope = get_param(dataStoreMems{i}, 'parent');
         memScopeSplit = regexp(memScope, '/', 'split');
-        inter = intersect(memScopeSplit, levelSplit);
+        inter = memScopeSplit(ismember(memScopeSplit, levelSplit));
         % Check if the Data Store Memory is above the write in system hierarchy
         if (length(inter) == length(memScopeSplit))
             currentLevelSplit = regexp(currentLevel, '/', 'split');

@@ -1167,7 +1167,16 @@ classdef ReachCoreach < handle
                             % Else case
                             ifPorts = get_param(nextBlocks(i), 'PortHandles');
                             ifPorts = ifPorts.Inport;
-                            object.PortsToTraverseCo = [object.PortsToTraverseCo ifPorts];
+                            condsToCoreach = zeros(1, length(ifPorts));
+                            for j = 1:length(expressions)
+                                conds = regexp(expressions{j}, 'u[1-9]+', 'match');
+                                for k = 1:length(conds)
+                                    c = conds{k};
+                                    condsToCoreach(str2num(c(2:end))) = 1;
+                                end
+                                
+                            end
+                            object.PortsToTraverseCo = [object.PortsToTraverseCo ifPorts(logical(condsToCoreach))];
                         else
                             conditions = regexp(expressions{portNum}, 'u[1-9]+', 'match');
                             for j = 1:length(conditions)
