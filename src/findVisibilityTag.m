@@ -35,7 +35,7 @@ function visBlock = findVisibilityTag(block)
         % Get the level of tag visibility block
         tagScope = get_param(scopedTags{i}, 'parent');
         tagScopeSplit = regexp(tagScope, '/', 'split');
-        inter = intersect(tagScopeSplit, levelSplit);
+        inter = tagScopeSplit(ismember(tagScopeSplit, levelSplit));
         
         % Check if it is above the block
         if (length(inter) == length(tagScopeSplit))
