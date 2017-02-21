@@ -963,7 +963,9 @@ classdef ReachCoreach < handle
                                 end
                                 for j = 1:length(expressions)
                                     if regexp(expressions{j}, cond)
-                                        object.PortsToTraverse(end + 1) = outports(j);
+                                        for k = 1:length(expressions)+1-j
+                                            object.PortsToTraverse(end + 1) = outports(k+j-1);
+                                        end
                                     end
                                 end
                                 if strcmp(get_param(nextBlocks(i), 'ShowElse'), 'on')
