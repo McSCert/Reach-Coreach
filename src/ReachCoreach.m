@@ -126,8 +126,10 @@ classdef ReachCoreach < handle
         % EXAMPLE
         %   obj.hiliteObjects()
 
-            % Hilite reached/coreached blocks
+            % Keep track of currently opened windows
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
+
+            % Hilite reached/coreached elements
             HILITE_DATA = struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
             warningID = 'Simulink:blocks:HideContents';
@@ -135,10 +137,12 @@ classdef ReachCoreach < handle
             hilite_system(object.ReachedObjects, 'user2');
             hilite_system(object.CoreachedObjects, 'user2');
             warning('on', warningID);
+
+            % Close windows that weren't open before
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
-            close_system(sysToClose);
-            sfclose('all');
+            close_system(sysToClose); % Close Simulink systems
+            sfclose('all'); % Close Stateflow
         end
 
         function slice(object)
