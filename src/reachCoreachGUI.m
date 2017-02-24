@@ -124,11 +124,15 @@ function confirmbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to confirmbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Get colours
 eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
 colstring = get(handles.popupmenuback, 'String');
 colstring2 = get(handles.popupmenufore, 'String');
 whichstring = get(handles.popupmenuback, 'Value');
 whichstring2 = get(handles.popupmenufore, 'Value');
+
+% Set colours
 if ~(whichstring == 1) && ~(whichstring2 == 1)
     eval([bdroot(gcs) '_reachCoreachObject.setColor(colstring2{whichstring2}, colstring{whichstring});']);
     eval([bdroot(gcs) '_reachCoreachObject.hiliteObjects()']);
