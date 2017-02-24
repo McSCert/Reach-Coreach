@@ -112,7 +112,7 @@ classdef ReachCoreach < handle
             % Record current open system
             initialOpenSystem = gcs;
 
-            % Set the desired colors for highlighting
+            % Set the desired colours for highlighting
             object.Color = color1;
             object.BGColor = color2;
 
@@ -134,6 +134,10 @@ classdef ReachCoreach < handle
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
             warningID = 'Simulink:blocks:HideContents';
             warning('off', warningID);
+            % Clear previous hilite
+            %hilite_system(object.ReachedObjects, 'none');
+            %hilite_system(object.CoreachedObjects, 'none');
+            % Apply new hilite
             hilite_system(object.ReachedObjects, 'user2');
             hilite_system(object.CoreachedObjects, 'user2');
             warning('on', warningID);
