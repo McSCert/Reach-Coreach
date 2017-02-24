@@ -63,7 +63,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = reachCoreachGUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = reachCoreachGUI_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -135,5 +135,5 @@ if ~(whichstring == 1) && ~(whichstring2 == 1)
     close(handles.reachCoreachGUI)
 else
     disp(['Error using ' mfilename ':' char(10) ...
-        'Please select two colours.' char(10)])
+        ' Please select two colours.' char(10)])
 end

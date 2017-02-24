@@ -6,28 +6,28 @@ classdef ReachCoreach < handle
 %   starting blocks affect via control flow and data flow. A coreachability
 %   analysis finds all blocks that affect the starting blocks via control
 %   flow or data flow. After creating a ReachCoreach object, the reachAll
-%   and coreachAll methods are can be used to perform these analyses, 
+%   and coreachAll methods are can be used to perform these analyses,
 %   and highlight all the blocks/signals in the reach and coreach.
 
     properties
         RootSystemName      % Simulink model name (or top-level system name).
         RootSystemHandle    % Handle of top level subsystem.
-        
+
         ReachedObjects      % List of blocks and lines reached.
         CoreachedObjects    % List of blocks and lines coreached.
-        
+
         TraversedPorts      % Ports already traversed in the reach operation.
         TraversedPortsCo    % Ports already traversed in the coreach operation.
     end
-    
+
     properties(Access = private)
         PortsToTraverse     % Ports remaining to traverse in the reach operation.
         PortsToTraverseCo   % Ports remaining to traverse in the coreach operation.
-        
+
         Color               % Foreground color of highlight.
         BGColor             % Background color of highlight.
     end
-    
+
     methods
         function object = ReachCoreach(RootSystemName)
         % Constructor for the ReachCoreach object.
@@ -38,7 +38,7 @@ classdef ReachCoreach < handle
         %
         % EXAMPLE
         %   obj = ReachCoreach('ModelName')
-            
+
             % Check parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open
             try
@@ -50,7 +50,7 @@ classdef ReachCoreach < handle
                     'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
-            
+
             % 2) Ensure that the parameter given is the top level of the
             % model
             try
@@ -61,7 +61,7 @@ classdef ReachCoreach < handle
                     'the root level of its model.'])
                 return
             end
-            
+
             % Initialize a new instance of ReachCoreach.
             object.RootSystemName = RootSystemName;
             object.RootSystemHandle = get_param(RootSystemName, 'handle');
@@ -70,7 +70,7 @@ classdef ReachCoreach < handle
             object.Color = 'red';
             object.BGColor = 'yellow';
         end
-        
+
         function setColor(object, color1, color2)
         % Set the highlight colours for the reach/coreach.
         %
@@ -85,7 +85,7 @@ classdef ReachCoreach < handle
         %
         % EXAMPLE
         %   obj.setColor('red', 'blue')
-            
+
             % Ensure that the parameters are strings
             try
                 assert(ischar(color1))
@@ -96,8 +96,8 @@ classdef ReachCoreach < handle
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
                 return
             end
-            
-            % Ensure that the colour selected are acceptable
+
+            % Ensure that the colours selected are acceptable
             try
                 acceptedColors = {'cyan', 'red', 'blue', 'green', 'magenta', ...
                     'yellow', 'white', 'black'};
@@ -111,21 +111,21 @@ classdef ReachCoreach < handle
             end
             % Record current open system
             initialOpenSystem = gcs;
-            
-            % Set the desired colors for highlighting.
+
+            % Set the desired colors for highlighting
             object.Color = color1;
             object.BGColor = color2;
-            
-            %make initial open system the active window
+
+            % Make initial system the active window
             open_system(initialOpenSystem)
         end
-        
+
         function hiliteObjects(object)
         % Highlight the reached/coreached blocks and lines.
         %
-        % EXAMPLE 
+        % EXAMPLE
         %   obj.hiliteObjects()
-            
+
             % Hilite reached/coreached blocks
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             HILITE_DATA = struct('HiliteType', 'user2', 'ForegroundColor', object.Color, 'BackgroundColor', object.BGColor);
@@ -140,13 +140,13 @@ classdef ReachCoreach < handle
             close_system(sysToClose);
             sfclose('all');
         end
-        
+
         function slice(object)
         % Isolate the reached/coreached blocks by removing unhighlighted blocks.
         %
         % EXAMPLE
         %   obj.slice()
-        
+
             % Ensure that there is a selection before slicing.
             try
                 assert(~isempty(object.ReachedObjects)||~isempty(object.CoreachedObjects))
@@ -156,12 +156,12 @@ classdef ReachCoreach < handle
                     ' to slice.'])
                 return
             end
-            
+
             % Record current open system
             initialOpenSystem = gcs;
-            
+
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
-            
+
             % Remove links
             subsystems = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'SubSystem');
             for i = 1:length(subsystems)
@@ -169,7 +169,7 @@ classdef ReachCoreach < handle
                 if strcmp(linkStatus, 'resolved')
                     set_param(subsystems{i}, 'LinkStatus', 'inactive');
                 elseif strcmp(linkStatus, 'implicit')
-                    % If a subsystem higher in the hierarchy is linked 
+                    % If a subsystem higher in the hierarchy is linked
                     % find it and make link inactive
                     flag = 1;
                     linkedSys = subsystems{i};
@@ -183,15 +183,15 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-           
+
             allBlocks = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block');
             toKeep = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             toKeep = [toKeep; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
-            
+
             blocksToDelete = setdiff(allBlocks, toKeep);
             warningID = 'MATLAB:DELETE:FileNotFound';
             warning('off', warningID);
-            
+
             for i = 1:length(blocksToDelete)
                 try
                     delete_block(blocksToDelete(i));
@@ -201,7 +201,7 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-            
+
             allLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line');
             linesToDelete = setdiff(allLines, toKeep);
             for i = 1:length(linesToDelete)
@@ -213,7 +213,7 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-            
+
             warning('on', warningID);
             brokenLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
             brokenLines = [brokenLines; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'SrcBlockHandle', -1)];
@@ -222,13 +222,13 @@ classdef ReachCoreach < handle
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
             sfclose('all');
-            
-            % Make initial open system the active window
+
+            % Make initial system the active window
             if ~isempty(find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Name', initialOpenSystem))
                 open_system(initialOpenSystem)
             end
         end
-        
+
         function clear(object)
         % Remove all reach/coreach highlighting.
         %
@@ -237,7 +237,7 @@ classdef ReachCoreach < handle
 
             % Record current open system
             initialOpenSystem = gcs;
-            
+
             % Clear highlighting
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
@@ -250,21 +250,21 @@ classdef ReachCoreach < handle
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
-            
-            % Make initial open system the active window
+
+            % Make initial system the active window
             open_system(initialOpenSystem)
         end
-        
+
         function reachAll(object, selection)
         % Reach from a selection of blocks.
-        % 
+        %
         % PARAMETERS
         % selection: a cell array of strings representing the full
         % names of blocks.
         %
         % EXAMPLE
         %   obj.reachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
-            
+
             % Check object parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open
             try
@@ -276,7 +276,7 @@ classdef ReachCoreach < handle
                     'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
-            
+
             % 2) Check that model M is unlocked
             try
                 assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
@@ -292,7 +292,7 @@ classdef ReachCoreach < handle
                     return
                 end
             end
-            
+
             % Check that selection is of type 'cell'
             try
                 assert(iscell(selection));
@@ -301,10 +301,10 @@ classdef ReachCoreach < handle
                     ' Invalid cell argument "selection".'])
                 return
             end
-            
+
             % Record current open system
             initialOpenSystem = gcs;
-                        
+
             % Get the ports/blocks of selected blocks that are special
             % cases
             for i = 1:length(selection)
@@ -456,11 +456,11 @@ classdef ReachCoreach < handle
             end
             % Highlight all objects reached
             object.hiliteObjects();
-            
-            % Make initial open system the active window
+
+            % Make initial system the active window
             open_system(initialOpenSystem)
         end
-        
+
         function coreachAll(object, selection)
         % Coreach from a selection of blocks.
         %
@@ -470,7 +470,7 @@ classdef ReachCoreach < handle
         %
         % EXAMPLE
         %   obj.coreachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
-            
+
             % Check object parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open
             try
@@ -482,7 +482,7 @@ classdef ReachCoreach < handle
                     'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
-            
+
             % 2) Check that model M is unlocked
             try
                 assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
@@ -498,7 +498,7 @@ classdef ReachCoreach < handle
                     return
                 end
             end
-            
+
             % Check that selection is of type 'cell'
             try
                 assert(iscell(selection));
@@ -507,10 +507,10 @@ classdef ReachCoreach < handle
                     ' Invalid cell argument "selection".'])
                 return
             end
-            
+
             % Record current open system
             initialOpenSystem = gcs;
-            
+
             % Get the ports/blocks of selected blocks that are special
             % cases
             for i = 1:length(selection)
@@ -680,28 +680,28 @@ classdef ReachCoreach < handle
                 end
             end
             object.hiliteObjects();
-            
-            % Make initial open system the active window
+
+            % Make initial system the active window
             open_system(initialOpenSystem)
         end
     end
-        
+
     methods(Access = private)
         function reach(object, port)
         % Find the next ports to call the reach from, and add all
         % objects encountered to Reached Objects.
-            
+
             % Check if this port was already traversed
             if any(object.TraversedPorts == port)
                 return
             end
-            
+
             % Get block port belongs to
             block = get_param(port, 'parent');
-            
+
             % Mark this port as traversed
             object.TraversedPorts(end + 1) = port;
-            
+
             % Get line from the port, and then get the destination blocks
             line = get_param(port, 'line');
             if (line == -1)
@@ -709,7 +709,7 @@ classdef ReachCoreach < handle
             end
             object.ReachedObjects(end + 1) = line;
             nextBlocks = get_param(line, 'DstBlockHandle');
-            
+
             for i = 1:length(nextBlocks)
                 if (nextBlocks(i) == -1)
                     break
@@ -869,7 +869,7 @@ classdef ReachCoreach < handle
                                 object.PortsToTraverse(end + 1) = portSub;
                             end
                         end
-                        
+
                     case {'WhileIterator', 'ForIterator'}
                         % Get all blocks/ports in the subsystem, then reach
                         % the blocks the outports, gotos, and writes connect
@@ -899,7 +899,7 @@ classdef ReachCoreach < handle
                                 object.PortsToTraverse = [object.PortsToTraverse exit];
                             end
                         end
-                        
+
                     case 'BusAssignment'
                         assignedSignals = get_param(nextBlocks(i), 'AssignedSignals');
                         assignedSignals = regexp(assignedSignals, ',', 'split');
@@ -981,26 +981,26 @@ classdef ReachCoreach < handle
                         outports = ports.Outport;
                         for j = 1:length(outports)
                             object.PortsToTraverse(end + 1) = outports(j);
-                        end                     
+                        end
                 end
             end
         end
-        
+
         function coreach(object, port)
         % Find the next ports to find the coreach from,
         % and add all objects encountered to coreached objects.
-                        
+
             % Check if this port was already traversed
             if any(object.TraversedPortsCo == port)
                 return
             end
-            
+
             % Get the block port it belongs to
             block = get_param(port, 'parent');
-            
+
             % Mark this port as traversed
             object.TraversedPortsCo(end + 1) = port;
-            
+
             % Get the line from the port, and then get the destination blocks
             line = get_param(port, 'line');
             if (line == -1)
@@ -1008,23 +1008,23 @@ classdef ReachCoreach < handle
             end
             object.CoreachedObjects(end + 1) = line;
             nextBlocks = get_param(line, 'SrcBlockHandle');
-            
+
             for i = 1:length(nextBlocks)
                 if (nextBlocks(i) == -1)
                     break
                 end
                 % Add the block to list of coreached objects
                 object.CoreachedObjects(end + 1) = nextBlocks(i);
-                
+
                 % Get blocktype for switch case
                 blockType = get_param(nextBlocks(i), 'BlockType');
-                
+
                 % Handle the coreaching of various blocks differently
                 switch blockType
                     case 'From'
                         % Handles the case where the next block is a from
                         % block. Finds all gotos associated with the from
-                        % block, adds them to the coreach blocks, then adds 
+                        % block, adds them to the coreach blocks, then adds
                         % their respective inports to the list of ports to
                         % traverse
                         gotos = findGotosInScope(getfullname(nextBlocks(i)));
@@ -1148,7 +1148,7 @@ classdef ReachCoreach < handle
                         object.TraversedPortsCo = [object.TraversedPortsCo path];
                         object.CoreachedObjects = [object.CoreachedObjects blockList];
                         object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
-                        
+
                     case 'If'
                         % Handles the case where the next block is an if
                         % block. Adds ports with conditions corresponding to
@@ -1176,7 +1176,7 @@ classdef ReachCoreach < handle
                                     c = conds{k};
                                     condsToCoreach(str2num(c(2:end))) = 1;
                                 end
-                                
+
                             end
                             object.PortsToTraverseCo = [object.PortsToTraverseCo ifPorts(logical(condsToCoreach))];
                         else
@@ -1196,11 +1196,11 @@ classdef ReachCoreach < handle
                         inports = ports.Inport;
                         for j = 1:length(inports)
                             object.PortsToTraverseCo(end + 1) = inports(j);
-                        end    
+                        end
                 end
             end
         end
-        
+
         function iterators = findIterators(object)
         % Find all while and for iterators that need to be coreached.
 
@@ -1218,13 +1218,13 @@ classdef ReachCoreach < handle
                 end
             end
         end
-        
+
         function findSpecialPorts(object)
         % Find all actionport, foreach, triggerport, and enableport blocks
         % and adds them to the coreach, as well as adding their
         % corresponding port in the parent subsystem block to the list
         % of ports to traverse.
-        
+
             forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
             triggerPorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'TriggerPort');
             actionPorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ActionPort');
@@ -1234,7 +1234,7 @@ classdef ReachCoreach < handle
             for i = 1:length(excludeBlocks)
                 toExclude(end + 1) = get_param(excludeBlocks{i}, 'handle');
             end
-            
+
             for i = 1:length(actionPorts)
                 system = get_param(actionPorts{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
@@ -1248,7 +1248,7 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-            
+
             for i = 1:length(triggerPorts)
                 system = get_param(triggerPorts{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
@@ -1262,7 +1262,7 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-            
+
             for i = 1:length(enablePorts)
                 system = get_param(enablePorts{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
@@ -1276,7 +1276,7 @@ classdef ReachCoreach < handle
                     end
                 end
             end
-            
+
             for i = 1:length(forEach)
                 system = get_param(forEach{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
@@ -1289,15 +1289,15 @@ classdef ReachCoreach < handle
                 end
             end
         end
-        
+
         function reachEverythingInSub(object, system)
-        % Add all blocks and outports of blocks in the subsystem to the 
+        % Add all blocks and outports of blocks in the subsystem to the
         % lists of reached objects. Also find all interface going outward
         % (outports, gotos, froms) and find the next blocks/ports as if
         % being reached by the main reach function.
 
             blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
-            
+
             % Excludes trigger, enable, and action port blocks (they are
             % added in main function)
             blocksToExclude = find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
@@ -1307,7 +1307,7 @@ classdef ReachCoreach < handle
             blocksToExclude = [blocksToExclude; find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
                 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ActionPort')];
             blocks = setdiff(blocks, blocksToExclude);
-            
+
             for i = 1:length(blocks)
                 object.ReachedObjects(end + 1) = get_param(blocks{i}, 'handle');
             end
@@ -1321,7 +1321,7 @@ classdef ReachCoreach < handle
             portsToExclude = portsToExclude.Outport;
             ports = setdiff(ports, portsToExclude);
             object.TraversedPorts = [object.TraversedPorts ports];
-            
+
             % Handles outports the same as the reach function
             outports = find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Outport');
             for j = 1:length(outports)
@@ -1334,7 +1334,7 @@ classdef ReachCoreach < handle
                     object.PortsToTraverse(end + 1) = port;
                 end
             end
-            
+
             % Handles gotos the same as the reach function
             gotos = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto');
             for j = 1:length(gotos)
@@ -1353,7 +1353,7 @@ classdef ReachCoreach < handle
                     object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                 end
             end
-            
+
             % Handles writes the same as the reach function
             writes = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite');
             for j = 1:length(writes)
@@ -1373,7 +1373,7 @@ classdef ReachCoreach < handle
                 end
             end
         end
-        
+
         function blocks = getInterfaceIn(object, subsystem)
         % Get all the source blocks for the subsystem, including Gotos
         % and Data Store Writes.
@@ -1395,7 +1395,7 @@ classdef ReachCoreach < handle
                 end
             end
             gotos = setdiff(gotos, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto'));
-            
+
             reads = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead');
             allMems = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreMemory');
             for i = 1:length(reads)
@@ -1410,7 +1410,7 @@ classdef ReachCoreach < handle
                 end
             end
             writes = setdiff(writes, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite'));
-            
+
             implicits = [gotos writes];
             for i = 1:length(implicits)
                 name = getfullname(implicits{i});
@@ -1420,7 +1420,7 @@ classdef ReachCoreach < handle
                 end
             end
         end
-        
+
         function blocks = getInterfaceOut(object, subsystem)
         % Get all the destination blocks for the subsystem, including
         % Froms and Data Store Reads.
@@ -1442,7 +1442,7 @@ classdef ReachCoreach < handle
                 end
             end
             froms = setdiff(froms, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From'));
-            
+
             writes = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite');
             allMems = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreMemory');
             for i = 1:length(writes)
@@ -1457,7 +1457,7 @@ classdef ReachCoreach < handle
                 end
             end
             reads = setdiff(reads, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
-            
+
             implicits = [froms reads];
             for i = 1:length(implicits)
                 name = getfullname(implicits{i});
@@ -1467,10 +1467,10 @@ classdef ReachCoreach < handle
                 end
             end
         end
-        
+
         function [path, blockList, exit] = traverseBusForwards(object, oport, signal, path, blockList)
-        % Go until a Bus Creator is enoucntered. Then, return the path 
-        % taken there as well as the exiting port.
+        % Go until a Bus Creator is enoucntered. Then, return the path
+        % taken there as well as the exiting port
 
             exit = [];
             for g = 1:length(oport)
@@ -1484,7 +1484,7 @@ classdef ReachCoreach < handle
                 dstBlocks = get_param(portline, 'DstBlockHandle');
                 blockList(end + 1) = portline;
                 path(end + 1) = oport(g);
-               
+
                 % If the bus ends early (not at Bus Selector) output empty
                 % dest and exit
                 if isempty(dstBlocks)
@@ -1502,7 +1502,7 @@ classdef ReachCoreach < handle
                             % If the next block is a Bus Creator, call the
                             % traverse function recursively
                             signalName = get_param(portline, 'Name');
-                            
+
                             % Get all destination ports from the signal
                             % line into the Bus Creator
                             dstPort = get_param(portline, 'DstPortHandle');
@@ -1634,9 +1634,9 @@ classdef ReachCoreach < handle
                 end
             end
         end
-        
+
         function [path, blockList, exit] = traverseBusBackwards(object, iport, signal, path, blockList)
-        % Go until Bus Creator is encountered. Then, return the path 
+        % Go until Bus Creator is encountered. Then, return the path
         % taken there as well as the exiting port.
 
             exit = [];
@@ -1646,17 +1646,17 @@ classdef ReachCoreach < handle
                 srcBlocks = get_param(portLine, 'SrcBlockHandle');
                 path(end + 1) = iport(h);
                 blockList(end + 1) = portLine;
-                
+
                 if isempty(srcBlocks)
                     exit = [];
                     return
                 end
-                
+
                 next = srcBlocks(1);
                 next = get_param(next, 'Handle');
                 blockType = get_param(next, 'BlockType');
                 nextPorts = get_param(next, 'PortHandles');
-                
+
                 % If the bus ends early (not at Bus Selector) output empty
                 % dest and exit
                 switch blockType
@@ -1678,7 +1678,7 @@ classdef ReachCoreach < handle
                             blockList = [blockList tempBlockList];
                             path = [path, tempPath];
                         end
-                        
+
                     case 'BusCreator'
                         % Case where the exit of the current bused signal is
                         % found
@@ -1707,7 +1707,7 @@ classdef ReachCoreach < handle
                         else
                             exit = [exit temp];
                         end
-                        
+
                     case 'From'
                         % Follow the bus through From blocks
                         blockList(end + 1) = next;
@@ -1725,7 +1725,7 @@ classdef ReachCoreach < handle
                                 blockList(end + 1) = get_param(tag, 'Handle');
                             end
                         end
-                        
+
                     case 'SubSystem'
                         % Follow the bus into Subsystems
                         blockList(end + 1) = next;
@@ -1738,7 +1738,7 @@ classdef ReachCoreach < handle
                             [path, blockList, temp] = object.traverseBusBackwards(outportPort, signal, path, blockList);
                             exit = [exit temp];
                         end
-                        
+
                     case 'Inport'
                         % Follow the bus out of Subsystems or end
                         portNum = get_param(next, 'Port');
@@ -1754,7 +1754,7 @@ classdef ReachCoreach < handle
                         else
                             blockList(end + 1) = get_param(next, 'Handle');
                         end
-                        
+
                     case 'BusAssignment'
                         % Follow the proper signal in a BusAssignment block
                         assignedSignals = get_param(next, 'AssignedSignals');
@@ -1768,7 +1768,7 @@ classdef ReachCoreach < handle
                         end
                         [path, blockList, temp] = object.traverseBusBackwards(inputs(1), signal, path, blockList);
                         exit = [exit temp];
-                        
+
                     otherwise
                         blockList(end + 1) = next;
                         [path, blockList, temp] = object.traverseBusBackwards(nextPorts.Inport, signal, path, blockList);
