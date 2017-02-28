@@ -134,9 +134,12 @@ classdef ReachCoreach < handle
             set_param(0, 'HiliteAncestorsData', HILITE_DATA);
             warningID = 'Simulink:blocks:HideContents';
             warning('off', warningID);
-            % Clear previous hilite
-            hilite_system(object.ReachedObjects, 'none');
-            hilite_system(object.CoreachedObjects, 'none');
+            % Clear previous hilite (Fix for 2016b)
+            v = ver('Simulink');
+            if strcmp(v.Version, '8.8')
+                hilite_system(object.ReachedObjects, 'none');
+                hilite_system(object.CoreachedObjects, 'none');
+            end
             % Apply new hilite
             hilite_system(object.ReachedObjects, 'user2');
             hilite_system(object.CoreachedObjects, 'user2');
