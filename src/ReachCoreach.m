@@ -205,7 +205,7 @@ classdef ReachCoreach < handle
                     delete_block(blocksToDelete(i));
                 catch E
                     if ~strcmp(E.identifier, 'Simulink:Commands:InvSimulinkObjHandle')
-                        error(E);
+                        error(E.message);
                     end
                 end
             end
@@ -217,7 +217,7 @@ classdef ReachCoreach < handle
                     delete_block(linesToDelete(i));
                 catch E
                     if ~strcmp(E.identifier, 'Simulink:Commands:InvSimulinkObjHandle')
-                        error(E);
+                        error(E.message);
                     end
                 end
             end
