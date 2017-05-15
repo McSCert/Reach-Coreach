@@ -135,11 +135,11 @@ classdef ReachCoreach < handle
             warningID = 'Simulink:blocks:HideContents';
             warning('off', warningID);
             % Clear previous hilite (Fix for 2016b)
-            hilite_system(object.ReachedObjects, 'none');
-            hilite_system(object.CoreachedObjects, 'none');
+            hilite_system_notopen(object.ReachedObjects, 'none');
+            hilite_system_notopen(object.CoreachedObjects, 'none');
             % Apply new hilite
-            hilite_system(object.ReachedObjects, 'user2');
-            hilite_system(object.CoreachedObjects, 'user2');
+            hilite_system_notopen(object.ReachedObjects, 'user2');
+            hilite_system_notopen(object.CoreachedObjects, 'user2');
             warning('on', warningID);
 
             % Close windows that weren't open before
@@ -250,7 +250,7 @@ classdef ReachCoreach < handle
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
-            hilite_system(hilitedObjects, 'none');
+            hilite_system_notopen(hilitedObjects, 'none');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             object.TraversedPorts = [];
