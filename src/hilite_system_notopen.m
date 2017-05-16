@@ -119,4 +119,4 @@ end
 
 % Scroll and zoom the window so that our objects are visible. Don't allow
 % the window to zoom out to more than 100% (for backwards compatibility).
-Simulink.scrollToVisible(sys,false);
+% Simulink.scrollToVisible(sys,false);
