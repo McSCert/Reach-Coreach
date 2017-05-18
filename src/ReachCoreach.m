@@ -1492,11 +1492,14 @@ classdef ReachCoreach < handle
                 end
                 blockList(end + 1) = parentBlock;
                 
+                portline = get_param(oport(g), 'Line');
+                
                 try
-                    portline = get_param(oport(g), 'line');
+                    dstBlocks = get_param(portline, 'DstBlockHandle');
                 catch
                     break
                 end
+                
                 dstBlocks = get_param(portline, 'DstBlockHandle');
                 blockList(end + 1) = portline;
                 path(end + 1) = oport(g);
