@@ -1487,8 +1487,16 @@ classdef ReachCoreach < handle
                     exit = [exit, oport(g)];
                     break
                 end
+                if ismember(oport(g), path)
+                    break
+                end
                 blockList(end + 1) = parentBlock;
-                portline = get_param(oport(g), 'line');
+                
+                try
+                    portline = get_param(oport(g), 'line');
+                catch
+                    break
+                end
                 dstBlocks = get_param(portline, 'DstBlockHandle');
                 blockList(end + 1) = portline;
                 path(end + 1) = oport(g);
@@ -1613,8 +1621,6 @@ classdef ReachCoreach < handle
                                 blockList(end + 1) = get_param(parent, 'Handle');
                                 port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
-                                path(end + 1) = port;
-                                blockList(end + 1) = get_param(port, 'line');
                                 connectedBlock = get_param(get_param(port, 'line'), 'DstBlockHandle');
                                 [path, blockList, temp] = object.traverseBusForwards(port, ...
                                     signal, path, blockList);
