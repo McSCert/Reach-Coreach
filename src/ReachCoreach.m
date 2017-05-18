@@ -823,17 +823,23 @@ classdef ReachCoreach < handle
                                     object.reachEverythingInSub(getfullname(nextBlocks(i)));
                                     triggerBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
                                         'FollowLinks', 'on', 'BlockType', 'TriggerPort');
-                                    object.ReachedObjects(end + 1) = triggerBlocks;
+                                    if ~isempty(triggerBlocks)
+                                        object.ReachedObjects(end + 1) = triggerBlocks;
+                                    end
                                 elseif strcmp(portType, 'enable')
                                     object.reachEverythingInSub(getfullname(nextBlocks(i)));
                                     enableBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
                                         'FollowLinks', 'on', 'BlockType', 'EnablePort');
-                                    object.ReachedObjects(end + 1) = enableBlocks;
+                                    if ~isempty(enableBlocks)
+                                        object.ReachedObjects(end + 1) = enableBlocks;
+                                    end
                                 elseif strcmp(portType, 'ifaction')
                                     object.reachEverythingInSub(getfullname(nextBlocks(i)));
                                     actionBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
                                         'FollowLinks', 'on', 'BlockType', 'ActionPort');
-                                    object.ReachedObjects(end + 1) = actionBlocks;
+                                    if ~isempty(actionBlocks)
+                                        object.ReachedObjects(end + 1) = actionBlocks;
+                                    end
                                 else
                                     inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
                                         'BlockType', 'Inport', 'Port', num2str(portNum));
