@@ -263,12 +263,14 @@ classdef ReachCoreach < handle
             open_system(initialOpenSystem)
         end
 
-        function reachAll(object, selection)
-        % Reach from a selection of blocks.
+        function reachAll(object, selection, lines)
+        % Reach from a selection of blocks and lines.
         %
         % PARAMETERS
         % selection: a cell array of strings representing the full
         % names of blocks.
+        %
+        % lines: an array of line handles.
         %
         % EXAMPLE
         %   obj.reachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
@@ -444,6 +446,11 @@ classdef ReachCoreach < handle
                 ports = get_param(selection{i}, 'PortHandles');
                 object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
             end
+            
+            for i = 1:length(lines)
+                object.PortsToTraverse = [object.PortsToTraverse get_param(lines(i), 'SrcPortHandle')];
+            end
+            
             % Reach from each in the list of ports to traverse
             while ~isempty(object.PortsToTraverse)
                 port = object.PortsToTraverse(end);
@@ -469,12 +476,14 @@ classdef ReachCoreach < handle
             open_system(initialOpenSystem)
         end
 
-        function coreachAll(object, selection)
-        % Coreach from a selection of blocks.
+        function coreachAll(object, selection, lines)
+        % Coreach from a selection of blocks and lines
         %
         % PARAMETERS
         % selection: a cell array of strings representing the full
         % names of blocks.
+        %
+        % lines: an array of line handles.
         %
         % EXAMPLE
         %   obj.coreachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
@@ -659,6 +668,11 @@ classdef ReachCoreach < handle
                 object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Trigger];
                 object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Ifaction];
             end
+            
+            for i = 1:length(lines)
+                object.PortsToTraverseCo = [object.PortsToTraverseCo get_param(lines(i), 'DstPortHandle')];
+            end
+            
             flag = true;
             while flag
                 % Coreach from each in the list of ports to traverse
