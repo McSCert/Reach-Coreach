@@ -670,7 +670,7 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(lines)
-                object.PortsToTraverseCo = [object.PortsToTraverseCo get_param(lines(i), 'DstPortHandle')];
+                object.PortsToTraverseCo = [object.PortsToTraverseCo transpose(get_param(lines(i), 'DstPortHandle'))];
             end
             
             flag = true;
