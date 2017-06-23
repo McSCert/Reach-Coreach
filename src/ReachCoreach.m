@@ -448,7 +448,7 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(lines)
-                object.PortsToTraverse = [object.PortsToTraverse get_param(lines(i), 'SrcPortHandle')];
+                object.PortsToTraverse = [object.PortsToTraverse transpose(get_param(lines(i), 'SrcPortHandle'))];
             end
             
             % Reach from each in the list of ports to traverse
@@ -684,7 +684,7 @@ classdef ReachCoreach < handle
                 % Add any iterators in the coreach to blocks coreached and
                 % their ports to list to traverse
                 iterators = findIterators(object);
-                if ~isempty(iterators);
+                if ~isempty(iterators)
                     for i = 1:length(iterators)
                         ports = get_param(iterators{i}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo, ports.Inport];

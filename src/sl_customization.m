@@ -121,7 +121,7 @@ function RCRBothCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval(['x =~isempty(' bdroot(gcs) '_reachCoreachObject);']);
     sel = gcbs;
-    lineSel = glcs;
+    lineSel = gcls;
     if x
         eval(['y = isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
