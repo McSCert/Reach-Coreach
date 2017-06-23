@@ -61,18 +61,18 @@ function RCRReachCallback(callbackInfo)
         if y
             eval(['z = (get_param(bdroot(gcs), ''handle'') == ' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
-                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs, gcls);']);
             else
                 eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs, gcls);']);
             end
         else
             eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-            eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+            eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs, gcls);']);
         end
     else
         eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs);']);
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(gcbs, gcls);']);
     end
     collectGarbageRCR();
 end
@@ -93,18 +93,18 @@ function RCRCoreachCallback(callbackInfo)
         if y
             eval(['z = (get_param(bdroot(gcs), ''handle'') == ' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
-                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs, gcls);']);
             else
                 eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs, gcls);']);
             end
         else
             eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-            eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+            eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs, gcls);']);
         end
     else
         eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs);']);
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(gcbs, gcls);']);
     end
     collectGarbageRCR();
 end
@@ -121,27 +121,28 @@ function RCRBothCallback(callbackInfo)
     eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
     eval(['x =~isempty(' bdroot(gcs) '_reachCoreachObject);']);
     sel = gcbs;
+    lineSel = glcs;
     if x
         eval(['y = isvalid(' bdroot(gcs) '_reachCoreachObject);']);
         if y
             eval(['z = (get_param(bdroot(gcs), ''handle'') == ' bdroot(gcs) '_reachCoreachObject.RootSystemHandle);']);
             if z
-                eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel);']);
-                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel);']);
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel, lineSel);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel, lineSel);']);
             else
                 eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-                eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel);']);
-                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel);']);
+                eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel, lineSel);']);
+                eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel, lineSel);']);
             end
         else
             eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-            eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel);']);
-            eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel);']);
+            eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel, lineSel);']);
+            eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel, lineSel);']);
         end
     else
         eval([bdroot(gcs) '_reachCoreachObject = ReachCoreach(bdroot(gcs));']);
-        eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel);']);
-        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel);']);
+        eval([bdroot(gcs) '_reachCoreachObject.reachAll(sel, lineSel);']);
+        eval([bdroot(gcs) '_reachCoreachObject.coreachAll(sel, lineSel);']);
     end
     collectGarbageRCR();
 end
