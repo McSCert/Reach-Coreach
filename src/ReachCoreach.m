@@ -205,7 +205,7 @@ classdef ReachCoreach < handle
                     delete_block(blocksToDelete(i));
                 catch E
                     if ~strcmp(E.identifier, 'Simulink:Commands:InvSimulinkObjHandle')
-                        error(E.message);
+                        error(E);
                     end
                 end
             end
@@ -217,7 +217,7 @@ classdef ReachCoreach < handle
                     delete_block(linesToDelete(i));
                 catch E
                     if ~strcmp(E.identifier, 'Simulink:Commands:InvSimulinkObjHandle')
-                        error(E.message);
+                        error(E);
                     end
                 end
             end
@@ -250,7 +250,7 @@ classdef ReachCoreach < handle
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
-            hilite_system_notopen(hilitedObjects, 'none');
+            hilite_system(hilitedObjects, 'none');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             object.TraversedPorts = [];
@@ -264,7 +264,7 @@ classdef ReachCoreach < handle
         end
 
         function reachAll(object, selection, lines)
-        % Reach from a selection of blocks and lines.
+        % Reach from a selection of blocks.
         %
         % PARAMETERS
         % selection: a cell array of strings representing the full
@@ -288,20 +288,20 @@ classdef ReachCoreach < handle
             end
 
             % 2) Check that model M is unlocked
-            try
-                assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
-            catch E
-                if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
-                        strcmp(E.identifier, 'MATLAB:assertion:failed')
-                    disp(['Error using ' mfilename ':' char(10) ...
-                        ' File is locked.'])
-                    return
-                else
-                    disp(['Error using ' mfilename ':' char(10) ...
-                        ' Invalid RootSystemName.'])
-                    return
-                end
-            end
+%             try
+%                 assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
+%             catch E
+%                 if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
+%                         strcmp(E.identifier, 'MATLAB:assertion:failed')
+%                     disp(['Error using ' mfilename ':' char(10) ...
+%                         ' File is locked.'])
+%                     return
+%                 else
+%                     disp(['Error using ' mfilename ':' char(10) ...
+%                         ' Invalid RootSystemName.'])
+%                     return
+%                 end
+%             end
 
             % Check that selection is of type 'cell'
             try
@@ -448,7 +448,7 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(lines)
-                object.PortsToTraverse = [object.PortsToTraverse transpose(get_param(lines(i), 'SrcPortHandle'))];
+                object.PortsToTraverse = [object.PortsToTraverse get_param(lines(i), 'SrcPortHandle')];
             end
             
             % Reach from each in the list of ports to traverse
@@ -470,14 +470,14 @@ classdef ReachCoreach < handle
                 end
             end
             % Highlight all objects reached
-            object.hiliteObjects();
+             object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
         end
 
         function coreachAll(object, selection, lines)
-        % Coreach from a selection of blocks and lines
+        % Coreach from a selection of blocks.
         %
         % PARAMETERS
         % selection: a cell array of strings representing the full
@@ -501,20 +501,20 @@ classdef ReachCoreach < handle
             end
 
             % 2) Check that model M is unlocked
-            try
-                assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
-            catch E
-                if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
-                        strcmp(E.identifier, 'MATLAB:assertion:failed')
-                    disp(['Error using ' mfilename ':' char(10) ...
-                        ' File is locked.'])
-                    return
-                else
-                    disp(['Error using ' mfilename ':' char(10) ...
-                        ' Invalid RootSystemName.'])
-                    return
-                end
-            end
+%             try
+%                 assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
+%             catch E
+%                 if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
+%                         strcmp(E.identifier, 'MATLAB:assertion:failed')
+%                     disp(['Error using ' mfilename ':' char(10) ...
+%                         ' File is locked.'])
+%                     return
+%                 else
+%                     disp(['Error using ' mfilename ':' char(10) ...
+%                         ' Invalid RootSystemName.'])
+%                     return
+%                 end
+%             end
 
             % Check that selection is of type 'cell'
             try
@@ -670,7 +670,7 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(lines)
-                object.PortsToTraverseCo = [object.PortsToTraverseCo transpose(get_param(lines(i), 'DstPortHandle'))];
+                object.PortsToTraverseCo = [object.PortsToTraverseCo get_param(lines(i), 'DstPortHandle')];
             end
             
             flag = true;
@@ -684,7 +684,7 @@ classdef ReachCoreach < handle
                 % Add any iterators in the coreach to blocks coreached and
                 % their ports to list to traverse
                 iterators = findIterators(object);
-                if ~isempty(iterators)
+                if ~isempty(iterators);
                     for i = 1:length(iterators)
                         ports = get_param(iterators{i}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo, ports.Inport];
@@ -701,7 +701,9 @@ classdef ReachCoreach < handle
                     flag = false;
                 end
             end
-            object.hiliteObjects();
+            
+            % Highlight all objects reached
+             object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
@@ -1507,11 +1509,12 @@ classdef ReachCoreach < handle
                     exit = [exit, oport(g)];
                     break
                 end
+                
                 if ismember(oport(g), path)
                     break
                 end
-                blockList(end + 1) = parentBlock;
                 
+                blockList(end + 1) = parentBlock;
                 portline = get_param(oport(g), 'Line');
                 
                 try
@@ -1520,7 +1523,6 @@ classdef ReachCoreach < handle
                     break
                 end
                 
-                dstBlocks = get_param(portline, 'DstBlockHandle');
                 blockList(end + 1) = portline;
                 path(end + 1) = oport(g);
 
@@ -1644,7 +1646,11 @@ classdef ReachCoreach < handle
                                 blockList(end + 1) = get_param(parent, 'Handle');
                                 port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
-                                connectedBlock = get_param(get_param(port, 'line'), 'DstBlockHandle');
+                                try
+                                    connectedBlock = get_param(get_param(port, 'line'), 'DstBlockHandle');
+                                catch
+                                    break
+                                end
                                 [path, blockList, temp] = object.traverseBusForwards(port, ...
                                     signal, path, blockList);
                                 exit = [exit temp];
@@ -1720,29 +1726,35 @@ classdef ReachCoreach < handle
                         % Case where the exit of the current bused signal is
                         % found
                         blockList(end + 1) = next;
-                        inputs = get_param(next, 'LineHandles');
-                        inputs = inputs.Inport;
-                        inputs = get_param(inputs, 'Name');
+                        inputLines = get_param(next, 'LineHandles');
+                        inputLines = inputLines.Inport;
+                        inputs = get_param(inputLines, 'Name');
                         portNum = find(strcmp(signal, inputs));
-                        if isempty(portNum)
-                            match = regexp(signal, '^signal[1-9]', 'match');
-                            portNum = regexp(match{1}, '[1-9]*$', 'match');
-                            portNum = str2num(portNum{1});
-                        end
-                        temp = get_param(next, 'PortHandles');
-                        temp = temp.Inport;
-                        temp = temp(portNum);
-                        if ~isempty(regexp(signal, '^(([^\.]*)\.)+[^\.]*$', 'match'))
-                            cutoff = strfind(signal, '.');
-                            cutoff = cutoff(1);
-                            signalName = signal(cutoff+1:end);
-                            [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(temp, ...
-                                signalName, path, blockList);
-                            exit = [exit tempExit];
-                            blockList = [blockList tempBlockList];
-                            path = [path, tempPath];
-                        else
-                            exit = [exit temp];
+                        try
+                            if isempty(portNum)
+                                match = regexp(signal, '^signal[1-9]', 'match');
+                                portNum = regexp(match{1}, '[1-9]*$', 'match');
+                                portNum = str2num(portNum{1});
+                            end
+                            temp = get_param(next, 'PortHandles');
+                            temp = temp.Inport;
+                            temp = temp(portNum);
+                            if ~isempty(regexp(signal, '^(([^\.]*)\.)+[^\.]*$', 'match'))
+                                cutoff = strfind(signal, '.');
+                                cutoff = cutoff(1);
+                                signalName = signal(cutoff+1:end);
+                                [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(temp, ...
+                                    signalName, path, blockList);
+                                exit = [exit tempExit];
+                                blockList = [blockList tempBlockList];
+                                path = [path, tempPath];
+                            else
+                                exit = [exit temp];
+                            end
+                        catch
+                            for i = 1:length(inputs)
+                                exit = [exit get_param(inputLines(i), 'DstPortHandle')];
+                            end
                         end
 
                     case 'From'
