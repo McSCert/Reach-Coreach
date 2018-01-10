@@ -344,11 +344,21 @@ classdef ReachCoreach < handle
             brokenLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
             brokenLines = [brokenLines; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'SrcBlockHandle', -1)];
             delete_line(brokenLines);
+            
+            %ground unconnected lines
             GroundAndTerminatePorts(object.RootSystemName);
+            
+            subsToCheck = find_system(object.RootSystemName, 'BlockType', 'SubSystem');
+            for i = 1:length(subsToCheck)
+                GroundAndTerminatePorts(subsToCheck{i});
+            end
+            
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
             sfclose('all');
+            
+            object.clear();
 
             % Make initial system the active window
             if ~isempty(find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Name', initialOpenSystem))
@@ -369,7 +379,7 @@ classdef ReachCoreach < handle
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             hilitedObjects = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'HiliteAncestors', 'user2');
             hilitedObjects = [hilitedObjects; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'block', 'HiliteAncestors', 'user2')];
-            hilite_system(hilitedObjects, 'none');
+            hilite_system_notopen(hilitedObjects, 'none');
             object.ReachedObjects = [];
             object.CoreachedObjects = [];
             object.TraversedPorts = [];
