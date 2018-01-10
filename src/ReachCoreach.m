@@ -344,6 +344,7 @@ classdef ReachCoreach < handle
             brokenLines = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'DstBlockHandle', -1);
             brokenLines = [brokenLines; find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'On', 'type', 'line', 'SrcBlockHandle', -1)];
             delete_line(brokenLines);
+            GroundAndTerminatePorts(object.RootSystemName);
             allOpenSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
@@ -589,7 +590,7 @@ classdef ReachCoreach < handle
                 end
             end
             % Highlight all objects reached
-%             object.hiliteObjects();
+            object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
@@ -804,6 +805,9 @@ classdef ReachCoreach < handle
                     flag = false;
                 end
             end
+            
+            % Highlight the coreached objects
+            object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
