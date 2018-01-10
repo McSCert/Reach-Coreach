@@ -18,6 +18,14 @@ classdef ReachCoreach < handle
 
         TraversedPorts      % Ports already traversed in the reach operation.
         TraversedPortsCo    % Ports already traversed in the coreach operation.
+        
+        dsmMap              % Map of data store names to data store memory blocks
+        dsrMap              % Map of data store names to data store read blocks
+        dswMap              % Map of data store names to data store read blocks
+        
+        stvMap              % Map of goto tag names to goto tag visibility blocks
+        sgMap               % Map of goto tag names to goto blocks
+        sfMap               % Map of goto tag names to from blocks
     end
 
     properties(Access = private)
@@ -26,6 +34,10 @@ classdef ReachCoreach < handle
 
         Color               % Foreground color of highlight.
         BGColor             % Background color of highlight.
+        
+        dsmFlag             % Flag that determines uniqueness of DataStoreNames
+        gtvFlag             % Flag that determines uniqueness of Goto Tags
+
     end
 
     methods
@@ -69,6 +81,112 @@ classdef ReachCoreach < handle
             object.CoreachedObjects = [];
             object.Color = 'red';
             object.BGColor = 'yellow';
+            object.dsmMap = containers.Map;
+            object.dsrMap = containers.Map;
+            object.dswMap = containers.Map;
+            object.stvMap = containers.Map;
+            object.sgMap = containers.Map;
+            object.sfMap = containers.Map;
+            object.gtvFlag = 0;
+            object.dsmFlag = 0;
+            
+            % Make a map of the scoped gotos by tag
+            temp = {};
+            scopedGotos = find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'Goto');
+            for i=1:length(scopedGotos)
+                tag = get_param(scopedGotos{i}, 'GotoTag');
+                temp{end+1} = tag;
+                try
+                    object.sgMap(tag) = [object.sgMap(tag); scopedGotos{i}];
+                catch
+                    object.sgMap(tag) = {scopedGotos{i}};
+                end
+            end
+            if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
+                object.gtvFlag = 1;
+            else
+                object.gtvFlag = 0;
+            end
+            
+            % Make a map of the scoped froms by tag
+            temp = {};
+            scopedFroms = find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'From');
+            for i=1:length(scopedFroms)
+                tag = get_param(scopedFroms{i}, 'GotoTag');
+                temp{end+1} = tag;
+                try
+                    object.sfMap(tag) = [object.sfMap(tag); scopedFroms{i}];
+                catch
+                    object.sfMap(tag) = {scopedFroms{i}};
+                end
+            end
+            if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
+                object.gtvFlag = 1;
+            else
+                object.gtvFlag = 0;
+            end
+            
+            % Make a map of the scoped tag visibility blocks by tag, and
+            % additionally check for repeated scoped tag names
+            temp = {};
+            scopedTags = find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'GotoTagVisibility');
+            for i=1:length(scopedTags)
+                tag = get_param(scopedTags{i}, 'GotoTag');
+                temp{end+1} = tag;
+                try
+                    object.stvMap(tag) = [object.stvMap(tag); scopedTags{i}];
+                catch
+                    object.stvMap(tag) = {scopedTags{i}};
+                end
+            end
+            if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
+                object.gtvFlag = 1;
+            else
+                object.gtvFlag = 0;
+            end
+            
+            reads = find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'DataStoreRead');
+            for i=1:length(reads);
+                dsName = get_param(reads{i}, 'DataStoreName');
+                try
+                    object.dsrMap(dsName) = [object.dsrMap(dsName); reads{i}];
+                catch
+                    object.dsrMap(dsName) = {reads{i}};
+                end
+            end
+            
+            writes = find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'DataStoreWrite');
+            for i=1:length(writes);
+                dsName = get_param(writes{i}, 'DataStoreName');
+                try
+                    object.dswMap(dsName) = [object.dswMap(dsName); writes{i}];
+                catch
+                    object.dswMap(dsName) = {writes{i}};
+                end
+            end
+                        
+            temp = {};
+            mems = find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'DataStoreMemory');
+            for i=1:length(mems);
+                dsName = get_param(mems{i}, 'DataStoreName');
+                temp{end+1} = dsName;
+                try
+                    object.dsmMap(dsName) = [object.dsmMap(dsName); mems{i}];
+                catch
+                    object.dsmMap(dsName) = {mems{i}};
+                end
+            end
+            if (length(temp) == length(unique(temp)))
+                object.dsmFlag = 1;
+            else
+                object.dsmFlag = 0;
+            end
         end
 
         function setColor(object, color1, color2)
@@ -364,7 +482,7 @@ classdef ReachCoreach < handle
                     end
                 elseif strcmp(selectionType, 'GotoTagVisibility')
                     % Add goto and from blocks to reach, and ports to list to traverse
-                    associatedBlocks = findGotoFromsInScope(selection{i});
+                    associatedBlocks = findGotoFromsInScopeRCR(selection{i}, object.gtvFlag);
                     for j = 1:length(associatedBlocks)
                         object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
@@ -373,7 +491,7 @@ classdef ReachCoreach < handle
                 elseif strcmp(selectionType, 'DataStoreMemory')
                     % Add read and write blocks to reach, and ports to list
                     % to traverse
-                    associatedBlocks = findReadWritesInScope(selection{i});
+                    associatedBlocks = findReadWritesInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(associatedBlocks)
                         object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
@@ -381,35 +499,35 @@ classdef ReachCoreach < handle
                     end
                 elseif strcmp(selectionType, 'DataStoreWrite')
                     % Add read blocks to reach, and ports to list to traverse
-                    reads = findReadsInScope(selection{i});
+                    reads = findReadsInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(reads)
                         object.ReachedObjects(end + 1) = get_param(reads{j}, 'handle');
                         ports = get_param(reads{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
-                    mem = findDataStoreMemory(selection{i});
+                    mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
                         object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
                     end
                 elseif strcmp(selectionType, 'DataStoreRead')
-                    mem = findDataStoreMemory(selection{i});
+                    mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
                         object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
                     end
                 elseif strcmp(selectionType, 'Goto')
                     % Add from blocks to reach, and ports to list to traverse
-                    froms = findFromsInScope(selection{i});
+                    froms = findFromsInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(froms)
                         object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
                         ports = get_param(froms{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
-                    tag = findVisibilityTag(selection{i});
+                    tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
                         object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                     end
                 elseif strcmp(selectionType, 'From')
-                    tag = findVisibilityTag(selection{i});
+                    tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
                         object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                     end
@@ -456,6 +574,7 @@ classdef ReachCoreach < handle
                 port = object.PortsToTraverse(end);
                 object.PortsToTraverse(end) = [];
                 reach(object, port)
+                object.PortsToTraverse = setdiff(object.PortsToTraverse, object.TraversedPorts);
             end
             % Get foreach blocks
             forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
@@ -470,20 +589,20 @@ classdef ReachCoreach < handle
                 end
             end
             % Highlight all objects reached
-             object.hiliteObjects();
+%             object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
         end
 
-        function coreachAll(object, selection, lines)
+        function coreachAll(object, selection, selLines)
         % Coreach from a selection of blocks.
         %
         % PARAMETERS
         % selection: a cell array of strings representing the full
         % names of blocks.
         %
-        % lines: an array of line handles.
+        % selLines: an array of line handles.
         %
         % EXAMPLE
         %   obj.coreachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
@@ -499,22 +618,6 @@ classdef ReachCoreach < handle
                     'to RootSystemName may not be loaded or name is invalid.'])
                 return
             end
-
-            % 2) Check that model M is unlocked
-%             try
-%                 assert(strcmp(get_param(bdroot(object.RootSystemName), 'Lock'), 'off'))
-%             catch E
-%                 if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
-%                         strcmp(E.identifier, 'MATLAB:assertion:failed')
-%                     disp(['Error using ' mfilename ':' char(10) ...
-%                         ' File is locked.'])
-%                     return
-%                 else
-%                     disp(['Error using ' mfilename ':' char(10) ...
-%                         ' Invalid RootSystemName.'])
-%                     return
-%                 end
-%             end
 
             % Check that selection is of type 'cell'
             try
@@ -578,7 +681,7 @@ classdef ReachCoreach < handle
                 elseif strcmp(selectionType, 'GotoTagVisibility')
                     % Add goto and from blocks to coreach, and ports to list to
                     % traverse
-                    associatedBlocks = findGotoFromsInScope(selection{i});
+                    associatedBlocks = findGotoFromsInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(associatedBlocks)
                         object.CoreachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
@@ -587,7 +690,7 @@ classdef ReachCoreach < handle
                 elseif strcmp(selectionType, 'DataStoreMemory')
                     % Add read and write blocks to coreach, and ports to list
                     % to traverse
-                    associatedBlocks = findReadWritesInScope(selection{i});
+                    associatedBlocks = findReadWritesInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(associatedBlocks)
                         object.CoreachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
@@ -596,36 +699,36 @@ classdef ReachCoreach < handle
                 elseif strcmp(selectionType, 'From')
                     % Add goto blocks to coreach, and ports to list to
                     % traverse
-                    gotos = findGotosInScope(selection{i});
+                    gotos = findGotosInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(gotos)
                         object.CoreachedObjects(end + 1) = get_param(gotos{j}, 'handle');
                         ports = get_param(gotos{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
-                    tag = findVisibilityTag(selection{i});
+                    tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
                         object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
                     end
                 elseif strcmp(selectionType, 'Goto')
-                    tag = findVisibilityTag(selection{i});
+                    tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
                         object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
                     end
                 elseif strcmp(selectionType, 'DataStoreRead')
                     % Add write blocks to coreach, and ports to list to
                     % traverse
-                    writes = findWritesInScope(selection{i});
+                    writes = findWritesInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(writes)
                         object.CoreachedObjects(end + 1) = get_param(writes{j}, 'handle');
                         ports = get_param(writes{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
-                    mem = findDataStoreMemory(selection{i});
+                    mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
                         object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
                     end
                 elseif strcmp(selectionType, 'DataStoreWrite')
-                    mem = findDataStoreMemory(selection{i});
+                    mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
                         object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
                     end
@@ -669,8 +772,8 @@ classdef ReachCoreach < handle
                 object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Ifaction];
             end
             
-            for i = 1:length(lines)
-                object.PortsToTraverseCo = [object.PortsToTraverseCo get_param(lines(i), 'DstPortHandle')];
+            for i = 1:length(selLines)
+                object.PortsToTraverseCo = [object.PortsToTraverseCo get_param(selLines(i), 'DstPortHandle')];
             end
             
             flag = true;
@@ -701,9 +804,6 @@ classdef ReachCoreach < handle
                     flag = false;
                 end
             end
-            
-            % Highlight all objects reached
-             object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
@@ -750,7 +850,7 @@ classdef ReachCoreach < handle
                         % Handles the case where the next block is a goto.
                         % Finds all froms and adds their outgoing ports to
                         % the list of ports to traverse
-                        froms = findFromsInScope(getfullname(nextBlocks(i)));
+                        froms = findFromsInScopeRCR(object, getfullname(nextBlocks(i)), object.gtvFlag);
                         for j = 1:length(froms)
                             object.ReachedObjects(end + 1) = get_param(froms{j}, 'handle');
                             outport = get_param(froms{j}, 'PortHandles');
@@ -761,7 +861,7 @@ classdef ReachCoreach < handle
                         end
                         % Adds associated goto tag visibility block to the
                         % reach
-                        tag = findVisibilityTag(getfullname(nextBlocks(i)));
+                        tag = findVisibilityTagRCR(object, getfullname(nextBlocks(i)), object.gtvFlag);
                         if ~isempty(tag)
                             object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                         end
@@ -769,7 +869,7 @@ classdef ReachCoreach < handle
                         % Handles the case where the next block is a data store
                         % write. Finds all data store reads and adds their
                         % outgoing ports to the list of ports to traverse
-                        reads = findReadsInScope(getfullname(nextBlocks(i)));
+                        reads = findReadsInScopeRCR(object, getfullname(nextBlocks(i)), object.dsmFlag);
                         for j = 1:length(reads)
                             object.ReachedObjects(end + 1) = get_param(reads{j}, 'Handle');
                             outport = get_param(reads{j}, 'PortHandles');
@@ -778,7 +878,7 @@ classdef ReachCoreach < handle
                         end
                         % Adds associated data store memory block to the
                         % reach
-                        mem = findDataStoreMemory(getfullname(nextBlocks(i)));
+                        mem = findDataStoreMemoryRCR(object, getfullname(nextBlocks(i)), object.dsmFlag);
                         if ~isempty(mem)
                             object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
                         end
@@ -1057,7 +1157,7 @@ classdef ReachCoreach < handle
                         % block, adds them to the coreach blocks, then adds
                         % their respective inports to the list of ports to
                         % traverse
-                        gotos = findGotosInScope(getfullname(nextBlocks(i)));
+                        gotos = findGotosInScopeRCR(object, getfullname(nextBlocks(i)), object.gtvFlag);
                         for j = 1:length(gotos)
                             object.CoreachedObjects(end + 1) = get_param(gotos{j}, 'handle');
                             inport = get_param(gotos{j}, 'PortHandles');
@@ -1066,7 +1166,7 @@ classdef ReachCoreach < handle
                         end
                         % Adds the associated goto tag visibility block to
                         % the list of coreached objects
-                        tag = findVisibilityTag(getfullname(nextBlocks(i)));
+                        tag = findVisibilityTagRCR(object, getfullname(nextBlocks(i)), object.gtvFlag);
                         if ~isempty(tag)
                             object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
                         end
@@ -1077,7 +1177,7 @@ classdef ReachCoreach < handle
                         % the write block, adds them to the coreached
                         % blocks, then adds their respective inports to the
                         % list of ports to traverse
-                        writes = findWritesInScope(getfullname(nextBlocks(i)));
+                        writes = findWritesInScopeRCR(object, getfullname(nextBlocks(i)), object.dsmFlag);
                         for j = 1:length(writes)
                             object.CoreachedObjects(end + 1) = get_param(writes{j}, 'Handle');
                             inport = get_param(writes{j}, 'PortHandles');
@@ -1086,7 +1186,7 @@ classdef ReachCoreach < handle
                         end
                         % Adds the associated data store memory block to
                         % the list of coreached objects
-                        mem = findDataStoreMemory(getfullname(nextBlocks(i)));
+                        mem = findDataStoreMemoryRCR(object, getfullname(nextBlocks(i)), object.dsmFlag);
                         if ~isempty(mem)
                             object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
                         end
@@ -1367,15 +1467,17 @@ classdef ReachCoreach < handle
 
             % Handles gotos the same as the reach function
             gotos = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto');
+            gotosToIgnore = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto', 'TagVisibility', 'local');
+            gotos = setdiff(gotos, gotosToIgnore);
             for j = 1:length(gotos)
-                froms = findFromsInScope(gotos{j});
+                froms = findFromsInScopeRCR(object, gotos{j}, object.gtvFlag);
                 for k = 1:length(froms)
                     object.ReachedObjects(end + 1) = get_param(froms{k}, 'handle');
                     outport = get_param(froms{k}, 'PortHandles');
                     outport = outport.Outport;
                     object.PortsToTraverse(end + 1) = outport;
                 end
-                tag = findVisibilityTag(gotos{j});
+                tag = findVisibilityTagRCR(object, gotos{j}, object.gtvFlag);
                 if ~isempty(tag)
                     if iscell(tag)
                         tag=tag{1};
@@ -1387,14 +1489,14 @@ classdef ReachCoreach < handle
             % Handles writes the same as the reach function
             writes = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite');
             for j = 1:length(writes)
-                reads = findReadsInScope(writes{j});
+                reads = findReadsInScopeRCR(object, writes{j}, object.dsmFlag);
                 for k = 1:length(reads)
                     object.ReachedObjects(end + 1) = get_param(reads{k}, 'Handle');
                     outport = get_param(reads{k}, 'PortHandles');
                     outport = outport.Outport;
                     object.PortsToTraverse(end + 1) = outport;
                 end
-                mem = findDataStoreMemory(writes{j});
+                mem = findDataStoreMemoryRCR(object, writes{j}, object.dsmFlag);
                 if ~isempty(mem)
                     if iscell(mem)
                         mem=mem{1};
@@ -1414,8 +1516,8 @@ classdef ReachCoreach < handle
             froms = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From');
             allTags = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility');
             for i = 1:length(froms)
-                gotos = [gotos; findGotosInScope(froms{i})];
-                tag = findVisibilityTag(froms{i});
+                gotos = [gotos; findGotosInScopeRCR(object, froms{i}, object.gtvFlag)];
+                tag = findVisibilityTagRCR(object, froms{i}, object.gtvFlag);
                 tag = setdiff(tag, allTags);
                 if ~isempty(tag)
                     if iscell(tag)
@@ -1429,8 +1531,8 @@ classdef ReachCoreach < handle
             reads = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead');
             allMems = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreMemory');
             for i = 1:length(reads)
-                writes = [writes; findWritesInScope(reads{i})];
-                mem = findDataStoreMemory(reads{i});
+                writes = [writes; findWritesInScopeRCR(object, reads{i}, object.dsmFlag)];
+                mem = findDataStoreMemoryRCR(object, reads{i}, object.dsmFlag);
                 mem = setdiff(mem, allMems);
                 if ~isempty(mem)
                     if iscell(mem)
@@ -1461,8 +1563,8 @@ classdef ReachCoreach < handle
             gotos = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto');
             allTags = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility');
             for i = 1:length(gotos)
-                froms = [froms; findFromsInScope(gotos{i})];
-                tag = findVisibilityTag(gotos{i});
+                froms = [froms; findFromsInScopeRCR(object, gotos{i}, object.gtvFlag)];
+                tag = findVisibilityTagRCR(object, gotos{i}, object.gtvFlag);
                 tag = setdiff(tag, allTags);
                 if ~isempty(tag)
                     if iscell(tag)
@@ -1476,8 +1578,8 @@ classdef ReachCoreach < handle
             writes = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite');
             allMems = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreMemory');
             for i = 1:length(writes)
-                reads = [reads; findReadsInScope(writes{i})];
-                mem = findDataStoreMemory(writes{i});
+                reads = [reads; findReadsInScopeRCR(object, writes{i}, object.dsmFlag)];
+                mem = findDataStoreMemoryRCR(object, writes{i}, object.dsmFlag);
                 mem = setdiff(mem, allMems);
                 if ~isempty(mem)
                     if iscell(mem)
@@ -1606,7 +1708,7 @@ classdef ReachCoreach < handle
                         case 'Goto'
                             % Follow the bus through Goto blocks
                             blockList(end + 1) = get_param(next , 'handle');
-                            froms = findFromsInScope(next);
+                            froms = findFromsInScopeRCR(object, next, object.gtvFlag);
                             for i = 1:length(froms)
                                 outport = get_param(froms{i}, 'PortHandles');
                                 outport = outport.Outport;
@@ -1615,7 +1717,7 @@ classdef ReachCoreach < handle
                                 exit = [exit tempExit];
                                 blockList = [blockList tempBlockList];
                                 path = [path tempPath];
-                                tag = findVisibilityTag(froms{i});
+                                tag = findVisibilityTagRCR(object, froms{i}, object.gtvFlag);
                                 if ~isempty(tag)
                                     blockList(end + 1) = get_param(tag, 'Handle');
                                 end
@@ -1726,41 +1828,35 @@ classdef ReachCoreach < handle
                         % Case where the exit of the current bused signal is
                         % found
                         blockList(end + 1) = next;
-                        inputLines = get_param(next, 'LineHandles');
-                        inputLines = inputLines.Inport;
-                        inputs = get_param(inputLines, 'Name');
+                        inputs = get_param(next, 'LineHandles');
+                        inputs = inputs.Inport;
+                        inputs = get_param(inputs, 'Name');
                         portNum = find(strcmp(signal, inputs));
-                        try
-                            if isempty(portNum)
-                                match = regexp(signal, '^signal[1-9]', 'match');
-                                portNum = regexp(match{1}, '[1-9]*$', 'match');
-                                portNum = str2num(portNum{1});
-                            end
-                            temp = get_param(next, 'PortHandles');
-                            temp = temp.Inport;
-                            temp = temp(portNum);
-                            if ~isempty(regexp(signal, '^(([^\.]*)\.)+[^\.]*$', 'match'))
-                                cutoff = strfind(signal, '.');
-                                cutoff = cutoff(1);
-                                signalName = signal(cutoff+1:end);
-                                [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(temp, ...
-                                    signalName, path, blockList);
-                                exit = [exit tempExit];
-                                blockList = [blockList tempBlockList];
-                                path = [path, tempPath];
-                            else
-                                exit = [exit temp];
-                            end
-                        catch
-                            for i = 1:length(inputs)
-                                exit = [exit get_param(inputLines(i), 'DstPortHandle')];
-                            end
+                        if isempty(portNum)
+                            match = regexp(signal, '^signal[1-9]', 'match');
+                            portNum = regexp(match{1}, '[1-9]*$', 'match');
+                            portNum = str2num(portNum{1});
+                        end
+                        temp = get_param(next, 'PortHandles');
+                        temp = temp.Inport;
+                        temp = temp(portNum);
+                        if ~isempty(regexp(signal, '^(([^\.]*)\.)+[^\.]*$', 'match'))
+                            cutoff = strfind(signal, '.');
+                            cutoff = cutoff(1);
+                            signalName = signal(cutoff+1:end);
+                            [tempPath, tempBlockList, tempExit] = object.traverseBusBackwards(temp, ...
+                                signalName, path, blockList);
+                            exit = [exit tempExit];
+                            blockList = [blockList tempBlockList];
+                            path = [path, tempPath];
+                        else
+                            exit = [exit temp];
                         end
 
                     case 'From'
                         % Follow the bus through From blocks
                         blockList(end + 1) = next;
-                        gotos = findGotosInScope(next);
+                        gotos = findGotosInScopeRCR(object, next, object.gtvFlag);
                         for i = 1:length(gotos)
                             gotoPort = get_param(gotos{i}, 'PortHandles');
                             gotoPort = gotoPort.Inport;
@@ -1769,7 +1865,7 @@ classdef ReachCoreach < handle
                             exit = [exit tempExit];
                             blockList = [blockList tempBlockList];
                             path = [path, tempPath];
-                            tag = findVisibilityTag(gotos{i});
+                            tag = findVisibilityTagRCR(object, gotos{i}, object.gtvFlag);
                             if ~isempty(tag)
                                 blockList(end + 1) = get_param(tag, 'Handle');
                             end

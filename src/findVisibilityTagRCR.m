@@ -1,5 +1,4 @@
-
-function visBlock = findVisibilityTag(block)
+function visBlock = findVisibilityTagRCR(obj, block, flag)
 % FINDVISIBILITYTAG Find the Goto Visibility Tag block associated with a
 % scoped Goto or From block.
 
@@ -22,8 +21,17 @@ function visBlock = findVisibilityTag(block)
     end
 
     tag = get_param(block, 'GotoTag');
-    scopedTags = find_system(bdroot(block), 'FollowLinks', 'on', ...
-        'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+    try
+        scopedTags = obj.stvMap(tag);
+    catch
+        scopedTags = {};
+    end
+    
+    if flag
+        visBlock = scopedTags;
+        return
+    end
+    
     level = get_param(block, 'parent');
     levelSplit = regexp(level, '/', 'split');
 

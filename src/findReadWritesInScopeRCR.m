@@ -1,4 +1,4 @@
-function blockList = findReadWritesInScope(block)
+function blockList = findReadWritesInScopeRCR(obj, block, flag)
 % FINDREADWRITESINSCOPE Find all the Data Store Read and Data Store Write 
 % blocks associated with a Data Store Memory block.
 
@@ -22,9 +22,14 @@ function blockList = findReadWritesInScope(block)
 
     % Get all other Data Store Memory blocks
     dataStoreName = get_param(block, 'DataStoreName');
+    
+    if flag
+        blockList = [obj.dswMap(dataStoreName); obj.dsrMap(dataStoreName)];
+        return
+    end
+    
     blockParent = get_param(block, 'parent');
-    memsSameName = find_system(blockParent, 'FollowLinks', 'on', ...
-        'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+    memsSameName = obj.dsmMap(dataStoreName);
     memsSameName = setdiff(memsSameName, block);
     
     % Exclude any Data Store Read/Write blocks which are in the scope of 

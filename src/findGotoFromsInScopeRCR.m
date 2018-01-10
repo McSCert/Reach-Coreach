@@ -1,4 +1,4 @@
-function blockList = findGotoFromsInScope(block)
+function blockList = findGotoFromsInScopeRCR(obj, block, flag)
 % FINDGOTOFROMSINSCOPE Find all the Goto and From blocks associated with a 
 % Goto Tag Visibility block.
 
@@ -22,9 +22,14 @@ function blockList = findGotoFromsInScope(block)
     
     % Get all other Goto Tag Visibility blocks
     gotoTag = get_param(block, 'GotoTag');
+    
+    if flag
+        blockList = [obj.sfMap(gotoTag); obj.sgMap(gotoTag)];
+        return
+    end
+    
     blockParent = get_param(block, 'parent');
-    tagsSameName = find_system(blockParent, 'FollowLinks', 'on', ...
-        'BlockType', 'GotoTagVisibility', 'GotoTag', gotoTag);
+    tagsSameName = obj.gtvMap(dataStoreName);
     tagsSameName = setdiff(tagsSameName, block);
     
     % Any Goto/From blocks in their scopes are listed as blocks not in the

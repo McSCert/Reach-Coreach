@@ -1,4 +1,4 @@
-function froms = findFromsInScope(block)
+function froms = findFromsInScopeRCR(obj, block, flag)
 % FINDFROMSINSCOPE Find all the From blocks associated with a Goto block.
 
     if isempty(block)
@@ -20,10 +20,26 @@ function froms = findFromsInScope(block)
     end
     
     tag = get_param(block, 'GotoTag');
+    tagVis = get_param(block, 'TagVisibility');
+    level = get_param(block, 'parent');
+    
+    if flag
+        if strcmp(tagVis, 'local')
+            froms = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, ...
+                'BlockType', 'From', 'GotoTag', tag);
+            return
+        else
+            if isKey(obj.sfMap, tag)
+                froms = obj.sfMap(tag);
+            else
+                froms = {};
+            end
+            return
+        end
+    end
+    
     scopedTags = find_system(bdroot(block), 'FollowLinks', 'on', ...
         'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
-    level = get_param(block, 'parent');
-    tagVis = get_param(block, 'TagVisibility');
 
     % If there are no corresponding tags, Goto is assumed to be
     % local, and all local Froms corresponding to the tag are found
@@ -32,17 +48,25 @@ function froms = findFromsInScope(block)
             'BlockType', 'From', 'GotoTag', tag);
         return
     elseif strcmp(tagVis, 'scoped');
-        visibilityBlock = findVisibilityTag(block);
-        froms = findGotoFromsInScope(visibilityBlock);
-        blocksToExclude = find_system(get_param(visibilityBlock, 'parent'), ...
-            'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag);
+        visibilityBlock = findVisibilityTagBD(block);
+        froms = findGotoFromsInScopeRCR(visibilityBlock);
+        if isKey(obj.sfMap, tag)
+            blocksToExclude = obj.sgMap(tag);
+        else
+            blocksToExclude = {};
+        end
         froms = setdiff(froms, blocksToExclude);
     else
+        %the global goto case: very slow
         fromsToExclude = {};
 
         for i = 1:length(scopedTags)
-            fromsToExclude = [fromsToExclude find_system(get_param(scopedTags{i}, 'parent'), ...
-                'FollowLinks', 'on', 'BlockType', 'From', 'GotoTag', tag)];
+            if isKey(obj.sfMap, tag)
+                temp = obj.sgMap(tag);
+            else
+                temp = {};
+            end
+            fromsToExclude = [fromsToExclude temp];
         end
 
         localGotos = find_system(bdroot(block), 'BlockType', 'Goto', 'TagVisibility', 'local');

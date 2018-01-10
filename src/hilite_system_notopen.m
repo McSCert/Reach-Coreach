@@ -1,16 +1,16 @@
-function hilite_system(sys,hilite,varargin)
-%HILITE_SYSTEM Highlight a Simulink object.
-%   HILITE_SYSTEM(SYS) highlights a Simulink object by WITHOUT opening the system
+function hilite_system_notopen(sys,hilite,varargin)
+%HILITE_SYSTEM_NOTOPEN Highlight a Simulink object.
+%   HILITE_SYSTEM_NOTOPEN(SYS) highlights a Simulink object by WITHOUT opening the system
 %   window that contains the object and then highlighting the object using the
 %   HiliteAncestors property. This is a modification of the original function,
 %   described below:
 %
-%   HILITE_SYSTEM(SYS) highlights a Simulink object by first opening the system
+%   HILITE_SYSTEM_NOTOPEN(SYS) highlights a Simulink object by first opening the system
 %   window that contains the object and then highlighting the object using the
 %   HiliteAncestors property.
 %
 %   You can specify the highlighting options as additional right hand side
-%   arguments to HILITE_SYSTEM.  Options include:
+%   arguments to HILITE_SYSTEM_NOTOPEN.  Options include:
 %
 %     default     highlight with the 'default' highlight scheme
 %     none        turn off highlighting
@@ -40,11 +40,11 @@ function hilite_system(sys,hilite,varargin)
 %   Examples:
 %
 %       % highlight the subsystem 'f14/Controller/Stick Prefilter'
-%       hilite_system('f14/Controller/Stick Prefilter')
+%       HILITE_SYSTEM_NOTOPEN('f14/Controller/Stick Prefilter')
 %
 %       % highlight the subsystem 'f14/Controller/Stick Prefilter'
 %       % in the 'error' highlighting scheme.
-%       hilite_system('f14/Controller/Stick Prefilter', 'error')
+%       HILITE_SYSTEM_NOTOPEN('f14/Controller/Stick Prefilter', 'error')
 %
 %   See also OPEN_SYSTEM, FIND_SYSTEM, SET_PARAM
 
@@ -119,4 +119,4 @@ end
 
 % Scroll and zoom the window so that our objects are visible. Don't allow
 % the window to zoom out to more than 100% (for backwards compatibility).
-% Simulink.scrollToVisible(sys,false);
+Simulink.scrollToVisible(sys,false);

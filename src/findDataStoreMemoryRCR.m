@@ -1,4 +1,4 @@
-function mem = findDataStoreMemory(block)
+function mem = findDataStoreMemoryRCR(obj, block, flag)
 % FINDDATASTOREMEMORY Find the Data Store Memory block of a Data Store
 % Read or Write block.
 
@@ -21,8 +21,17 @@ function mem = findDataStoreMemory(block)
     end
 
     dataStoreName = get_param(block, 'DataStoreName');
-    dataStoreMems = find_system(bdroot(block), 'FollowLinks', 'on', ...
-        'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
+    dataStoreMems = obj.dsmMap(dataStoreName);
+    
+    if flag
+        if ~isempty(dataStoreMems)
+            mem = dataStoreMems{1};
+        else
+            mem = dataStoreMems;
+        end
+        return
+    end
+    
     level = get_param(block, 'parent');
     currentLevel = '';
     

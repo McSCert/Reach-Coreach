@@ -1,4 +1,4 @@
-function reads = findReadsInScope(block)
+function reads = findReadsInScopeRCR(obj, block, flag)
 % FINDREADSINSCOPE Find all the Data Store Read blocks associated with a Data
 % Store Write block.
 
@@ -21,9 +21,18 @@ function reads = findReadsInScope(block)
     end
     
     dataStoreName = get_param(block, 'DataStoreName');
-    memBlock = findDataStoreMemory(block);
-    reads = findReadWritesInScope(memBlock);
-    blocksToExclude = find_system(get_param(memBlock, 'parent'), 'FollowLinks', ...
-        'on', 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName);
+    
+    if flag
+        try
+            reads = obj.dsrMap(dataStoreName);
+        catch
+            reads = {};
+        end
+        return
+    end
+    
+    memBlock = findDataStoreMemoryRCR(block);
+    reads = findReadWritesInScopeRCR(memBlock);
+    blocksToExclude = obj.dswMap(dataStoreName);
     reads = setdiff(reads, blocksToExclude);
 end
