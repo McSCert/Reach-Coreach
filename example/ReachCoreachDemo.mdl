@@ -1,9 +1,9 @@
 Model {
-  Name			  "ReachCorechDemo"
+  Name			  "ReachCoreachDemo"
   Version		  7.8
   MdlSubVersion		  0
   GraphicalInterface {
-    NumRootInports	    6
+    NumRootInports	    3
     Inport {
       BusObject		      ""
       Name		      "In1"
@@ -16,38 +16,14 @@ Model {
       BusObject		      ""
       Name		      "In3"
     }
-    Inport {
-      BusObject		      ""
-      Name		      "In7"
-    }
-    Inport {
-      BusObject		      ""
-      Name		      "In8"
-    }
-    Inport {
-      BusObject		      ""
-      Name		      "In4"
-    }
-    NumRootOutports	    3
+    NumRootOutports	    1
     Outport {
       BusObject		      ""
       BusOutputAsStruct	      "off"
       Name		      "Out1"
     }
-    Outport {
-      BusObject		      ""
-      BusOutputAsStruct	      "off"
-      SignalName	      "signal3"
-      Name		      "Out2"
-    }
-    Outport {
-      BusObject		      ""
-      BusOutputAsStruct	      "off"
-      SignalName	      "signal2"
-      Name		      "Out3"
-    }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.17"
+    ComputedModelVersion    "1.20"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -66,11 +42,11 @@ Model {
   Creator		  "T6684MB"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "T6684MB"
+  LastModifiedBy	  "Ben"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Jul 15 09:30:38 2016"
-  RTWModifiedTimeStamp	  390475837
-  ModelVersionFormat	  "1.%<AutoIncrement:17>"
+  LastModifiedDate	  "Mon Jan 15 12:42:00 2018"
+  RTWModifiedTimeStamp	  437920912
+  ModelVersionFormat	  "1.%<AutoIncrement:20>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -108,7 +84,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "ReachCorechDemo"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -698,17 +673,6 @@ Model {
       ActionType	      "unset"
     }
     Block {
-      BlockType		      BusCreator
-      Inputs		      "4"
-      DisplayOption	      "none"
-      OutDataTypeStr	      "Inherit: auto"
-      NonVirtualBus	      off
-    }
-    Block {
-      BlockType		      BusSelector
-      OutputAsBus	      off
-    }
-    Block {
       BlockType		      Constant
       Value		      "1"
       VectorParams1D	      on
@@ -748,21 +712,6 @@ Model {
     Block {
       BlockType		      DataStoreWrite
       DataStoreName	      "A"
-      SampleTime	      "-1"
-    }
-    Block {
-      BlockType		      Gain
-      Gain		      "1"
-      Multiplication	      "Element-wise(K.*u)"
-      ParamMin		      "[]"
-      ParamMax		      "[]"
-      ParamDataTypeStr	      "Inherit: Same as input"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: Same as input"
-      LockScale		      off
-      RndMeth		      "Floor"
-      SaturateOnIntegerOverflow	on
       SampleTime	      "-1"
     }
     Block {
@@ -840,7 +789,7 @@ Model {
     }
   }
   System {
-    Name		    "ReachCorechDemo"
+    Name		    "ReachCoreachDemo"
     Location		    [226, 189, 1474, 892]
     Open		    on
     ModelBrowserVisibility  off
@@ -855,7 +804,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "60"
+    SIDHighWatermark	    "73"
     Block {
       BlockType		      Inport
       Name		      "In1"
@@ -867,7 +816,7 @@ Model {
     Block {
       BlockType		      Inport
       Name		      "In2"
-      SID		      "2"
+      SID		      "71"
       Position		      [125, 173, 155, 187]
       ZOrder		      -1
       Port		      "2"
@@ -876,71 +825,11 @@ Model {
     Block {
       BlockType		      Inport
       Name		      "In3"
-      SID		      "3"
+      SID		      "72"
       Position		      [125, 218, 155, 232]
       ZOrder		      -1
       Port		      "3"
       IconDisplay	      "Port number"
-    }
-    Block {
-      BlockType		      Inport
-      Name		      "In7"
-      SID		      "45"
-      Position		      [130, 438, 160, 452]
-      ZOrder		      -1
-      Port		      "4"
-      IconDisplay	      "Port number"
-    }
-    Block {
-      BlockType		      Inport
-      Name		      "In8"
-      SID		      "46"
-      Position		      [130, 483, 160, 497]
-      ZOrder		      -1
-      Port		      "5"
-      IconDisplay	      "Port number"
-    }
-    Block {
-      BlockType		      Inport
-      Name		      "In4"
-      SID		      "52"
-      Position		      [130, 393, 160, 407]
-      ZOrder		      -1
-      Port		      "6"
-      IconDisplay	      "Port number"
-    }
-    Block {
-      BlockType		      BusCreator
-      Name		      "Bus\nCreator1"
-      SID		      "47"
-      Ports		      [3, 1]
-      Position		      [320, 376, 325, 514]
-      ZOrder		      -2
-      ShowName		      off
-      Inputs		      "3"
-      DisplayOption	      "bar"
-    }
-    Block {
-      BlockType		      BusSelector
-      Name		      "Bus\nSelector1"
-      SID		      "48"
-      Ports		      [1, 2]
-      Position		      [735, 395, 740, 495]
-      ZOrder		      -3
-      ShowName		      off
-      OutputSignals	      "signal3,signal2"
-      Port {
-	PortNumber		1
-	Name			"<signal3>"
-	RTWStorageClass		"Auto"
-	DataLoggingNameMode	"SignalName"
-      }
-      Port {
-	PortNumber		2
-	Name			"<signal2>"
-	RTWStorageClass		"Auto"
-	DataLoggingNameMode	"SignalName"
-      }
     }
     Block {
       BlockType		      DataStoreMemory
@@ -951,27 +840,6 @@ Model {
       ReadBeforeWriteMsg      "warning"
       WriteAfterWriteMsg      "warning"
       WriteAfterReadMsg	      "warning"
-    }
-    Block {
-      BlockType		      DataStoreMemory
-      Name		      "Data Store\nMemory1"
-      SID		      "43"
-      Position		      [185, 20, 217, 50]
-      ZOrder		      -4
-      DataStoreName	      "B"
-      ReadBeforeWriteMsg      "warning"
-      WriteAfterWriteMsg      "warning"
-      WriteAfterReadMsg	      "warning"
-    }
-    Block {
-      BlockType		      Gain
-      Name		      "Gain1"
-      SID		      "49"
-      Position		      [230, 475, 260, 505]
-      ZOrder		      -8
-      ParamDataTypeStr	      "Inherit: Inherit via internal rule"
-      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-      SaturateOnIntegerOverflow	off
     }
     Block {
       BlockType		      If
@@ -1125,7 +993,7 @@ Model {
       System {
 	Name			"If Action\nSubsystem3"
 	Location		[509, 353, 1007, 653]
-	Open			off
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1154,6 +1022,14 @@ Model {
 	  Value			  "4"
 	}
 	Block {
+	  BlockType		  Constant
+	  Name			  "Constant1"
+	  SID			  "73"
+	  Position		  [75, 145, 105, 175]
+	  ZOrder		  -4
+	  Value			  "3"
+	}
+	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite"
 	  SID			  "32"
@@ -1172,16 +1048,14 @@ Model {
 	Line {
 	  SrcBlock		  "Constant"
 	  SrcPort		  1
-	  Points		  [110, 0]
-	  Branch {
-	    DstBlock		    "Out1"
-	    DstPort		    1
-	  }
-	  Branch {
-	    Points		    [0, 75]
-	    DstBlock		    "Data Store\nWrite"
-	    DstPort		    1
-	  }
+	  DstBlock		  "Out1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Constant1"
+	  SrcPort		  1
+	  DstBlock		  "Data Store\nWrite"
+	  DstPort		  1
 	}
       }
     }
@@ -1202,41 +1076,11 @@ Model {
       ZOrder		      -23
       IconDisplay	      "Port number"
     }
-    Block {
-      BlockType		      Outport
-      Name		      "Out2"
-      SID		      "50"
-      Position		      [895, 413, 925, 427]
-      ZOrder		      -23
-      Port		      "2"
-      IconDisplay	      "Port number"
-    }
-    Block {
-      BlockType		      Outport
-      Name		      "Out3"
-      SID		      "51"
-      Position		      [895, 463, 925, 477]
-      ZOrder		      -23
-      Port		      "3"
-      IconDisplay	      "Port number"
-    }
     Line {
       SrcBlock		      "In1"
       SrcPort		      1
       DstBlock		      "If"
       DstPort		      1
-    }
-    Line {
-      SrcBlock		      "In2"
-      SrcPort		      1
-      DstBlock		      "If"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "In3"
-      SrcPort		      1
-      DstBlock		      "If"
-      DstPort		      3
     }
     Line {
       SrcBlock		      "If"
@@ -1279,57 +1123,23 @@ Model {
       DstPort		      1
     }
     Line {
-      SrcBlock		      "If Action\nSubsystem3"
+      SrcBlock		      "In2"
       SrcPort		      1
-      Points		      [180, 0; 0, -45]
-      DstBlock		      "Merge"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "Gain1"
-      SrcPort		      1
-      DstBlock		      "Bus\nCreator1"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "In8"
-      SrcPort		      1
-      DstBlock		      "Gain1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "In7"
-      SrcPort		      1
-      DstBlock		      "Bus\nCreator1"
+      DstBlock		      "If"
       DstPort		      2
     }
     Line {
-      Name		      "<signal3>"
-      Labels		      [0, 0]
-      SrcBlock		      "Bus\nSelector1"
+      SrcBlock		      "In3"
       SrcPort		      1
-      DstBlock		      "Out2"
-      DstPort		      1
+      DstBlock		      "If"
+      DstPort		      3
     }
     Line {
-      Name		      "<signal2>"
-      Labels		      [0, 0]
-      SrcBlock		      "Bus\nSelector1"
-      SrcPort		      2
-      DstBlock		      "Out3"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "In4"
+      SrcBlock		      "If Action\nSubsystem3"
       SrcPort		      1
-      DstBlock		      "Bus\nCreator1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Bus\nCreator1"
-      SrcPort		      1
-      DstBlock		      "Bus\nSelector1"
-      DstPort		      1
+      Points		      [135, 0; 0, -45]
+      DstBlock		      "Merge"
+      DstPort		      3
     }
   }
 }
