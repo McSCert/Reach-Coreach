@@ -1105,15 +1105,19 @@ classdef ReachCoreach < handle
                                     expressions = {};
                                     expressions{end + 1} = get_param(nextBlocks(i), 'IfExpression');
                                 end
+                                elseFlag = false;
                                 for j = 1:length(expressions)
                                     if regexp(expressions{j}, cond)
+                                        elseFlag = true;
                                         for k = 1:length(expressions)+1-j
                                             object.PortsToTraverse(end + 1) = outports(k+j-1);
                                         end
                                     end
                                 end
                                 if strcmp(get_param(nextBlocks(i), 'ShowElse'), 'on')
-                                    object.PortsToTraverse(end + 1) = outports(end);
+                                    if elseFlag
+                                        object.PortsToTraverse(end + 1) = outports(end);
+                                    end
                                 end
                             end
                         end
