@@ -24,7 +24,18 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
     dataStoreName = get_param(block, 'DataStoreName');
     
     if flag
-        blockList = [obj.dswMap(dataStoreName); obj.dsrMap(dataStoreName)];
+        try
+            dataStoreReads = obj.dsrMap(dataStoreName);
+        catch
+            dataStoreReads = {};
+        end
+        
+        try
+            dataStoreWrites = obj.dswMap(dataStoreName);
+        catch
+            dataStoreWrites = {};
+        end
+        blockList = [dataStoreReads; dataStoreWrites];
         return
     end
     
