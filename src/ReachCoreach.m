@@ -772,6 +772,25 @@ classdef ReachCoreach < handle
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                 'type', 'port', 'parent', parent, 'PortType', 'ifaction');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
+                elseif strcmp(selectionType, 'WhileIterator') || strcmp(selectionType, 'ForIterator') || strcmp(selectionType, 'ForEach')
+                    toCoreach = getInterfaceOut(object, get_param(selection{i}, 'parent'));
+                    for j = 1:length(toCoreach)
+                        ports = get_param(toCoreach{j}, 'PortHandles');
+                        object.CoreachedObjects(end+1) = get_param(toCoreach{j}, 'Handle');
+                        inports = ports.Inport;
+                        for k = 1:length(inports)
+                            object.PortsToTraverseCo(end + 1) = inports(k);
+                        end
+                    end
+                    ins = find_system(get_param(selection{i}, 'parent'), 'SearchDepth', 1, 'BlockType', 'Outport');
+                    for j = 1:length(ins)
+                        ports = get_param(ins{j}, 'PortHandles');
+                        object.CoreachedObjects(end+1) = get_param(ins{j}, 'Handle');
+                        inports = ports.Inport;
+                        for k = 1:length(inports)
+                            object.PortsToTraverseCo(end + 1) = inports(k);
+                        end
+                    end
                 end
                 % Add blocks to coreach from selection, and their ports to the
                 % list to traverse
@@ -1337,6 +1356,26 @@ classdef ReachCoreach < handle
                                 object.PortsToTraverseCo(end + 1) = ifPorts(str2num(cond));
                             end
                         end
+                    case 'ForIterator'
+                        toCoreach = getInterfaceOut(object, get_param(nextBlocks(i), 'parent'));
+                        for j = 1:length(toCoreach)
+                            ports = get_param(toCoreach{j}, 'PortHandles');
+                            object.CoreachedObjects(end+1) = get_param(toCoreach{j}, 'Handle');
+                            inports = ports.Inport;
+                            for k = 1:length(inports)
+                                object.PortsToTraverseCo(end + 1) = inports(k);
+                            end
+                        end
+                        ins = find_system(get_param(nextBlocks(i), 'parent'), 'SearchDepth', 1, 'BlockType', 'Outport');
+                        for j = 1:length(ins)
+                            ports = get_param(ins{j}, 'PortHandles');
+                            object.CoreachedObjects(end+1) = get_param(ins{j}, 'Handle');
+                            inports = ports.Inport;
+                            for k = 1:length(inports)
+                                object.PortsToTraverseCo(end + 1) = inports(k);
+                            end
+                        end
+                        
                     otherwise
                         % Otherwise case, simply adds the inports of the block
                         % to the list of ports to traverse.

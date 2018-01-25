@@ -29,20 +29,28 @@ function blockList = findGotoFromsInScopeRCR(obj, block, flag)
     end
     
     blockParent = get_param(block, 'parent');
-    tagsSameName = obj.gtvMap(dataStoreName);
+    tagsSameName = obj.stvMap(gotoTag);
     tagsSameName = setdiff(tagsSameName, block);
     
     % Any Goto/From blocks in their scopes are listed as blocks not in the
     % input Goto Tag Visibility block's scope
     blocksToExclude = {};
     for i = 1:length(tagsSameName)
+        tagFlag = 0;
         tagParent = get_param(tagsSameName{i}, 'parent');
-        blocksToExclude = [blocksToExclude; find_system(tagParent, ...
-            'FollowLinks', 'on', 'BlockType', 'From', 'GotoTag', gotoTag)];
-        blocksToExclude = [blocksToExclude; find_system(tagParent, ...
-            'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', gotoTag)];
+        if length(tagParent) > length(blockParent)
+            if strcmp(blockParent, tagParent(1:length(blockParent)))
+                tagFlag = 1;
+            end
+        end
+        if tagFlag
+            tagParent = get_param(tagsSameName{i}, 'parent');
+            blocksToExclude = [blocksToExclude; find_system(tagParent, ...
+                'FollowLinks', 'on', 'BlockType', 'From', 'GotoTag', gotoTag)];
+            blocksToExclude = [blocksToExclude; find_system(tagParent, ...
+                'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', gotoTag)];
+        end
     end
-    
     % All Froms associated with local Gotos are listed as blocks not in the 
     % scope of input Goto Tag Visibility block
     localGotos = find_system(blockParent, 'FollowLinks', 'on', ...

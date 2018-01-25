@@ -47,11 +47,20 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
     % other Data Store Memory blocks
     blocksToExclude = {};
     for i = 1:length(memsSameName)
-        memParent = get_param(memsSameName{i}, 'parent');
-        blocksToExclude = [blocksToExclude; find_system(memParent, 'FollowLinks', ...
-            'on', 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName)];
-        blocksToExclude = [blocksToExclude; find_system(memParent, 'FollowLinks', ...
-            'on', 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName)];
+        dsmFlag = 0;
+        dsmParent = get_param(memsSameName{i}, 'parent');
+        if length(dsmParent) > length(blockParent)
+            if strcmp(blockParent, dsmParent(1:length(blockParent)))
+                dsmFlag = 1;
+            end
+        end
+        if dsmFlag
+            memParent = get_param(memsSameName{i}, 'parent');
+            blocksToExclude = [blocksToExclude; find_system(memParent, 'FollowLinks', ...
+                'on', 'BlockType', 'DataStoreRead', 'DataStoreName', dataStoreName)];
+            blocksToExclude = [blocksToExclude; find_system(memParent, 'FollowLinks', ...
+                'on', 'BlockType', 'DataStoreWrite', 'DataStoreName', dataStoreName)];
+        end
     end
     
     % Remove the blocks to exclude from the list of Reads/Writes with the

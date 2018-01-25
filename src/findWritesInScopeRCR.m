@@ -31,8 +31,8 @@ function writes = findWritesInScopeRCR(obj, block, flag)
         return
     end
     
-    memBlock = findDataStoreMemoryRCR(block);
-    writes = findReadWritesInScopeRCR(memBlock);
+    memBlock = findDataStoreMemoryRCR(obj, block, flag);
+    writes = findReadWritesInScopeRCR(obj, memBlock, flag);
     blocksToExclude = obj.dsrMap(dataStoreName);
     writes = setdiff(writes, blocksToExclude);
 end

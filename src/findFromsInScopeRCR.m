@@ -48,8 +48,8 @@ function froms = findFromsInScopeRCR(obj, block, flag)
             'BlockType', 'From', 'GotoTag', tag);
         return
     elseif strcmp(tagVis, 'scoped');
-        visibilityBlock = findVisibilityTagBD(block);
-        froms = findGotoFromsInScopeRCR(visibilityBlock);
+        visibilityBlock = findVisibilityTagRCR(obj, block, flag);
+        froms = findGotoFromsInScopeRCR(obj, visibilityBlock, flag);
         if isKey(obj.sfMap, tag)
             blocksToExclude = obj.sgMap(tag);
         else

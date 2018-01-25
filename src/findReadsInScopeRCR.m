@@ -31,8 +31,8 @@ function reads = findReadsInScopeRCR(obj, block, flag)
         return
     end
     
-    memBlock = findDataStoreMemoryRCR(block);
-    reads = findReadWritesInScopeRCR(memBlock);
+    memBlock = findDataStoreMemoryRCR(obj, block, flag);
+    reads = findReadWritesInScopeRCR(obj, memBlock, flag);
     blocksToExclude = obj.dswMap(dataStoreName);
     reads = setdiff(reads, blocksToExclude);
 end
