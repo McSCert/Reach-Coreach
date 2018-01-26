@@ -1,6 +1,16 @@
 function blockList = findReadWritesInScopeRCR(obj, block, flag)
 % FINDREADWRITESINSCOPE Find all the Data Store Read and Data Store Write 
 % blocks associated with a Data Store Memory block.
+%
+% 	Inputs:
+% 		obj        The reachcoreach object containing data store mappings
+%       block      The data store memory block of interest
+%       flag       The flag indicating whether shadowing data stores are in the
+%                  model
+%
+% 	Outputs:
+%		blockList  The cell array of reads and writes corresponding to the
+%		           input "block"
 
     if isempty(block)
         blockList = {};

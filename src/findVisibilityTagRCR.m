@@ -1,6 +1,15 @@
 function visBlock = findVisibilityTagRCR(obj, block, flag)
 % FINDVISIBILITYTAG Find the Goto Visibility Tag block associated with a
 % scoped Goto or From block.
+%
+% 	Inputs:
+% 		obj       The reachcoreach object containing goto tag mappings
+%       block     The goto or from block of interest
+%       flag      The flag indicating whether shadowing goto tags are in the
+%                 model
+%
+% 	Outputs:
+%		visBlock  The tag visibility block corresponding to input "block"
 
     if isempty(block)
         visBlock = {};

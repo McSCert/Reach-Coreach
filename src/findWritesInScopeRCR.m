@@ -1,6 +1,15 @@
 function writes = findWritesInScopeRCR(obj, block, flag)
 % FINDWRITESINSCOPE Find all the Data Store Writes associated with a Data
 % Store Read block.
+%
+% 	Inputs:
+% 		obj    The reachcoreach object containing data store mappings
+%       block  The read block of interest
+%       flag   The flag indicating whether shadowing data stores are in the
+%              model
+%
+% 	Outputs:
+%		froms    The data store write corresponding to input "block"
 
     if isempty(block)
         writes = {};
