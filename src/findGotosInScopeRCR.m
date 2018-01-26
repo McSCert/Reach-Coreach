@@ -1,5 +1,14 @@
 function goto = findGotosInScopeRCR(obj, block, flag)
 % FINDGOTOSINSCOPE Find the Goto block associated with a From block.
+%
+% 	Inputs:
+% 		obj    The reachcoreach object containing goto tag mappings
+%       block  The from block of interest
+%       flag   The flag indicating whether shadowing visibility tags are in the
+%              model
+%
+% 	Outputs:
+%		goto   The goto block corresponding to input "block"
 
     % if no gotos are found, return an empty list
     goto = {};

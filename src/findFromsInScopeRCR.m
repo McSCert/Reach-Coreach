@@ -1,5 +1,14 @@
 function froms = findFromsInScopeRCR(obj, block, flag)
 % FINDFROMSINSCOPE Find all the From blocks associated with a Goto block.
+%
+% 	Inputs:
+% 		obj    The reachcoreach object containing goto tag mappings
+%       block  The goto block of interest
+%       flag   The flag indicating whether shadowing visibility tags are in the
+%              model
+%
+% 	Outputs:
+%		froms    The tag visibility block corresponding to input "block"
 
     if isempty(block)
         froms = {};

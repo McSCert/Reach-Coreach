@@ -1,6 +1,15 @@
 function blockList = findGotoFromsInScopeRCR(obj, block, flag)
 % FINDGOTOFROMSINSCOPE Find all the Goto and From blocks associated with a 
 % Goto Tag Visibility block.
+%
+% 	Inputs:
+% 		obj        The reachcoreach object containing goto tag mappings
+%       block      The tag visibility block of interest
+%       flag       The flag indicating whether shadowing visibility tags 
+%                  are in the model
+%
+% 	Outputs:
+%		blockList  Cell array of goto/from blocks corresponding to input "block"
 
     if isempty(block)
         blockList = {};

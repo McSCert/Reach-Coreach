@@ -1,6 +1,15 @@
 function mem = findDataStoreMemoryRCR(obj, block, flag)
 % FINDDATASTOREMEMORY Find the Data Store Memory block of a Data Store
 % Read or Write block.
+%
+% 	Inputs:
+% 		obj    The reachcoreach object containing data store mappings
+%       block  The data store read or write block of interest
+%       flag   The flag indicating whether shadowing data stores are in the
+%              model
+%
+% 	Outputs:
+%		mem    The data store memory block corresponding to input "block"
 
     if isempty(block)
         mem = {};

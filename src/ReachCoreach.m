@@ -493,7 +493,7 @@ classdef ReachCoreach < handle
                     end
                 elseif strcmp(selectionType, 'GotoTagVisibility')
                     % Add goto and from blocks to reach, and ports to list to traverse
-                    associatedBlocks = findGotoFromsInScopeRCR(selection{i}, object.gtvFlag);
+                    associatedBlocks = findGotoFromsInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(associatedBlocks)
                         object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
