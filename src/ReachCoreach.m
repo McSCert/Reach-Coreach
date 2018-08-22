@@ -21,7 +21,7 @@ classdef ReachCoreach < handle
         
         dsmMap              % Map of data store names to data store memory blocks
         dsrMap              % Map of data store names to data store read blocks
-        dswMap              % Map of data store names to data store read blocks
+        dswMap              % Map of data store names to data store write blocks
         
         stvMap              % Map of goto tag names to goto tag visibility blocks
         sgMap               % Map of goto tag names to goto blocks
@@ -31,12 +31,20 @@ classdef ReachCoreach < handle
     properties(Access = private)
         PortsToTraverse     % Ports remaining to traverse in the reach operation.
         PortsToTraverseCo   % Ports remaining to traverse in the coreach operation.
+        
+        RecurseCell         % Ports being reached in the main Reach loop
 
         Color               % Foreground color of highlight.
         BGColor             % Background color of highlight.
         
         dsmFlag             % Flag that determines uniqueness of DataStoreNames
         gtvFlag             % Flag that determines uniqueness of Goto Tags
+        
+        busCreatorBlockMap       % Map of all of the blocks a bused signal from a creator passes through
+        busSelectorBlockMap      % Map of all of the blocks a bused signal to a selector passes through
+
+        busCreatorExitMap       % Map of all of the exits a bused signal from a creator passes through
+        busSelectorExitMap      % Map of all of the exits a bused signal to a selector passes through
 
     end
 
@@ -87,13 +95,15 @@ classdef ReachCoreach < handle
             object.stvMap = containers.Map;
             object.sgMap = containers.Map;
             object.sfMap = containers.Map;
-            object.gtvFlag = 0;
-            object.dsmFlag = 0;
+            object.gtvFlag = 1;
+            object.dsmFlag = 1;
+            object.busCreatorBlockMap = containers.Map();
+            object.busSelectorBlockMap = containers.Map();
             
             % Make a map of the scoped gotos by tag
             temp = {};
             scopedGotos = find_system(RootSystemName, 'FollowLinks', 'on', ...
-                'BlockType', 'Goto');
+                'BlockType', 'Goto', 'TagVisibility', 'scoped');
             for i=1:length(scopedGotos)
                 tag = get_param(scopedGotos{i}, 'GotoTag');
                 temp{end+1} = tag;
@@ -103,11 +113,11 @@ classdef ReachCoreach < handle
                     object.sgMap(tag) = {scopedGotos{i}};
                 end
             end
-            if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
-                object.gtvFlag = 1;
-            else
-                object.gtvFlag = 0;
-            end
+%             if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
+%                 object.gtvFlag = 1;
+%             else
+%                 object.gtvFlag = 0;
+%             end
             
             % Make a map of the scoped froms by tag
             temp = {};
@@ -122,11 +132,11 @@ classdef ReachCoreach < handle
                     object.sfMap(tag) = {scopedFroms{i}};
                 end
             end
-            if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
-                object.gtvFlag = 1;
-            else
-                object.gtvFlag = 0;
-            end
+%             if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
+%                 object.gtvFlag = 1;
+%             else
+%                 object.gtvFlag = 0;
+%             end
             
             % Make a map of the scoped tag visibility blocks by tag, and
             % additionally check for repeated scoped tag names
@@ -142,11 +152,11 @@ classdef ReachCoreach < handle
                     object.stvMap(tag) = {scopedTags{i}};
                 end
             end
-            if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
-                object.gtvFlag = 1;
-            else
-                object.gtvFlag = 0;
-            end
+%             if (length(temp) == length(unique(temp)))&&(object.gtvFlag == 1)
+%                 object.gtvFlag = 1;
+%             else
+%                 object.gtvFlag = 0;
+%             end
             
             reads = find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'DataStoreRead');
@@ -554,7 +564,7 @@ classdef ReachCoreach < handle
                         end
                         busPort = get_param(selection{i}, 'PortHandles');
                         busPort = busPort.Outport;
-                        [path, blockList, exit] = object.traverseBusForwards(busPort, signalName, [], []);
+                        [path, exit] = object.traverseBusForwards(selection{i}, busPort, signalName, []);
                         object.TraversedPorts = [object.TraversedPorts path];
                         object.ReachedObjects = [object.ReachedObjects blockList];
                         object.PortsToTraverse = [object.PortsToTraverse exit];
@@ -580,13 +590,19 @@ classdef ReachCoreach < handle
                 object.PortsToTraverse = [object.PortsToTraverse get_param(lines(i), 'SrcPortHandle')];
             end
             
+            
             % Reach from each in the list of ports to traverse
             while ~isempty(object.PortsToTraverse)
-                port = object.PortsToTraverse(end);
-                object.PortsToTraverse(end) = [];
-                reach(object, port)
-                object.PortsToTraverse = setdiff(object.PortsToTraverse, object.TraversedPorts);
+                object.RecurseCell = setdiff(object.PortsToTraverse, object.TraversedPorts);
+                object.PortsToTraverse = [];
+                while ~isempty(object.RecurseCell)
+                    port = object.RecurseCell(end);
+                    object.RecurseCell(end) = [];
+                    reach(object, port)
+                end
+                %object.PortsToTraverse = setdiff(object.PortsToTraverse, object.TraversedPorts);
             end
+            
             % Get foreach blocks
             forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
             for i = 1:length(forEach)
@@ -599,8 +615,9 @@ classdef ReachCoreach < handle
                     end
                 end
             end
+            
             % Highlight all objects reached
-            object.hiliteObjects();
+            % object.hiliteObjects();
 
             % Make initial system the active window
             open_system(initialOpenSystem)
@@ -1056,8 +1073,10 @@ classdef ReachCoreach < handle
                             if strcmp(get_param(get_param(dstPort(j), 'parent'), 'BlockType'), 'BusCreator')
                                 busPort = get_param(nextBlocks(i), 'PortHandles');
                                 busPort = busPort.Outport;
-                                [path, blockList, exit] = object.traverseBusForwards(busPort, signalName, [], []);
+                                [path, exit] = object.traverseBusForwards(block, busPort, signalName, []);
                                 object.TraversedPorts = [object.TraversedPorts path];
+                                blockList = object.busCreatorBlockMap;
+                                blockList = blockList(block);
                                 object.ReachedObjects = [object.ReachedObjects blockList];
                                 object.PortsToTraverse = [object.PortsToTraverse exit];
                             end
@@ -1483,20 +1502,20 @@ classdef ReachCoreach < handle
         % (outports, gotos, froms) and find the next blocks/ports as if
         % being reached by the main reach function.
 
-            blocks = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+            blocks = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'block');
 
             % Excludes trigger, enable, and action port blocks (they are
             % added in main function)
-            blocksToExclude = find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
-                'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'EnablePort');
-            blocksToExclude = [blocksToExclude; find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
-                'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'TriggerPort')];
-            blocksToExclude = [blocksToExclude; find_system(system, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
-                'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ActionPort')];
+            blocksToExclude = find_system(system, 'FindAll', 'on', 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'block', 'BlockType', 'EnablePort');
+            blocksToExclude = [blocksToExclude; find_system(system, 'FindAll', 'on', 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'block', 'BlockType', 'TriggerPort')];
+            blocksToExclude = [blocksToExclude; find_system(system, 'FindAll', 'on', 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'block', 'BlockType', 'ActionPort')];
             blocks = setdiff(blocks, blocksToExclude);
 
             for i = 1:length(blocks)
-                object.ReachedObjects(end + 1) = get_param(blocks{i}, 'handle');
+                object.ReachedObjects(end + 1) = blocks(i);
             end
             lines = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
             object.ReachedObjects = [object.ReachedObjects lines.'];
@@ -1561,6 +1580,8 @@ classdef ReachCoreach < handle
                     object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
                 end
             end
+            
+            %object.PortsToTraverse = setdiff(object.PortsToTraverse, object.TraversedPorts);
         end
 
         function blocks = getInterfaceIn(object, subsystem)
@@ -1620,14 +1641,16 @@ classdef ReachCoreach < handle
             gotos = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto');
             allTags = find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'GotoTagVisibility');
             for i = 1:length(gotos)
-                froms = [froms; findFromsInScopeRCR(object, gotos{i}, object.gtvFlag)];
-                tag = findVisibilityTagRCR(object, gotos{i}, object.gtvFlag);
-                tag = setdiff(tag, allTags);
-                if ~isempty(tag)
-                    if iscell(tag)
-                        tag = tag{1};
+                if ~strcmp(get_param(gotos{i}, 'TagVisibility'), 'local')
+                    froms = [froms; findFromsInScopeRCR(object, gotos{i}, object.gtvFlag)];
+                    tag = findVisibilityTagRCR(object, gotos{i}, object.gtvFlag);
+                    tag = setdiff(tag, allTags);
+                    if ~isempty(tag)
+                        if iscell(tag)
+                            tag = tag{1};
+                        end
+                        object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                     end
-                    object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                 end
             end
             froms = setdiff(froms, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'From'));
@@ -1657,15 +1680,14 @@ classdef ReachCoreach < handle
             end
         end
 
-        function [path, blockList, exit] = traverseBusForwards(object, oport, signal, path, blockList)
-        % Go until a Bus Creator is enoucntered. Then, return the path
+        function [path, exit] = traverseBusForwards(object, creator, oport, signal, path)
+        % Go until a Bus Creator is encountered. Then, return the path
         % taken there as well as the exiting port
-
             exit = [];
             for g = 1:length(oport)
                 parentBlock = get_param(get_param(oport(g), 'parent'), 'Handle');
                 if strcmp(get_param(parentBlock, 'BlockType'), 'SFunction');
-                    exit = [exit, oport(g)];
+                    object.addToMappedArray('busCreatorExitMap', creator, oport(g))
                     break
                 end
                 
@@ -1673,7 +1695,7 @@ classdef ReachCoreach < handle
                     break
                 end
                 
-                blockList(end + 1) = parentBlock;
+                object.addToMappedArray('busCreatorBlockMap', creator, parentBlock)
                 portline = get_param(oport(g), 'Line');
                 
                 try
@@ -1682,7 +1704,7 @@ classdef ReachCoreach < handle
                     break
                 end
                 
-                blockList(end + 1) = portline;
+                object.addToMappedArray('busCreatorBlockMap', creator, portline)
                 path(end + 1) = oport(g);
 
                 % If the bus ends early (not at Bus Selector) output empty
@@ -1713,27 +1735,28 @@ classdef ReachCoreach < handle
                                 for i = 1:length(dstPort)
                                     portNum = get_param(dstPort(g), 'PortNumber');
                                     signalName = ['signal' num2str(portNum) '.' signal];
-                                    [path, blockList, intermediate] = object.traverseBusForwards(nextports.Outport, ...
-                                        signalName, path, blockList);
+                                    [path, intermediate] = object.traverseBusForwards(creator, nextports.Outport, ...
+                                        signalName, path);
                                     path = [path intermediate];
+                                    path = unique(path);
                                     for j = 1:length(intermediate)
-                                        [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(intermediate(j), ...
-                                            signal, path, blockList);
+                                        [tempPath, tempExit] = object.traverseBusForwards(creator, intermediate(j), ...
+                                            signal, path);
                                         exit = [exit tempExit];
-                                        blockList = [blockList tempBlockList];
                                         path = [path, tempPath];
+                                        path = unique(path);
                                     end
                                 end
                             else
                                 signalName = [signalName '.' signal];
-                                [path, blockList, intermediate] = object.traverseBusForwards(nextports.Outport, ...
-                                    signalName, path, blockList);
+                                [path, intermediate] = object.traverseBusForwards(creator, nextports.Outport, ...
+                                    signalName, path);
                                 for i = 1:length(intermediate)
-                                    [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(intermediate(i), ...
-                                        signal, path, blockList);
+                                    [tempPath, tempExit] = object.traverseBusForwards(creator, intermediate(i), ...
+                                        signal, path);
                                     exit = [exit tempExit];
-                                    blockList = [blockList tempBlockList];
                                     path = [path, tempPath];
+                                    path = unique(path);
                                 end
                             end
 
@@ -1741,7 +1764,7 @@ classdef ReachCoreach < handle
                             % Base case for recursion: Get the exiting
                             % port from the Bus Selector and pass out all
                             % other relevant information
-                            blockList(end + 1) = get_param(next , 'handle');
+                            object.addToMappedArray('busCreatorBlockMap', creator, get_param(next , 'handle'));
                             outputs = get_param(next, 'OutputSignals');
                             outputs = regexp(outputs, ',', 'split');
                             portNum = find(strcmp(outputs(:), signal));
@@ -1758,31 +1781,33 @@ classdef ReachCoreach < handle
                                             temp = temp.Outport;
                                             exit = [exit temp(i)];
                                         end
+                                    else
+                                        return
                                     end
                                 end
                             end
 
                         case 'Goto'
                             % Follow the bus through Goto blocks
-                            blockList(end + 1) = get_param(next , 'handle');
+                            object.addToMappedArray('busCreatorBlockMap', creator, get_param(next , 'handle'));
                             froms = findFromsInScopeRCR(object, next, object.gtvFlag);
                             for i = 1:length(froms)
                                 outport = get_param(froms{i}, 'PortHandles');
                                 outport = outport.Outport;
-                                [tempPath, tempBlockList, tempExit] = object.traverseBusForwards(outport, ...
-                                    signal, path, blockList);
+                                [tempPath, tempExit] = object.traverseBusForwards(creator, outport, ...
+                                    signal, path);
                                 exit = [exit tempExit];
-                                blockList = [blockList tempBlockList];
                                 path = [path tempPath];
+                                path = unique(path);
                                 tag = findVisibilityTagRCR(object, froms{i}, object.gtvFlag);
                                 if ~isempty(tag)
-                                    blockList(end + 1) = get_param(tag, 'Handle');
+                                    object.addToMappedArray('busCreatorBlockMap', creator, get_param(tag, 'Handle'));
                                 end
                             end
 
                         case 'SubSystem'
                             % Follow the bus into Subsystems
-                            blockList(end + 1) = get_param(next , 'handle');
+                            object.addToMappedArray('busCreatorBlockMap', creator, get_param(next , 'handle'));
                             dstPorts = get_param(portline, 'DstPortHandle');
                             for j = 1:length(dstPorts)
                                 if strcmp(get_param(dstPorts(j), 'parent'), getfullname(next))
@@ -1790,19 +1815,19 @@ classdef ReachCoreach < handle
                                     inport = find_system(next, 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Inport', 'Port', num2str(portNum));
                                     inportPort = get_param(inport, 'PortHandles');
                                     inportPort = inportPort.Outport;
-                                    [path, blockList, tempExit] = object.traverseBusForwards(inportPort, ...
-                                        signal, path, blockList);
+                                    [path, tempExit] = object.traverseBusForwards(creator, inportPort, ...
+                                        signal, path);
                                     exit = [exit tempExit];
                                 end
                             end
 
                         case 'Outport'
                             % Follow the bus out of Subsystems
-                            blockList(end + 1) = get_param(next , 'handle');
+                            object.addToMappedArray('busCreatorBlockMap', creator, get_param(next , 'handle'));
                             portNum = get_param(next, 'Port');
                             parent = get_param(next, 'parent');
                             if ~isempty(get_param(parent, 'parent'))
-                                blockList(end + 1) = get_param(parent, 'Handle');
+                                object.addToMappedArray('busCreatorBlockMap', creator, get_param(parent, 'Handle'));
                                 port = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                                     'type', 'port', 'parent', parent, 'PortType', 'outport', 'PortNumber', str2num(portNum));
                                 try
@@ -1810,8 +1835,8 @@ classdef ReachCoreach < handle
                                 catch
                                     break
                                 end
-                                [path, blockList, temp] = object.traverseBusForwards(port, ...
-                                    signal, path, blockList);
+                                [path, temp] = object.traverseBusForwards(creator, port, ...
+                                    signal, path);
                                 exit = [exit temp];
                             end
 
@@ -1820,17 +1845,17 @@ classdef ReachCoreach < handle
                             %port that the signal originates from in the
                             %BusCreator, then use that as the signal num
                             %for traversing the bus
-                            blockList(end + 1) = get_param(next , 'handle');
+                            object.addToMappedArray('busCreatorBlockMap', creator, get_param(next , 'handle'));
                             nextPorts = get_param(next, 'PortHandles');
                             nextPorts = nextPorts.Outport;
                             exit = [exit nextPorts];
 
                         otherwise
-                            blockList(end + 1) = next;
+                            object.addToMappedArray('busCreatorBlockMap', creator, next);
                             nextPorts = get_param(next, 'PortHandles');
                             nextPorts = nextPorts.Outport;
-                            [path, blockList, temp] = object.traverseBusForwards(nextPorts, ...
-                                signal, path, blockList);
+                            [path, temp] = object.traverseBusForwards(creator, nextPorts, ...
+                                signal, path);
                             exit = [exit temp];
                     end
                 end
@@ -1978,5 +2003,19 @@ classdef ReachCoreach < handle
                 end
             end
         end
+        
+        function addToMappedArray(object, property, key, handle)
+            eval(['temp = object.' property ';']);
+            try
+                array = temp(key);
+            catch
+                array = [];
+            end
+            array(end + 1) = handle;
+            array = unique(array);
+            temp(key) = array;
+            eval(['object.' property ' = temp;']);
+        end
+        
     end
 end

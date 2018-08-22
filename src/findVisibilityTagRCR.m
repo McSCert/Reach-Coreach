@@ -37,7 +37,11 @@ function visBlock = findVisibilityTagRCR(obj, block, flag)
     end
     
     if flag
-        visBlock = scopedTags;
+        if ~isempty(scopedTags)
+            visBlock = scopedTags{1};
+        else
+            visBlock = scopedTags;
+        end
         return
     end
     

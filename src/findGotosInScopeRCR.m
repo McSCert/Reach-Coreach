@@ -31,14 +31,19 @@ function goto = findGotosInScopeRCR(obj, block, flag)
     end
     
     tag = get_param(block, 'GotoTag');
+    level = get_param(block, 'parent');
     
     if flag
-        try
-            goto = obj.sgMap(tag);
-        catch
-            goto = {};
+        goto = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, ...
+            'BlockType', 'Goto', 'GotoTag', tag);
+        if isempty(goto)
+            try
+                goto = obj.sgMap(tag);
+            catch
+                goto = {};
+            end
+            return
         end
-        return
     end
     
     goto = find_system(get_param(block, 'parent'),'SearchDepth', 1,  ...
