@@ -1,14 +1,14 @@
 function GroundAndTerminatePorts(sys)
-%GROUNDANDTERMINATEPORTS Ground and terminate all unconnected ports in the
-%model
-%
-% 	Inputs:
-% 		sys  The subsystem for which to ground and terminate unconnected
-% 		     ports
-%
-% 	Outputs:
-%		N/A
-
+    %GROUNDANDTERMINATEPORTS Ground and terminate all unconnected ports in the
+    %model.
+    %
+    % 	Inputs:
+    % 		sys     The Simulink system for which to ground and terminate
+    %               unconnected ports.
+    %
+    % 	Outputs:
+    %		N/A
+    
     % get all ports in the system
     ports = find_system(sys, 'SearchDepth', 1, 'findall', 'on', 'type', 'port');
     numTerms = 0;
@@ -66,6 +66,6 @@ function GroundAndTerminatePorts(sys)
             end
         end
     end
-
+    
 end
 
