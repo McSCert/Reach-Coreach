@@ -61,6 +61,7 @@ classdef ReachCoreach < handle
         busCreatorExitMap       % Map of all of the exits a bused signal from a creator passes through
         busSelectorExitMap      % Map of all of the exits a bused signal to a selector passes through
         
+        hiliteFlag          % Flag indicating whether to immediately highlight after a RCR operation
     end
     
     methods
@@ -112,6 +113,7 @@ classdef ReachCoreach < handle
             object.sfMap = containers.Map;
             object.gtvFlag = 1;
             object.dsmFlag = 1;
+            object.hiliteFlag = 1;
             object.busCreatorBlockMap = containers.Map();
             object.busSelectorBlockMap = containers.Map();
             
@@ -119,6 +121,8 @@ classdef ReachCoreach < handle
             temp = {};
             scopedGotos = find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'Goto', 'TagVisibility', 'scoped');
+            scopedGotos = [scopedGotos; find_system(RootSystemName, 'FollowLinks', 'on', ...
+                'BlockType', 'Goto', 'TagVisibility', 'global')];
             for i=1:length(scopedGotos)
                 tag = get_param(scopedGotos{i}, 'GotoTag');
                 temp{end+1} = tag;
@@ -261,6 +265,14 @@ classdef ReachCoreach < handle
             
             % Make initial system the active window
             open_system(initialOpenSystem)
+        end
+        
+        function setHiliteFlag(object, flag)
+            if flag == 0
+                object.hiliteFlag = flag;
+            else
+                object.hiliteFlag = 1;
+            end
         end
         
         function hiliteObjects(object)
@@ -632,7 +644,9 @@ classdef ReachCoreach < handle
             end
             
             % Highlight all objects reached
-            object.hiliteObjects();
+            if object.hiliteFlag
+                object.hiliteObjects();
+            end
             
             % Make initial system the active window
             open_system(initialOpenSystem)
@@ -868,7 +882,9 @@ classdef ReachCoreach < handle
             end
             
             % Highlight the coreached objects
-            object.hiliteObjects();
+            if object.hiliteFlag
+                object.hiliteObjects();
+            end
             
             % Make initial system the active window
             open_system(initialOpenSystem)
@@ -1929,10 +1945,12 @@ classdef ReachCoreach < handle
                         inputs = inputs.Inport;
                         inputs = get_param(inputs, 'Name');
                         portNum = find(strcmp(signal, inputs));
-                        if isempty(portNum)
-                            match = regexp(signal, '^signal[1-9]', 'match');
+                        match = regexp(signal, '^signal[1-9]', 'match');
+                        if isempty(portNum)&&~isempty(match)
                             portNum = regexp(match{1}, '[1-9]*$', 'match');
                             portNum = str2num(portNum{1});
+                        else
+                            portNum = 1:length(inputs);
                         end
                         temp = get_param(next, 'PortHandles');
                         temp = temp.Inport;
