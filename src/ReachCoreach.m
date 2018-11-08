@@ -2,12 +2,13 @@ classdef ReachCoreach < handle
     % REACHCOREACH A class that enables performing reachability/coreachability
     % analysis on blocks in a model.
     %
-    %   A reachability analysis is finding all blocks and lines that the
-    %   starting blocks affect via control flow and data flow. A coreachability
-    %   analysis finds all blocks that affect the starting blocks via control
-    %   flow or data flow. After creating a ReachCoreach object, the reachAll
-    %   and coreachAll methods are can be used to perform these analyses, and
-    %   highlight all the blocks/signals in the reach and coreach.
+    %   A reachability analysis (reach) finds all blocks and lines that the
+    %   given initial blocks affect via control flow or data flow. A
+    %   coreachability analysis (coreach) finds all blocks and lines that affect
+    %   the given initial blocks via control flow or data flow. After creating a
+    %   ReachCoreach object, the reachAll and coreachAll methods can be used to
+    %   perform these analyses respectively, and highlight all the
+    %   blocks/lines in the reach and coreach.
     %
     % Example
     %   open_system('ReachCoreachDemo_2011')
@@ -68,12 +69,16 @@ classdef ReachCoreach < handle
         function object = ReachCoreach(RootSystemName)
             % REACHCOREACH Constructor for the ReachCoreach object.
             %
-            % PARAMETERS
-            % RootSystemName: Parameter name of the top level system in the model
-            % hierarchy the reach/coreach operations are to be run on.
+            %   Input:
+            %       RootSystemName  Parameter name of the top level system in
+            %                       the model hierarchy the reach/coreach
+            %                       operations are to be run on.
             %
-            % EXAMPLE
-            %   obj = ReachCoreach('ModelName')
+            %   Outputs:
+            %       N/A
+            %
+            %   Example:
+            %       obj = ReachCoreach('ModelName')
             
             % Check parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open
@@ -219,19 +224,23 @@ classdef ReachCoreach < handle
         end
         
         function setColor(object, color1, color2)
-            % Set the highlight colours for the reach/coreach.
+            % SETCOLOR Set the highlight colours for the reach/coreach.
             %
-            % PARAMETERS
-            % color1: Parameter for the highlight foreground colour.
-            % Accepted values are 'red', 'green', 'blue', 'cyan',
-            % 'magenta', 'yellow', 'black', 'white'.
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %       color1  Parameter for the highlight foreground colour.
+            %               Accepted values are 'red', 'green', 'blue', 'cyan',
+            %               'magenta', 'yellow', 'black', 'white'.
             %
-            % color2: Parameter for the highlight background colour.
-            % Accepted values are 'red', 'green', 'blue', 'cyan',
-            % 'magenta', 'yellow', 'black', 'white'.
+            %       color2  Parameter for the highlight background colour.
+            %               Accepted values are 'red', 'green', 'blue', 'cyan',
+            %               'magenta', 'yellow', 'black', 'white'.
             %
-            % EXAMPLE
-            %   obj.setColor('red', 'blue')
+            %   Outputs:
+            %       N/A
+            %
+            %   Example:
+            %       obj.setColor('red', 'blue')
             
             % Ensure that the parameters are strings
             try
@@ -268,6 +277,19 @@ classdef ReachCoreach < handle
         end
         
         function setHiliteFlag(object, flag)
+            % SETHILITEFLAG Set hiliteFlag object property. Determines whether
+            % to hilite objects or not.
+            %
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %       flag    Boolean value to set the flag to.
+            %
+            %   Outputs:
+            %       N/A
+            %
+            %   Example:
+            %       obj.setHiliteFlag(true)
+            
             if flag == 0
                 object.hiliteFlag = flag;
             else
@@ -276,10 +298,16 @@ classdef ReachCoreach < handle
         end
         
         function hiliteObjects(object)
-            % Highlight the reached/coreached blocks and lines.
+            % HILITEOBJECTS Highlight the reached/coreached blocks and lines.
             %
-            % EXAMPLE
-            %   obj.hiliteObjects()
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %
+            %   Outputs:
+            %       N/A
+            %
+            %   Example:
+            %       obj.hiliteObjects()
             
             % Keep track of currently opened windows
             openSys = find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Open', 'on');
@@ -305,10 +333,17 @@ classdef ReachCoreach < handle
         end
         
         function slice(object)
-            % Isolate the reached/coreached blocks by removing unhighlighted blocks.
+            % SLICE Isolate the reached/coreached blocks by removing
+            % unhighlighted blocks.
             %
-            % EXAMPLE
-            %   obj.slice()
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %
+            %   Outputs:
+            %       N/A
+            %
+            %   Example:
+            %       obj.slice()
             
             % Ensure that there is a selection before slicing.
             try
@@ -404,10 +439,16 @@ classdef ReachCoreach < handle
         end
         
         function clear(object)
-            % Remove all reach/coreach highlighting.
+            % CLEAR Remove all reach/coreach highlighting.
             %
-            % EXAMPLE
-            %   obj.clear()
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %
+            %   Outputs:
+            %       N/A
+            %
+            %   Example:
+            %       obj.clear()
             
             % Record current open system
             initialOpenSystem = gcs;
@@ -430,16 +471,19 @@ classdef ReachCoreach < handle
         end
         
         function reachAll(object, selection, lines)
-            % Reach from a selection of blocks.
+            % REACHALL Reach from a selection of blocks.
             %
-            % PARAMETERS
-            % selection: a cell array of strings representing the full
-            % names of blocks.
+            %   Inputs:
+            %       object      ReachCoreach object.
+            %       selection   Cell array of strings representing the full
+            %                   names of blocks.
+            %       lines       Array of line handles.
             %
-            % lines: an array of line handles.
+            %   Outputs:
+            %       N/A
             %
-            % EXAMPLE
-            %   obj.reachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'}, [])
+            %   Example:
+            %       obj.reachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'}, [])
             
             % Check object parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open
@@ -653,16 +697,19 @@ classdef ReachCoreach < handle
         end
         
         function coreachAll(object, selection, selLines)
-            % Coreach from a selection of blocks.
+            % COREACHALL Coreach from a selection of blocks.
             %
-            % PARAMETERS
-            % selection: a cell array of strings representing the full
-            % names of blocks.
+            %   Inputs:
+            %       object      ReachCoreach object.
+            %       selection   Cell array of strings representing the full
+            %                   names of blocks.
+            %       selLines    Array of line handles.
             %
-            % selLines: an array of line handles.
+            %   Outputs:
+            %       N/A
             %
-            % EXAMPLE
-            %   obj.coreachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
+            %   Example:
+            %       obj.coreachAll({'ModelName/In1', 'ModelName/SubSystem/Out2'})
             
             % Check object parameter RootSystemName
             % 1) Ensure the model corresponding to RootSystemName is open
@@ -893,8 +940,15 @@ classdef ReachCoreach < handle
     
     methods(Access = private)
         function reach(object, port)
-            % Find the next ports to call the reach from, and add all
+            % REACH Find the next ports to call the reach from, and add all
             % objects encountered to Reached Objects.
+            %
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %       port
+            %
+            %   Output:
+            %       N/A
             
             % Check if this port was already traversed
             if any(object.TraversedPorts == port)
@@ -1204,8 +1258,15 @@ classdef ReachCoreach < handle
         end
         
         function coreach(object, port)
-            % Find the next ports to find the coreach from,
-            % and add all objects encountered to coreached objects.
+            % COREACH Find the next ports to find the coreach from, and add all
+            % objects encountered to coreached objects.
+            %
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %       port
+            %
+            %   Outputs:
+            %       N/A
             
             % Check if this port was already traversed
             if any(object.TraversedPortsCo == port)
@@ -1439,7 +1500,15 @@ classdef ReachCoreach < handle
         end
         
         function iterators = findIterators(object)
-            % Find all while and for iterators that need to be coreached.
+            % FINDITERATORS Find all while and for iterators that need to be
+            % coreached.
+            %
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %       port
+            %
+            %   Outputs:
+            %       N/A
             
             iterators = {};
             candidates = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'WhileIterator');
@@ -1457,10 +1526,16 @@ classdef ReachCoreach < handle
         end
         
         function findSpecialPorts(object)
-            % Find all actionport, foreach, triggerport, and enableport blocks
-            % and adds them to the coreach, as well as adding their
-            % corresponding port in the parent subsystem block to the list
+            % FINDSPECIALPORTS Find all actionport, foreach, triggerport, and
+            % enableport blocks and adds them to the coreach, as well as adding
+            % their corresponding port in the parent subsystem block to the list
             % of ports to traverse.
+            %
+            %   Input:
+            %       object  ReachCoreach object.
+            %
+            %   Outputs:
+            %       N/A
             
             forEach = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForEach');
             triggerPorts = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'TriggerPort');
@@ -1528,10 +1603,17 @@ classdef ReachCoreach < handle
         end
         
         function reachEverythingInSub(object, system)
-            % Add all blocks and outports of blocks in the subsystem to the
-            % lists of reached objects. Also find all interface going outward
-            % (outports, gotos, froms) and find the next blocks/ports as if
-            % being reached by the main reach function.
+            % REACHEVERYTHINGINSUB Add all blocks and outports of blocks in the
+            % subsystem to the lists of reached objects. Also find all interface
+            % going outward (outports, gotos, froms) and find the next
+            % blocks/ports as if being reached by the main reach function.
+            %
+            %   Inputs:
+            %       object ReachCoreach object.
+            %       system
+            %
+            %   Outputs:
+            %       N/A
             
             blocks = find_system(system, 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'block');
             
@@ -1616,8 +1698,15 @@ classdef ReachCoreach < handle
         end
         
         function blocks = getInterfaceIn(object, subsystem)
-            % Get all the source blocks for the subsystem, including Gotos
-            % and Data Store Writes.
+            % GETINTERFACEIN Get all the source blocks for the subsystem,
+            % including Gotos and Data Store Writes.
+            %
+            %   Inputs:
+            %       object      ReachCoreach object.
+            %       subsystem
+            %
+            %   Outputs:
+            %       blocks
             
             blocks = {};
             gotos = {};
@@ -1663,8 +1752,15 @@ classdef ReachCoreach < handle
         end
         
         function blocks = getInterfaceOut(object, subsystem)
-            % Get all the destination blocks for the subsystem, including
-            % Froms and Data Store Reads.
+            % GETINTERFACEOUT Get all the destination blocks for the subsystem,
+            % including Froms and Data Store Reads.
+            %
+            %   Inputs:
+            %       object      ReachCoreach object.
+            %       subsystem
+            %
+            %   Output:
+            %       blocks
             
             blocks = {};
             froms = {};
@@ -1712,8 +1808,20 @@ classdef ReachCoreach < handle
         end
         
         function [path, exit] = traverseBusForwards(object, creator, oport, signal, path)
-            % Go until a Bus Creator is encountered. Then, return the path
-            % taken there as well as the exiting port
+            % TRAVERSEBUSFORWARDS Go until a Bus Creator is encountered. Then,
+            % return the path taken there as well as the exiting port.
+            %
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %       creator
+            %       oport
+            %       signal
+            %       path
+            %
+            %   Outputs:
+            %       path
+            %       exit
+            
             exit = [];
             for g = 1:length(oport)
                 parentBlock = get_param(get_param(oport(g), 'parent'), 'Handle');
@@ -1894,8 +2002,20 @@ classdef ReachCoreach < handle
         end
         
         function [path, blockList, exit] = traverseBusBackwards(object, iport, signal, path, blockList)
-            % Go until Bus Creator is encountered. Then, return the path
-            % taken there as well as the exiting port.
+            % TRAVERSEBUSBACKWARDS Go until Bus Creator is encountered. Then,
+            % return the path taken there as well as the exiting port.
+            %
+            %   Inputs:
+            %       object      ReachCoreach object.
+            %       iport
+            %       signal
+            %       path
+            %       blockList
+            %
+            %   Outputs:
+            %       path
+            %       blockList
+            %       exit
             
             exit = [];
             for h = length(iport)
@@ -2038,6 +2158,17 @@ classdef ReachCoreach < handle
         end
         
         function addToMappedArray(object, property, key, handle)
+            % ADDTOMAPPEDARRAY
+            %
+            %   Inputs:
+            %       object      ReachCoreach object.
+            %       property
+            %       key
+            %       handle
+            %
+            %   Outputs:
+            %
+            
             eval(['temp = object.' property ';']);
             try
                 array = temp(key);
