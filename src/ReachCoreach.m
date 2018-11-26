@@ -646,7 +646,7 @@ classdef ReachCoreach < handle
                         strcmp(selectionType, 'WhileIterator') || ...
                         strcmp(selectionType, 'ForEach') || ...
                         strcmp(selectionType, 'ForIterator'))
-                    % Add everything to in a subsystem to the reach if one
+                    % Add everything in a subsystem to the reach if one
                     % of the listed block types is in the selection
                     object.reachEverythingInSub(get_param(selection{i}, 'parent'))
                 end
@@ -971,7 +971,7 @@ classdef ReachCoreach < handle
             
             for i = 1:length(nextBlocks)
                 if (nextBlocks(i) == -1)
-                    break
+                    continue
                 end
                 % Add block to list of reached objects
                 object.ReachedObjects(end + 1) = nextBlocks(i);
