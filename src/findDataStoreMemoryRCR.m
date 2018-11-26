@@ -30,7 +30,11 @@ function mem = findDataStoreMemoryRCR(obj, block, flag)
     end
 
     dataStoreName = get_param(block, 'DataStoreName');
-    dataStoreMems = obj.dsmMap(dataStoreName);
+    try
+        dataStoreMems = obj.dsmMap(dataStoreName);
+    catch
+        dataStoreMems = {};
+    end
     
     if flag
         if ~isempty(dataStoreMems)
