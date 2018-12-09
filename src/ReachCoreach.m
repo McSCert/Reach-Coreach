@@ -637,6 +637,8 @@ classdef ReachCoreach < handle
                         busPort = busPort.Outport;
                         [path, exit] = object.traverseBusForwards(selection{i}, busPort, signalName, []);
                         object.TraversedPorts = [object.TraversedPorts path];
+                        blockList = object.busCreatorBlockMap;
+                        blockList = blockList(selection{i});
                         object.ReachedObjects = [object.ReachedObjects blockList];
                         object.PortsToTraverse = [object.PortsToTraverse exit];
                     end
@@ -1148,9 +1150,10 @@ classdef ReachCoreach < handle
                         % and highlights the path through the bused signal
                         % and out to its next block once the bus is
                         % separated.
-                        signalName = get_param(line, 'Name');
+                        
                         dstPort = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPort)
+                            signalName = get_param(line, 'Name');
                             if isempty(signalName)
                                 portNum = get_param(dstPort(j), 'PortNumber');
                                 signalName = ['signal' num2str(portNum)];
