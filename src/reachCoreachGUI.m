@@ -58,6 +58,20 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+% Set the lists to the currently used colours
+eval(['global ' bdroot(gcs) '_reachCoreachObject;']);
+eval(['[fgcolor, bgcolor] = ' bdroot(gcs) '_reachCoreachObject.getColor();']);
+
+colorList_fg = get(handles.popupmenufore, 'String');
+colorList_bg = get(handles.popupmenuback, 'String');
+
+idx_fg = find(strcmp(colorList_fg, fgcolor));
+idx_bg = find(strcmp(colorList_bg, bgcolor));
+
+set(handles.popupmenufore, 'Value', idx_fg);
+set(handles.popupmenuback, 'Value', idx_bg);
+
+
 % UIWAIT makes reachCoreachGUI wait for user response (see UIRESUME)
 % uiwait(handles.reachCoreachGUI);
 
@@ -132,12 +146,13 @@ colstring2 = get(handles.popupmenufore, 'String');
 whichstring = get(handles.popupmenuback, 'Value');
 whichstring2 = get(handles.popupmenufore, 'Value');
 
-% Set colours
 if ~(whichstring == 1) && ~(whichstring2 == 1)
+    % Set colours
     eval([bdroot(gcs) '_reachCoreachObject.setColor(colstring2{whichstring2}, colstring{whichstring});']);
+    % Re-highlight
     eval([bdroot(gcs) '_reachCoreachObject.hiliteObjects()']);
+    %Close window
     close(handles.reachCoreachGUI)
 else
-    disp(['Error using ' mfilename ':' char(10) ...
-        ' Please select two colours.' char(10)])
+    errordlg('Please select a colour for both the foreground and background.', 'No Colour')
 end

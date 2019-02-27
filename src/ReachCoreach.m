@@ -222,7 +222,10 @@ classdef ReachCoreach < handle
                 object.dsmFlag = 0;
             end
         end
-        
+        function [fgcolor, bgcolor] = getColor(object)
+            fgcolor = object.Color;
+            bgcolor = object.BGColor;
+        end
         function setColor(object, color1, color2)
             % SETCOLOR Set the highlight colours for the reach/coreach.
             %
