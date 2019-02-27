@@ -238,7 +238,7 @@ classdef ReachCoreach < handle
             %       bgcolor Background colour.
             %
             %   Example:
-            %       obj.setColor('red', 'blue')
+            %       obj.getColor()
             fgcolor = object.Color;
             bgcolor = object.BGColor;
         end
