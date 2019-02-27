@@ -10,20 +10,24 @@ classdef ReachCoreach < handle
     %   perform these analyses respectively, and highlight all the
     %   blocks/lines in the reach and coreach.
     %
-    % Example
-    %   open_system('ReachCoreachDemo_2011')
-    %   r = ReachCoreach('ReachCoreachDemo_2011');
-    %   % Perform a reachability analysis:
-    %   r.reachAll({'ReachCoreachDemo_2011/In2'},[]);
-    %   % Clear highlighting:
-    %   r.clear();
-    %   % Change the highlighting colors
-    %   r.setColor('blue', 'magenta')
-    %   % Perform a coreachability analysis:
-    %   r.coreachAll({'ReachCoreachDemo_2011/Out2', {'ReachCoreachDemo_2011/Out3'},{});
-    %   % Perform a slice:
-    %   r.slice();
+    % Example:
+    %       open_system('ReachCoreachDemo_2011')
+    %       r = ReachCoreach('ReachCoreachDemo_2011');
     %
+    %   % Perform a reachability analysis:
+    %       r.reachAll({'ReachCoreachDemo_2011/In2'},[]);
+    %
+    %   % Clear highlighting:
+    %       r.clear();
+    %
+    %   % Change the highlighting colors
+    %       r.setColor('blue', 'magenta')
+    %
+    %   % Perform a coreachability analysis:
+    %       r.coreachAll({'ReachCoreachDemo_2011/Out2', {'ReachCoreachDemo_2011/Out3'},{});
+    %
+    %   % Perform a slice:
+    %       r.slice();
     
     properties
         RootSystemName      % Simulink model name (or top-level system name).
@@ -56,11 +60,11 @@ classdef ReachCoreach < handle
         dsmFlag             % Flag that determines uniqueness of DataStoreNames
         gtvFlag             % Flag that determines uniqueness of Goto Tags
         
-        busCreatorBlockMap       % Map of all of the blocks a bused signal from a creator passes through
-        busSelectorBlockMap      % Map of all of the blocks a bused signal to a selector passes through
+        busCreatorBlockMap  % Map of all of the blocks a bused signal from a creator passes through
+        busSelectorBlockMap % Map of all of the blocks a bused signal to a selector passes through
         
-        busCreatorExitMap       % Map of all of the exits a bused signal from a creator passes through
-        busSelectorExitMap      % Map of all of the exits a bused signal to a selector passes through
+        busCreatorExitMap   % Map of all of the exits a bused signal from a creator passes through
+        busSelectorExitMap  % Map of all of the exits a bused signal to a selector passes through
         
         hiliteFlag          % Flag indicating whether to immediately highlight after a RCR operation
     end
@@ -222,10 +226,23 @@ classdef ReachCoreach < handle
                 object.dsmFlag = 0;
             end
         end
+
         function [fgcolor, bgcolor] = getColor(object)
+            % GETCOLOR Get the highlight colours for the reach/coreach.
+            %
+            %   Inputs:
+            %       object  ReachCoreach object.
+            %
+            %   Outputs:
+            %       fgcolor Foreground colour.
+            %       bgcolor Background colour.
+            %
+            %   Example:
+            %       obj.setColor('red', 'blue')
             fgcolor = object.Color;
             bgcolor = object.BGColor;
         end
+        
         function setColor(object, color1, color2)
             % SETCOLOR Set the highlight colours for the reach/coreach.
             %
