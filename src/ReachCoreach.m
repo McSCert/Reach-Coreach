@@ -1088,39 +1088,41 @@ classdef ReachCoreach < handle
                         else
                             dstPorts = get_param(line, 'DstPortHandle');
                             for j = 1:length(dstPorts)
-                                portNum = get_param(dstPorts(j), 'PortNumber');
-                                portType = get_param(dstPorts(j), 'PortType');
-                                % This if statement checks for trigger, enable,
-                                % or ifaction ports
-                                if strcmp(portType, 'trigger')
-                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
-                                    triggerBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
-                                        'FollowLinks', 'on', 'BlockType', 'TriggerPort');
-                                    if ~isempty(triggerBlocks)
-                                        object.ReachedObjects(end + 1) = triggerBlocks;
-                                    end
-                                elseif strcmp(portType, 'enable')
-                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
-                                    enableBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
-                                        'FollowLinks', 'on', 'BlockType', 'EnablePort');
-                                    if ~isempty(enableBlocks)
-                                        object.ReachedObjects(end + 1) = enableBlocks;
-                                    end
-                                elseif strcmp(portType, 'ifaction')
-                                    object.reachEverythingInSub(getfullname(nextBlocks(i)));
-                                    actionBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
-                                        'FollowLinks', 'on', 'BlockType', 'ActionPort');
-                                    if ~isempty(actionBlocks)
-                                        object.ReachedObjects(end + 1) = actionBlocks;
-                                    end
-                                else
-                                    inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
-                                        'BlockType', 'Inport', 'Port', num2str(portNum));
-                                    if ~isempty(inport)
-                                        object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
-                                        outport = get_param(inport, 'PortHandles');
-                                        outport = outport.Outport;
-                                        object.PortsToTraverse(end + 1) = outport;
+                                if get_param(get_param(dstPorts(j), 'Parent'), 'Handle') == nextBlocks(i)
+                                    portNum = get_param(dstPorts(j), 'PortNumber');
+                                    portType = get_param(dstPorts(j), 'PortType');
+                                    % This if statement checks for trigger, enable,
+                                    % or ifaction ports
+                                    if strcmp(portType, 'trigger')
+                                        object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                        triggerBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                            'FollowLinks', 'on', 'BlockType', 'TriggerPort');
+                                        if ~isempty(triggerBlocks)
+                                            object.ReachedObjects(end + 1) = triggerBlocks;
+                                        end
+                                    elseif strcmp(portType, 'enable')
+                                        object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                        enableBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                            'FollowLinks', 'on', 'BlockType', 'EnablePort');
+                                        if ~isempty(enableBlocks)
+                                            object.ReachedObjects(end + 1) = enableBlocks;
+                                        end
+                                    elseif strcmp(portType, 'ifaction')
+                                        object.reachEverythingInSub(getfullname(nextBlocks(i)));
+                                        actionBlocks = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', ...
+                                            'FollowLinks', 'on', 'BlockType', 'ActionPort');
+                                        if ~isempty(actionBlocks)
+                                            object.ReachedObjects(end + 1) = actionBlocks;
+                                        end
+                                    else
+                                        inport = find_system(nextBlocks(i), 'SearchDepth', 1, 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                                            'BlockType', 'Inport', 'Port', num2str(portNum));
+                                        if ~isempty(inport)
+                                            object.ReachedObjects(end + 1) = get_param(inport, 'Handle');
+                                            outport = get_param(inport, 'PortHandles');
+                                            outport = outport.Outport;
+                                            object.PortsToTraverse(end + 1) = outport;
+                                        end
                                     end
                                 end
                             end
