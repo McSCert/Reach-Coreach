@@ -918,7 +918,22 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(selLines)
-                object.PortsToTraverseCo = [object.PortsToTraverseCo get_param(selLines(i), 'DstPortHandle')];
+                assert(iscolumn(object.PortsToTraverseCo) || isrow(object.PortsToTraverseCo))
+                
+                dstPorts = get_param(selLines(i), 'DstPortHandle');
+                assert(iscolumn(dstPorts) || isrow(dstPorts))
+                
+                if iscolumn(object.PortsToTraverseCo)
+                    if isrow(dstPorts)
+                        dstPorts = dstPorts';
+                    end
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo; dstPorts];
+                else % isrow
+                    if iscolumn(dstPorts)
+                        dstPorts = dstPorts';
+                    end
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo, dstPorts];
+                end
             end
             
             flag = true;
