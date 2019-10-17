@@ -2209,7 +2209,7 @@ classdef ReachCoreach < handle
             %   Outputs:
             %
             
-            eval(['temp = object.' property ';']);
+            temp = object.(property);
             try
                 array = temp(key);
             catch
@@ -2218,8 +2218,7 @@ classdef ReachCoreach < handle
             array(end + 1) = handle;
             array = unique(array);
             temp(key) = array;
-            eval(['object.' property ' = temp;']);
+            object.(property) = temp;
         end
-        
     end
 end
