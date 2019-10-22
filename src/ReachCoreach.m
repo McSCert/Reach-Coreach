@@ -1866,6 +1866,7 @@ classdef ReachCoreach < handle
             for g = 1:length(oport)
                 parentBlock = get_param(get_param(oport(g), 'parent'), 'Handle');
                 if strcmp(get_param(parentBlock, 'BlockType'), 'SFunction');
+                    % Note SFunction is not the correct spelling for an S-Function block, so that is probably an error. 
                     object.addToMappedArray('busCreatorExitMap', creator, oport(g))
                     break
                 end
