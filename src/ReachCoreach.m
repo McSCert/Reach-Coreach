@@ -490,14 +490,14 @@ classdef ReachCoreach < handle
             open_system(initialOpenSystem)
         end
         
-        function reachAll(object, selection, lines)
+        function reachAll(object, selection, selLines)
             % REACHALL Reach from a selection of blocks.
             %
             %   Inputs:
             %       object      ReachCoreach object.
             %       selection   Cell array of strings representing the full
             %                   names of blocks.
-            %       lines       Array of line handles.
+            %       selLines    Array of line handles.
             %
             %   Outputs:
             %       N/A
@@ -573,8 +573,8 @@ classdef ReachCoreach < handle
                     for j = 1:length(moreBlocks)
                         object.ReachedObjects(end + 1) = get_param(moreBlocks{j}, 'handle');
                     end
-                    lines = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
-                    object.ReachedObjects = [object.ReachedObjects lines.'];
+                    selLines = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                    object.ReachedObjects = [object.ReachedObjects selLines.'];
                     morePorts = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
                     if iscolumn(morePorts)
                         morePorts = morePorts.';
@@ -679,10 +679,18 @@ classdef ReachCoreach < handle
                 object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
             end
             
-            for i = 1:length(lines)
-                object.PortsToTraverse = [object.PortsToTraverse get_param(lines(i), 'SrcPortHandle')];
+            for i = 1:length(selLines)
+                assert(iscolumn(object.PortsToTraverseCo) || isrow(object.PortsToTraverseCo))
+
+                srcPort = get_param(selLines(i), 'SrcPortHandle');
+                assert(length(srcPort) == 1)
+                
+                if iscolumn(object.PortsToTraverseCo)
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo; srcPort];
+                else % isrow
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo, srcPort];
+                end
             end
-            
             
             % Reach from each in the list of ports to traverse
             while ~isempty(object.PortsToTraverse)
