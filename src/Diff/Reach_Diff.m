@@ -1,4 +1,4 @@
-function [oldReachedObjects, newReachedObjects] = Reach_Diff(oldModel, newModel, direction, diffTree)
+function [oldReachedObjects, newReachedObjects, diffTree] = Reach_Diff(oldModel, newModel, direction, diffTree)
     % REACH_DIFF Identifies blocks and lines in oldModel and newModel that are 
     % potentially impacted by the changes made between the models.
     % 
@@ -16,6 +16,10 @@ function [oldReachedObjects, newReachedObjects] = Reach_Diff(oldModel, newModel,
     %                       potentially impacted.
     %   newReachedObjects   Handles of blocks and lines in newModel that are
     %                       potentially impacted.
+    %   diffTree            Tree generated from:
+    %                           slxmlcomp.compare(oldModel,newModel)
+    %                       Can be passed back in on future calls using the same
+    %                       models to speed up results.
     % 
     
     if nargin < 3

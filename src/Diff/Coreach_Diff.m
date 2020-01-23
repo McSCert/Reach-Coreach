@@ -1,4 +1,4 @@
-function [oldCoreachedObjects, newCoreachedObjects] = Coreach_Diff(oldModel, newModel, direction, diffTree)
+function [oldCoreachedObjects, newCoreachedObjects, diffTree] = Coreach_Diff(oldModel, newModel, direction, diffTree)
     % COREACH_DIFF Identifies blocks and lines in oldModel and newModel that
     % potentially impact the components changed between the models.
     % 
@@ -16,6 +16,10 @@ function [oldCoreachedObjects, newCoreachedObjects] = Coreach_Diff(oldModel, new
     %                       potentially impact the changes.
     %   newCoreachedObjects Handles of blocks and lines in newModel that 
     %                       potentially impact the changes.
+    %   diffTree            Tree generated from:
+    %                           slxmlcomp.compare(oldModel,newModel)
+    %                       Can be passed back in on future calls using the same
+    %                       models to speed up results.
     % 
     
     if nargin < 3
