@@ -15,8 +15,14 @@ function [oldBlocks, oldLines, newBlocks, newLines] = get_diffs_for_reachcoreach
     % The changes that we need for Reach/Coreach are blocks, lines, and
     % lines connected to changed ports.
     oldBlocks = unique([diffStruct.blocks.del.old, diffStruct.blocks.mod0.old]);
+    if isempty(oldBlocks)
+        oldBlocks = {};
+    end
     
     newBlocks = unique([diffStruct.blocks.mod0.new, diffStruct.blocks.add.new]);
+    if isempty(newBlocks)
+        newBlocks = {};
+    end
     
     oldLines = unique([diffStruct.lines.del.old, diffStruct.lines.mod0.old, ...
         get_port_lines(diffStruct.ports.del.old), ...
