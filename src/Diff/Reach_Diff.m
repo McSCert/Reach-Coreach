@@ -88,12 +88,14 @@ function [oldReachedObjects, newReachedObjects, diffTree] = Reach_Diff(oldModel,
     end
     
     % Close models.
-    if closeOld
-        close_system(oldModel, 0)
-    end
-    if closeNew
-        close_system(newModel, 0)
-    end
+    if ~highlight
+        if closeOld
+            close_system(oldModel, 0)
+        end % else do not close model because it was already opened.
+        if closeNew
+            close_system(newModel, 0)
+        end % else do not close model because it was already opened.
+    end % else do not close models because they were highlighted.
 end
 
 function reachedObjs = getReach(model, blocks, lines, direction)
