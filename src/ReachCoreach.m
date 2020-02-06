@@ -680,15 +680,15 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(selLines)
-                assert(iscolumn(object.PortsToTraverseCo) || isrow(object.PortsToTraverseCo))
+                assert(isempty(object.PortsToTraverse) || iscolumn(object.PortsToTraverse) || isrow(object.PortsToTraverse))
 
                 srcPort = get_param(selLines(i), 'SrcPortHandle');
                 assert(length(srcPort) == 1)
                 
-                if iscolumn(object.PortsToTraverseCo)
-                    object.PortsToTraverseCo = [object.PortsToTraverseCo; srcPort];
+                if iscolumn(object.PortsToTraverse)
+                    object.PortsToTraverse = [object.PortsToTraverse; srcPort];
                 else % isrow
-                    object.PortsToTraverseCo = [object.PortsToTraverseCo, srcPort];
+                    object.PortsToTraverse = [object.PortsToTraverse, srcPort];
                 end
             end
             
@@ -926,7 +926,7 @@ classdef ReachCoreach < handle
             end
             
             for i = 1:length(selLines)
-                assert(iscolumn(object.PortsToTraverseCo) || isrow(object.PortsToTraverseCo))
+                assert(isempty(object.PortsToTraverseCo) || iscolumn(object.PortsToTraverseCo) || isrow(object.PortsToTraverseCo))
                 
                 dstPorts = get_param(selLines(i), 'DstPortHandle');
                 assert(iscolumn(dstPorts) || isrow(dstPorts))
