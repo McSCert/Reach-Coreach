@@ -27,7 +27,7 @@ function GroundAndTerminatePorts(sys)
                 flag = true;
                 while flag
                     try
-                        term = add_block('Built-In/Terminator', [sys '/terminator' num2str(numTerms)]);
+                        term = add_block('built-in/Terminator', [sys '/terminator' num2str(numTerms)]);
                         flag = false;
                     catch
                         numTerms = numTerms + 1;
@@ -50,7 +50,7 @@ function GroundAndTerminatePorts(sys)
                 flag = true;
                 while flag
                     try
-                        ground = add_block('Built-In/Ground', [sys '/ground' num2str(numGrounds)]);
+                        ground = add_block('built-in/Ground', [sys '/ground' num2str(numGrounds)]);
                         flag = false;
                     catch
                         numGrounds = numGrounds + 1;
