@@ -1045,6 +1045,7 @@ classdef ReachCoreach < handle
                         if ~isempty(tag)
                             object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
                         end
+                        
                     case 'DataStoreWrite'
                         % Handles the case where the next block is a data store
                         % write. Finds all data store reads and adds their
@@ -1235,8 +1236,10 @@ classdef ReachCoreach < handle
                                 end
                                 flag = true;
                                 while flag
-                                    [path, blockList, exit] = object.traverseBusForwards(busPort, signalToReach, [], []);
+                                    [path, exit] = object.traverseBusForwards(block, busPort, signalToReach, []);
                                     object.TraversedPorts = [object.TraversedPorts path];
+                                    blockList = object.busCreatorBlockMap;
+                                    blockList = blockList(block);
                                     object.ReachedObjects = [object.ReachedObjects blockList];
                                     dots = strfind(signalToReach, '.');
                                     if isempty(dots)
@@ -1925,8 +1928,6 @@ classdef ReachCoreach < handle
                                     signalName = ['signal' num2str(portNum) '.' signal];
                                     [path, intermediate] = object.traverseBusForwards(creator, nextports.Outport, ...
                                         signalName, path);
-                                    path = [path intermediate];
-                                    path = unique(path);
                                     for j = 1:length(intermediate)
                                         [tempPath, tempExit] = object.traverseBusForwards(creator, intermediate(j), ...
                                             signal, path);
@@ -1934,6 +1935,8 @@ classdef ReachCoreach < handle
                                         path = [path, tempPath];
                                         path = unique(path);
                                     end
+                                    path = [path intermediate];
+                                    path = unique(path);
                                 end
                             else
                                 signalName = [signalName '.' signal];
@@ -1955,7 +1958,9 @@ classdef ReachCoreach < handle
                             object.addToMappedArray('busCreatorBlockMap', creator, get_param(next , 'handle'));
                             outputs = get_param(next, 'OutputSignals');
                             outputs = regexp(outputs, ',', 'split');
+                            
                             portNum = find(strcmp(outputs(:), signal));
+                            
                             if ~isempty(portNum)
                                 temp = get_param(next, 'PortHandles');
                                 temp = temp.Outport;
