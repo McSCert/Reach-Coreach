@@ -32,7 +32,7 @@ function blockList = findGotoFromsInScopeRCR(obj, block, flag)
     % Get all other Goto Tag Visibility blocks
     gotoTag = get_param(block, 'GotoTag');
     
-    if flag
+    if ~flag
         blockList = [obj.sfMap(gotoTag); obj.sgMap(gotoTag)];
         return
     end

@@ -31,6 +31,9 @@ function writes = findWritesInScopeRCR(obj, block, flag)
 
     dataStoreName = get_param(block, 'DataStoreName');
     
+    % TODO: The logic seems to make more sense for this condition to be ~flag,
+    % but in testing this performs better (either way, these functions should
+    % probably be updated)
     if flag
         try
             writes = obj.dswMap(dataStoreName);

@@ -33,7 +33,7 @@ function goto = findGotosInScopeRCR(obj, block, flag)
     tag = get_param(block, 'GotoTag');
     level = get_param(block, 'parent');
     
-    if flag
+    if ~flag
         goto = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, ...
             'BlockType', 'Goto', 'GotoTag', tag);
         if isempty(goto)
@@ -74,7 +74,7 @@ function goto = findGotosInScopeRCR(obj, block, flag)
             otherwise
                 %otherwise, find the correctly scoped visibility block for
                 %the goto and pick the corresponding goto
-                visibilityBlock = findVisibilityTagRCR(obj, block,flag);
+                visibilityBlock = findVisibilityTagRCR(obj, block, flag);
                 goto = findGotoFromsInScopeRCR(obj, visibilityBlock, flag);
                 blocksToExclude = obj.sfMap(tag);
                 goto = setdiff(goto, blocksToExclude);

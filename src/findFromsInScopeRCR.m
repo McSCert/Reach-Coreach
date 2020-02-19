@@ -32,7 +32,7 @@ function froms = findFromsInScopeRCR(obj, block, flag)
     tagVis = get_param(block, 'TagVisibility');
     level = get_param(block, 'parent');
     
-    if flag
+    if ~flag
         if strcmp(tagVis, 'local')
             froms = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, ...
                 'BlockType', 'From', 'GotoTag', tag);
