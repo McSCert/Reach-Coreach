@@ -220,11 +220,11 @@ classdef ReachCoreach < handle
                     object.dsmMap(dsName) = {mems{i}};
                 end
             end
-            if (length(temp) == length(unique(temp)))
-                object.dsmFlag = 1;
-            else
-                object.dsmFlag = 0;
-            end
+            %             if (length(temp) == length(unique(temp)))
+            %                 object.dsmFlag = 1;
+            %             else
+            %                 object.dsmFlag = 0;
+            %             end
         end
 
         function [fgcolor, bgcolor] = getColor(object)
