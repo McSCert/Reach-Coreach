@@ -33,10 +33,7 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
     % Get all other Data Store Memory blocks
     dataStoreName = get_param(block, 'DataStoreName');
     
-    % TODO: The logic seems to make more sense for this condition to be ~flag,
-    % but in testing this performs better (either way, these functions should
-    % probably be updated)
-    if flag
+    if ~flag
         try
             dataStoreReads = obj.dsrMap(dataStoreName);
         catch

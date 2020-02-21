@@ -36,10 +36,7 @@ function mem = findDataStoreMemoryRCR(obj, block, flag)
         dataStoreMems = {};
     end
     
-    % TODO: The logic seems to make more sense for this condition to be ~flag,
-    % but in testing this performs better (either way, these functions should
-    % probably be updated)
-    if flag
+    if ~flag
         if ~isempty(dataStoreMems)
             mem = dataStoreMems{1};
         else
