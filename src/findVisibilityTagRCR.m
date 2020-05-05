@@ -30,9 +30,9 @@ function visBlock = findVisibilityTagRCR(obj, block, flag)
     end
 
     tag = get_param(block, 'GotoTag');
-    try
+    if obj.stvMap.isKey(tag)
         scopedTags = obj.stvMap(tag);
-    catch
+    else
         scopedTags = {};
     end
     

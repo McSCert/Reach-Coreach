@@ -34,15 +34,15 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
     dataStoreName = get_param(block, 'DataStoreName');
     
     if ~flag
-        try
+        if obj.dsrMap.isKey(dataStoreName)
             dataStoreReads = obj.dsrMap(dataStoreName);
-        catch
+        else
             dataStoreReads = {};
         end
         
-        try
+        if obj.dswMap.isKey(dataStoreName)
             dataStoreWrites = obj.dswMap(dataStoreName);
-        catch
+        else
             dataStoreWrites = {};
         end
         blockList = [dataStoreReads; dataStoreWrites];
@@ -50,7 +50,11 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
     end
     
     blockParent = get_param(block, 'parent');
-    memsSameName = obj.dsmMap(dataStoreName);
+    if obj.dsmMap.isKey(dataStoreName)
+        memsSameName = obj.dsmMap(dataStoreName);
+    else
+        memsSameName = {};
+    end
     memsSameName = setdiff(memsSameName, block);
     
     % Exclude any Data Store Read/Write blocks which are in the scope of 

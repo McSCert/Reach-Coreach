@@ -37,9 +37,9 @@ function goto = findGotosInScopeRCR(obj, block, flag)
         goto = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, ...
             'BlockType', 'Goto', 'GotoTag', tag);
         if isempty(goto)
-            try
+            if obj.sgMap.isKey(tag)
                 goto = obj.sgMap(tag);
-            catch
+            else
                 goto = {};
             end
             return
@@ -55,7 +55,11 @@ function goto = findGotosInScopeRCR(obj, block, flag)
     % Get the corresponding Gotos for a given From that are in the
     % correct scope
     fromParent = get_param(block, 'parent');
-    candidateGotos = obj.sgMap(tag);
+    if obj.sgMap.isKey(tag)
+        candidateGotos = obj.sgMap(tag);
+    else
+        candidateGotos = [];
+    end
     for i=1:length(candidateGotos)
         gotoParent = get_param(candidateGotos{i}, 'parent');
         switch get_param(candidateGotos{i}, 'TagVisibility');

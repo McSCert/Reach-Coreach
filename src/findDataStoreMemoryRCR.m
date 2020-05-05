@@ -30,9 +30,9 @@ function mem = findDataStoreMemoryRCR(obj, block, flag)
     end
 
     dataStoreName = get_param(block, 'DataStoreName');
-    try
+    if obj.dsmMap.isKey(dataStoreName)
         dataStoreMems = obj.dsmMap(dataStoreName);
-    catch
+    else
         dataStoreMems = {};
     end
     

@@ -32,9 +32,9 @@ function writes = findWritesInScopeRCR(obj, block, flag)
     dataStoreName = get_param(block, 'DataStoreName');
     
     if ~flag
-        try
+        if obj.dswMap.isKey(dataStoreName)
             writes = obj.dswMap(dataStoreName);
-        catch
+        else
             writes = {};
         end
         return

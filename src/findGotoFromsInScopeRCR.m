@@ -33,7 +33,13 @@ function blockList = findGotoFromsInScopeRCR(obj, block, flag)
     gotoTag = get_param(block, 'GotoTag');
     
     if ~flag
-        blockList = [obj.sfMap(gotoTag); obj.sgMap(gotoTag)];
+        blockList = [];
+        if obj.sfMap.isKey(gotoTag)
+            blockList = [blockList; obj.sfMap(gotoTag)];
+        end
+        if obj.sgMap.isKey(gotoTag)
+            blockList = [blockList; obj.sgMap(gotoTag)];
+        end
         return
     end
     

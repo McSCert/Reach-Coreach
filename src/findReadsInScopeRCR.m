@@ -32,9 +32,9 @@ function reads = findReadsInScopeRCR(obj, block, flag)
     dataStoreName = get_param(block, 'DataStoreName');
     
     if ~flag
-        try
+        if obj.dsrMap.isKey(dataStoreName)
             reads = obj.dsrMap(dataStoreName);
-        catch
+        else
             reads = {};
         end
         return
