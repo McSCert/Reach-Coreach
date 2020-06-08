@@ -46,6 +46,9 @@ classdef ReachCoreach < handle
         stvMap              % Map of goto tag names to goto tag visibility blocks
         sgMap               % Map of goto tag names to goto blocks
         sfMap               % Map of goto tag names to from blocks
+        
+        implicitMaps        % Struct of maps from tag/data store name to corresponding Froms, Gotos, TagVisibilities, Data Store Reads, Writes, and Memories
+        returnToOpenSys     % Logical true if ReachCoreach should open back to the system that was open before analysis.
     end
     
     properties(Access = private)
@@ -125,16 +128,18 @@ classdef ReachCoreach < handle
             object.hiliteFlag = 1;
             object.busCreatorBlockMap = containers.Map();
             object.busSelectorBlockMap = containers.Map();
+            object.implicitMaps = []; % Stays empty until all maps are set with findAllImplicitMappings
+            object.returnToOpenSys = true;
             
             % Make a map of the scoped gotos by tag
-            temp = {};
+%             temp = {};
             scopedGotos = find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'Goto', 'TagVisibility', 'scoped');
             scopedGotos = [scopedGotos; find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'Goto', 'TagVisibility', 'global')];
             for i=1:length(scopedGotos)
                 tag = get_param(scopedGotos{i}, 'GotoTag');
-                temp{end+1} = tag;
+%                 temp{end+1} = tag;
                 try
                     object.sgMap(tag) = [object.sgMap(tag); scopedGotos{i}];
                 catch
@@ -148,12 +153,12 @@ classdef ReachCoreach < handle
             %             end
             
             % Make a map of the scoped froms by tag
-            temp = {};
+%             temp = {};
             scopedFroms = find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'From');
             for i=1:length(scopedFroms)
                 tag = get_param(scopedFroms{i}, 'GotoTag');
-                temp{end+1} = tag;
+%                 temp{end+1} = tag;
                 try
                     object.sfMap(tag) = [object.sfMap(tag); scopedFroms{i}];
                 catch
@@ -168,12 +173,12 @@ classdef ReachCoreach < handle
             
             % Make a map of the scoped tag visibility blocks by tag, and
             % additionally check for repeated scoped tag names
-            temp = {};
+%             temp = {};
             scopedTags = find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'GotoTagVisibility');
             for i=1:length(scopedTags)
                 tag = get_param(scopedTags{i}, 'GotoTag');
-                temp{end+1} = tag;
+%                 temp{end+1} = tag;
                 try
                     object.stvMap(tag) = [object.stvMap(tag); scopedTags{i}];
                 catch
@@ -208,12 +213,12 @@ classdef ReachCoreach < handle
                 end
             end
             
-            temp = {};
+%             temp = {};
             mems = find_system(RootSystemName, 'FollowLinks', 'on', ...
                 'BlockType', 'DataStoreMemory');
             for i=1:length(mems);
                 dsName = get_param(mems{i}, 'DataStoreName');
-                temp{end+1} = dsName;
+%                 temp{end+1} = dsName;
                 try
                     object.dsmMap(dsName) = [object.dsmMap(dsName); mems{i}];
                 catch
@@ -292,8 +297,10 @@ classdef ReachCoreach < handle
             object.Color = color1;
             object.BGColor = color2;
             
-            % Make initial system the active window
-            open_system(initialOpenSystem)
+            if object.returnToOpenSys
+                % Make initial system the active window
+                open_system(initialOpenSystem)
+            end
         end
         
         function setHiliteFlag(object, flag)
@@ -452,9 +459,11 @@ classdef ReachCoreach < handle
             
             object.clear();
             
-            % Make initial system the active window
             if ~isempty(find_system(object.RootSystemName, 'FollowLinks', 'on', 'BlockType', 'SubSystem', 'Name', initialOpenSystem))
-                open_system(initialOpenSystem)
+                if object.returnToOpenSys
+                    % Make initial system the active windowZ
+                    open_system(initialOpenSystem)
+                end
             end
         end
         
@@ -486,8 +495,10 @@ classdef ReachCoreach < handle
             sysToClose = setdiff(allOpenSys, openSys);
             close_system(sysToClose);
             
-            % Make initial system the active window
-            open_system(initialOpenSystem)
+            if object.returnToOpenSys
+                % Make initial system the active window
+                open_system(initialOpenSystem)
+            end
         end
         
         function reachAll(object, selection, selLines)
@@ -619,12 +630,12 @@ classdef ReachCoreach < handle
                     end
                     mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
-                        object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
+                        object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'DataStoreRead')
                     mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
-                        object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
+                        object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'Goto')
                     % Add from blocks to reach, and ports to list to traverse
@@ -636,12 +647,12 @@ classdef ReachCoreach < handle
                     end
                     tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
-                        object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
+                        object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'From')
                     tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
-                        object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
+                        object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'BusCreator')
                     busInports = get_param(selection{i}, 'PortHandles');
@@ -722,8 +733,10 @@ classdef ReachCoreach < handle
                 object.hiliteObjects();
             end
             
-            % Make initial system the active window
-            open_system(initialOpenSystem)
+            if object.returnToOpenSys
+                % Make initial system the active window
+                open_system(initialOpenSystem)
+            end
         end
         
         function coreachAll(object, selection, selLines)
@@ -841,12 +854,12 @@ classdef ReachCoreach < handle
                     end
                     tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
-                        object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
+                        object.CoreachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'Goto')
                     tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
-                        object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
+                        object.CoreachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'DataStoreRead')
                     % Add write blocks to coreach, and ports to list to
@@ -859,12 +872,12 @@ classdef ReachCoreach < handle
                     end
                     mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
-                        object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
+                        object.CoreachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'DataStoreWrite')
                     mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
-                        object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
+                        object.CoreachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
                 elseif strcmp(selectionType, 'BusSelector')
                     busOutports = get_param(selection{i}, 'PortHandles');
@@ -950,7 +963,7 @@ classdef ReachCoreach < handle
                 while ~isempty(object.PortsToTraverseCo)
                     port = object.PortsToTraverseCo(end);
                     object.PortsToTraverseCo(end) = [];
-                    coreach(object, port)
+                        coreach(object, port)
                 end
                 % Add any iterators in the coreach to blocks coreached and
                 % their ports to list to traverse
@@ -978,8 +991,143 @@ classdef ReachCoreach < handle
                 object.hiliteObjects();
             end
             
-            % Make initial system the active window
-            open_system(initialOpenSystem)
+            if object.returnToOpenSys
+                % Make initial system the active window
+                open_system(initialOpenSystem)
+            end
+        end
+        
+        function findAllImplicitMappings(object, verbose)
+            % FINDALLIMPLICITMAPPINGS Finds mappings from each block with
+            % implicit connections to the blocks they connect with.
+            % 
+            % Inputs:
+            %   object  ReachCoreachObject
+            %   verbose [Optional] Logical true to display progress updates in
+            %           the command line.
+            
+            if nargin < 2
+                verbose = false;
+            end
+            
+            if verbose
+                disp(['Begin finding implicit mappings in ' object.RootSystemName])
+                disp('Step 1/7: Finding blocks with implicit connections.')
+            end
+            scopedGotos = find_system(object.RootSystemName, ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'BlockType', 'Goto');
+%             scopedGotos = find_system(RootSystemName, ...
+%                 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+%                 'BlockType', 'Goto', 'TagVisibility', 'scoped');
+%             scopedGotos = [scopedGotos; find_system(RootSystemName, ...
+%                 'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+%                 'BlockType', 'Goto', 'TagVisibility', 'global')];
+            
+            scopedFroms = find_system(object.RootSystemName, ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'BlockType', 'From');
+            
+            scopedTags = find_system(object.RootSystemName, ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'BlockType', 'GotoTagVisibility');
+            
+            reads = find_system(object.RootSystemName, ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'BlockType', 'DataStoreRead');
+            
+            writes = find_system(object.RootSystemName, ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'BlockType', 'DataStoreWrite');
+            
+            mems = find_system(object.RootSystemName, ...
+                'LookUnderMasks', 'all', 'FollowLinks', 'on', ...
+                'BlockType', 'DataStoreMemory');
+            
+            object.implicitMaps = struct(...
+                'v2gf', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'gf2v', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'g2f', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'f2g', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'm2rw', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'rw2m', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'w2r', containers.Map('KeyType', 'char', 'ValueType', 'any'), ...
+                'r2w', containers.Map('KeyType', 'char', 'ValueType', 'any'));
+            
+            if verbose
+                disp('Step 2/7: Generating mapping from Gotos to other blocks.')
+            end
+            for i = 1:length(scopedGotos)
+                b = scopedGotos{i};
+                object.implicitMaps.g2f(b) = findFromsInScopeRCR(object, b, object.gtvFlag);
+                object.implicitMaps.gf2v(b) = findVisibilityTagRCR(object, b, object.gtvFlag);
+            end
+            
+            if verbose
+                disp('Step 3/7: Generating mapping from Froms to other blocks.')
+            end
+            object.implicitMaps.f2g = flipMap(object.implicitMaps.g2f);
+            for i = 1:length(scopedFroms)
+                b = scopedFroms{i};
+%                 object.implicitMaps.f2g(b) = findGotosInScopeRCR(object, b, object.gtvFlag);
+                object.implicitMaps.gf2v(b) = findVisibilityTagRCR(object, b, object.gtvFlag);
+            end
+            
+            if verbose
+                disp('Step 4/7: Generating mapping from Goto Tag Visibilities to other blocks.')
+            end
+            object.implicitMaps.v2gf = flipMap(object.implicitMaps.gf2v);
+%             for i = 1:length(scopedTags)
+%                 b = scopedTags{i};
+%                 object.implicitMaps.v2gf(b) = findGotoFromsInScopeRCR(object, b, object.gtvFlag);
+%             end
+            
+            if verbose
+                disp('Step 5/7: Generating mapping from Data Store Reads to other blocks.')
+            end
+            for i = 1:length(reads)
+                b = reads{i};
+                object.implicitMaps.r2w(b) = findWritesInScopeRCR(object, b, object.dsmFlag);
+                object.implicitMaps.rw2m(b) = findDataStoreMemoryRCR(object, b, object.dsmFlag);
+            end
+            
+            if verbose
+                disp('Step 6/7: Generating mapping from Data Store Writes to other blocks.')
+            end
+            object.implicitMaps.w2r = flipMap(object.implicitMaps.r2w);
+            for i = 1:length(writes)
+                b = writes{i};
+%                 object.implicitMaps.w2r(b) = findReadsInScopeRCR(object, b, object.dsmFlag);
+                object.implicitMaps.rw2m(b) = findDataStoreMemoryRCR(object, b, object.dsmFlag);
+            end
+            
+            if verbose
+                disp('Step 7/7: Generating mapping from Data Store Memories to other blocks.')
+            end
+            object.implicitMaps.m2rw = flipMap(object.implicitMaps.rw2m);
+%             for i = 1:length(mems)
+%                 b = mems{i};
+%                 object.implicitMaps.m2rw(b) = findReadWritesInScopeRCR(object, b, object.dsmFlag);
+%             end
+            
+            function flip = flipMap(char2charCell)
+                flip = containers.Map('KeyType', 'char', 'ValueType', 'Any');
+                if ~isempty(char2charCell)
+                    keys = char2charCell.keys;
+                    for j = 1:length(keys)
+                        key = keys{j};
+                        vals = char2charCell(key);
+                        for k = 1:length(vals)
+                            val = vals{k};
+                            if flip.isKey(val)
+                                flip(val) = [flip(val), {key}];
+                            else
+                                flip(val) = {key};
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
     
@@ -1043,7 +1191,7 @@ classdef ReachCoreach < handle
                         % reach
                         tag = findVisibilityTagRCR(object, getfullname(nextBlocks(i)), object.gtvFlag);
                         if ~isempty(tag)
-                            object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
+                            object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                         end
                         
                     case 'DataStoreWrite'
@@ -1061,7 +1209,7 @@ classdef ReachCoreach < handle
                         % reach
                         mem = findDataStoreMemoryRCR(object, getfullname(nextBlocks(i)), object.dsmFlag);
                         if ~isempty(mem)
-                            object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
+                            object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                         end
                         
                     case 'SubSystem'
@@ -1367,7 +1515,7 @@ classdef ReachCoreach < handle
                         % the list of coreached objects
                         tag = findVisibilityTagRCR(object, getfullname(nextBlocks(i)), object.gtvFlag);
                         if ~isempty(tag)
-                            object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
+                            object.CoreachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                         end
                         
                     case 'DataStoreRead'
@@ -1387,7 +1535,7 @@ classdef ReachCoreach < handle
                         % the list of coreached objects
                         mem = findDataStoreMemoryRCR(object, getfullname(nextBlocks(i)), object.dsmFlag);
                         if ~isempty(mem)
-                            object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
+                            object.CoreachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                         end
                         
                     case 'SubSystem'
@@ -1678,9 +1826,12 @@ classdef ReachCoreach < handle
                 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'block', 'BlockType', 'ActionPort')];
             blocks = setdiff(blocks, blocksToExclude);
             
-            for i = 1:length(blocks)
-                object.ReachedObjects(end + 1) = blocks(i);
+            if iscolumn(blocks)
+                object.ReachedObjects = [object.ReachedObjects, blocks'];
+            else
+                object.ReachedObjects = [object.ReachedObjects, blocks];
             end
+            
             lines = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
             object.ReachedObjects = [object.ReachedObjects lines.'];
             ports = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
@@ -1719,10 +1870,10 @@ classdef ReachCoreach < handle
                 end
                 tag = findVisibilityTagRCR(object, gotos{j}, object.gtvFlag);
                 if ~isempty(tag)
-                    if iscell(tag)
-                        tag=tag{1};
-                    end
-                    object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
+%                     if iscell(tag)
+%                         tag=tag{1};
+%                     end
+                    object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                 end
             end
             
@@ -1738,10 +1889,10 @@ classdef ReachCoreach < handle
                 end
                 mem = findDataStoreMemoryRCR(object, writes{j}, object.dsmFlag);
                 if ~isempty(mem)
-                    if iscell(mem)
-                        mem=mem{1};
-                    end
-                    object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
+%                     if iscell(mem)
+%                         mem=mem{1};
+%                     end
+                    object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                 end
             end
             
@@ -1769,10 +1920,10 @@ classdef ReachCoreach < handle
                 tag = findVisibilityTagRCR(object, froms{i}, object.gtvFlag);
                 tag = setdiff(tag, allTags);
                 if ~isempty(tag)
-                    if iscell(tag)
-                        tag = tag{1};
-                    end
-                    object.CoreachedObjects(end + 1) = get_param(tag, 'Handle');
+%                     if iscell(tag)
+%                         tag = tag{1};
+%                     end
+                    object.CoreachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                 end
             end
             gotos = setdiff(gotos, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'Goto'));
@@ -1784,10 +1935,10 @@ classdef ReachCoreach < handle
                 mem = findDataStoreMemoryRCR(object, reads{i}, object.dsmFlag);
                 mem = setdiff(mem, allMems);
                 if ~isempty(mem)
-                    if iscell(mem)
-                        mem = mem{1};
-                    end
-                    object.CoreachedObjects(end + 1) = get_param(mem, 'Handle');
+%                     if iscell(mem)
+%                         mem = mem{1};
+%                     end
+                    object.CoreachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                 end
             end
             writes = setdiff(writes, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreWrite'));
@@ -1824,10 +1975,10 @@ classdef ReachCoreach < handle
                     tag = findVisibilityTagRCR(object, gotos{i}, object.gtvFlag);
                     tag = setdiff(tag, allTags);
                     if ~isempty(tag)
-                        if iscell(tag)
-                            tag = tag{1};
-                        end
-                        object.ReachedObjects(end + 1) = get_param(tag, 'Handle');
+%                         if iscell(tag)
+%                             tag = tag{1};
+%                         end
+                        object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
                 end
             end
@@ -1840,10 +1991,10 @@ classdef ReachCoreach < handle
                 mem = findDataStoreMemoryRCR(object, writes{i}, object.dsmFlag);
                 mem = setdiff(mem, allMems);
                 if ~isempty(mem)
-                    if iscell(mem)
-                        mem=mem{1};
-                    end
-                    object.ReachedObjects(end + 1) = get_param(mem, 'Handle');
+%                     if iscell(mem)
+%                         mem=mem{1};
+%                     end
+                    object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                 end
             end
             reads = setdiff(reads, find_system(subsystem, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'DataStoreRead'));
@@ -1994,7 +2145,7 @@ classdef ReachCoreach < handle
                                 path = unique(path);
                                 tag = findVisibilityTagRCR(object, froms{i}, object.gtvFlag);
                                 if ~isempty(tag)
-                                    object.addToMappedArray('busCreatorBlockMap', creator, get_param(tag, 'Handle'));
+                                    object.addToMappedArray('busCreatorBlockMap', creator, get_param(tag{1}, 'Handle'));
                                 end
                             end
                             
@@ -2156,7 +2307,7 @@ classdef ReachCoreach < handle
                             path = [path, tempPath];
                             tag = findVisibilityTagRCR(object, gotos{i}, object.gtvFlag);
                             if ~isempty(tag)
-                                blockList(end + 1) = get_param(tag, 'Handle');
+                                blockList(end + 1) = get_param(tag{1}, 'Handle');
                             end
                         end
                         
