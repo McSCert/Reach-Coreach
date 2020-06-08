@@ -1,22 +1,32 @@
 function blockList = findReadWritesInScopeRCR(obj, block, flag)
-% FINDREADWRITESINSCOPE Find all the Data Store Read and Data Store Write 
-% blocks associated with a Data Store Memory block.
-%
-% 	Inputs:
-% 		obj        The reachcoreach object containing data store mappings
-%       block      The data store memory block of interest
-%       flag       The flag indicating whether shadowing data stores are in the
-%                  model
-%
-% 	Outputs:
-%		blockList  The cell array of reads and writes corresponding to the
-%		           input "block"
-
+    % FINDREADWRITESINSCOPE Find all the Data Store Read and Data Store Write
+    % blocks associated with a Data Store Memory block.
+    %
+    % 	Inputs:
+    % 		obj         The reachcoreach object containing data store mappings.
+    %       block       The data store memory block of interest as a char array,
+    %                   an empty cell array, or a 1x1 cell array containing the
+    %                   block as a char array.
+    %       flag        The flag indicating whether shadowing data stores are in
+    %                   the model.
+    %
+    % 	Outputs:
+    %		blockList   The cell array of reads and writes corresponding to the
+    %                   input "block".
+    %
+    
+    % Input Handling:
+    if iscell(block) && ~isempty(block)
+        assert(length(block) == 1, 'Something went wrong, block input too long.')
+        block = block{1};
+    end
+    
+    %
     if isempty(block)
         blockList = {};
         return
     end
-
+    
     % Ensure input is a valid Data Store Memory block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
@@ -29,7 +39,15 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
         blockList = {};
         return
     end
-
+    
+    %
+    if ~isempty(obj.implicitMaps)
+        if obj.implicitMaps.m2rw.isKey(block)
+            blockList = obj.implicitMaps.m2rw(block);
+            return
+        end
+    end
+    
     % Get all other Data Store Memory blocks
     dataStoreName = get_param(block, 'DataStoreName');
     
@@ -57,7 +75,7 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
     end
     memsSameName = setdiff(memsSameName, block);
     
-    % Exclude any Data Store Read/Write blocks which are in the scope of 
+    % Exclude any Data Store Read/Write blocks which are in the scope of
     % other Data Store Memory blocks
     blocksToExclude = {};
     for i = 1:length(memsSameName)

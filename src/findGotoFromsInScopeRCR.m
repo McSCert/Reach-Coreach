@@ -1,21 +1,32 @@
 function blockList = findGotoFromsInScopeRCR(obj, block, flag)
-% FINDGOTOFROMSINSCOPE Find all the Goto and From blocks associated with a 
-% Goto Tag Visibility block.
-%
-% 	Inputs:
-% 		obj        The reachcoreach object containing goto tag mappings
-%       block      The tag visibility block of interest
-%       flag       The flag indicating whether shadowing visibility tags 
-%                  are in the model
-%
-% 	Outputs:
-%		blockList  Cell array of goto/from blocks corresponding to input "block"
-
+    % FINDGOTOFROMSINSCOPE Find all the Goto and From blocks associated with a
+    % Goto Tag Visibility block.
+    %
+    % 	Inputs:
+    % 		obj         The reachcoreach object containing goto tag mappings.
+    %       block       The tag visibility block of interest as a char array, an
+    %                   empty cell array, or a 1x1 cell array containing the
+    %                   block as a char array.
+    %       flag        The flag indicating whether shadowing visibility tags
+    %                   are in the model.
+    %
+    % 	Outputs:
+    %		blockList   Cell array of goto/from blocks corresponding to input
+    %                   "block".
+    %
+    
+    % Input Handling:
+    if iscell(block) && ~isempty(block)
+        assert(length(block) == 1, 'Something went wrong, block input too long.')
+        block = block{1};
+    end
+    
+    %
     if isempty(block)
         blockList = {};
         return
     end
-
+    
     % Ensure input is a valid Goto Tag Visibility block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
@@ -27,6 +38,14 @@ function blockList = findGotoFromsInScopeRCR(obj, block, flag)
         help(mfilename)
         blockList = {};
         return
+    end
+    
+    %
+    if ~isempty(obj.implicitMaps)
+        if obj.implicitMaps.v2gf.isKey(block)
+            blockList = obj.implicitMaps.v2gf(block);
+            return
+        end
     end
     
     % Get all other Goto Tag Visibility blocks
@@ -44,7 +63,11 @@ function blockList = findGotoFromsInScopeRCR(obj, block, flag)
     end
     
     blockParent = get_param(block, 'parent');
-    tagsSameName = obj.stvMap(gotoTag);
+    if obj.stvMap.isKey(gotoTag)
+        tagsSameName = obj.stvMap(gotoTag);
+    else
+        tagsSameName = {};
+    end
     tagsSameName = setdiff(tagsSameName, block);
     
     % Any Goto/From blocks in their scopes are listed as blocks not in the
@@ -66,7 +89,7 @@ function blockList = findGotoFromsInScopeRCR(obj, block, flag)
                 'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', gotoTag)];
         end
     end
-    % All Froms associated with local Gotos are listed as blocks not in the 
+    % All Froms associated with local Gotos are listed as blocks not in the
     % scope of input Goto Tag Visibility block
     localGotos = find_system(blockParent, 'FollowLinks', 'on', ...
         'BlockType', 'Goto', 'GotoTag', gotoTag, 'TagVisibility', 'local');

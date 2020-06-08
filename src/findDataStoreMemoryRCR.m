@@ -1,21 +1,31 @@
 function mem = findDataStoreMemoryRCR(obj, block, flag)
-% FINDDATASTOREMEMORY Find the Data Store Memory block of a Data Store
-% Read or Write block.
-%
-% 	Inputs:
-% 		obj    The reachcoreach object containing data store mappings
-%       block  The data store read or write block of interest
-%       flag   The flag indicating whether shadowing data stores are in the
-%              model
-%
-% 	Outputs:
-%		mem    The data store memory block corresponding to input "block"
-
+    % FINDDATASTOREMEMORY Find the Data Store Memory block of a Data Store
+    % Read or Write block.
+    %
+    % 	Inputs:
+    % 		obj     The reachcoreach object containing data store mappings.
+    %       block   The data store read or write block of interest as a char
+    %               array, an empty cell array, or a 1x1 cell array containing
+    %               the block as a char array.
+    %       flag    The flag indicating whether shadowing data stores are in the
+    %               model.
+    %
+    % 	Outputs:
+    %		mem     The data store memory block corresponding to input "block".
+    %
+    
+    % Input Handling:
+    if iscell(block) && ~isempty(block)
+        assert(length(block) == 1, 'Something went wrong, block input too long.')
+        block = block{1};
+    end
+    
+    %
     if isempty(block)
         mem = {};
         return
     end
-
+    
     % Ensure input block is a valid Data Store Read/Write block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
@@ -28,7 +38,16 @@ function mem = findDataStoreMemoryRCR(obj, block, flag)
         mem = {};
         return
     end
-
+    
+    %
+    if ~isempty(obj.implicitMaps)
+        if obj.implicitMaps.rw2m.isKey(block)
+            mem = obj.implicitMaps.rw2m(block);
+            return
+        end
+    end
+    
+    %
     dataStoreName = get_param(block, 'DataStoreName');
     if obj.dsmMap.isKey(dataStoreName)
         dataStoreMems = obj.dsmMap(dataStoreName);
@@ -37,11 +56,12 @@ function mem = findDataStoreMemoryRCR(obj, block, flag)
     end
     
     if ~flag
-        if ~isempty(dataStoreMems)
-            mem = dataStoreMems{1};
-        else
-            mem = dataStoreMems;
-        end
+        %         if ~isempty(dataStoreMems)
+        %             mem = dataStoreMems{1};
+        %         else
+        %             mem = dataStoreMems;
+        %         end
+        mem = dataStoreMems;
         return
     end
     
@@ -70,7 +90,7 @@ function mem = findDataStoreMemoryRCR(obj, block, flag)
     if ~isempty(currentLevel)
         mem = find_system(currentLevel, 'FollowLinks', 'on', 'SearchDepth', 1, ...
             'BlockType', 'DataStoreMemory', 'DataStoreName', dataStoreName);
-        mem = mem{1};
+        %         mem = mem{1};
     else
         mem = {};
     end

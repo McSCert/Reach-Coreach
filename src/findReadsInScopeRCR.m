@@ -1,22 +1,32 @@
 function reads = findReadsInScopeRCR(obj, block, flag)
-% FINDREADSINSCOPE Find all the Data Store Read blocks associated with a Data
-% Store Write block.
-%
-% 	Inputs:
-% 		obj    The reachcoreach object containing data store mappings
-%       block  The write block of interest
-%       flag   The flag indicating whether shadowing data stores are in the
-%              model
-%
-% 	Outputs:
-%		froms    Thedata store read corresponding to input "block"
-
+    % FINDREADSINSCOPE Find all the Data Store Read blocks associated with a Data
+    % Store Write block.
+    %
+    % 	Inputs:
+    % 		obj     The reachcoreach object containing data store mappings.
+    %       block   The write block of interest as a char array, an empty cell
+    %               array, or a 1x1 cell array containing the block as a char
+    %               array.
+    %       flag    The flag indicating whether shadowing data stores are in the
+    %               model.
+    %
+    % 	Outputs:
+    %		froms   The data store read corresponding to input "block".
+    %
+    
+    % Input Handling:
+    if iscell(block) && ~isempty(block)
+        assert(length(block) == 1, 'Something went wrong, block input too long.')
+        block = block{1};
+    end
+    
+    %
     if isempty(block)
         reads = {};
         return
     end
-
-    % Ensure input is a valid data store write block
+    
+    % Ensure block input is a valid Data Store Write block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
         blockType = get_param(block, 'BlockType');
@@ -29,6 +39,15 @@ function reads = findReadsInScopeRCR(obj, block, flag)
         return
     end
     
+    %
+    if ~isempty(obj.implicitMaps)
+        if obj.implicitMaps.w2r.isKey(block)
+            reads = obj.implicitMaps.w2r(block);
+            return
+        end
+    end
+    
+    %
     dataStoreName = get_param(block, 'DataStoreName');
     
     if ~flag
@@ -41,7 +60,15 @@ function reads = findReadsInScopeRCR(obj, block, flag)
     end
     
     memBlock = findDataStoreMemoryRCR(obj, block, flag);
-    reads = findReadWritesInScopeRCR(obj, memBlock, flag);
-    blocksToExclude = obj.dswMap(dataStoreName);
+    if length(memBlock) == 1
+        reads = findReadWritesInScopeRCR(obj, memBlock{1}, flag);
+    else
+        reads = {};
+    end
+    if obj.dswMap.isKey(dataStoreName)
+        blocksToExclude = obj.dswMap(dataStoreName);
+    else
+        blocksToExclude = {};
+    end
     reads = setdiff(reads, blocksToExclude);
 end

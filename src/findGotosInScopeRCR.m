@@ -1,22 +1,31 @@
 function goto = findGotosInScopeRCR(obj, block, flag)
-% FINDGOTOSINSCOPE Find the Goto block associated with a From block.
-%
-% 	Inputs:
-% 		obj    The reachcoreach object containing goto tag mappings
-%       block  The from block of interest
-%       flag   The flag indicating whether shadowing visibility tags are in the
-%              model
-%
-% 	Outputs:
-%		goto   The goto block corresponding to input "block"
-
+    % FINDGOTOSINSCOPE Find the Goto block associated with a From block.
+    %
+    % 	Inputs:
+    % 		obj     The reachcoreach object containing goto tag mappings.
+    %       block   The from block of interest as a char array, an empty cell
+    %               array, or a 1x1 cell array containing the block as a char
+    %               array.
+    %       flag    The flag indicating whether shadowing visibility tags are in
+    %               the model.
+    %
+    % 	Outputs:
+    %		goto    The goto block corresponding to input "block".
+    %
+    
+    % Input Handling:
+    if iscell(block) && ~isempty(block)
+        assert(length(block) == 1, 'Something went wrong, block input too long.')
+        block = block{1};
+    end
+    
     % if no gotos are found, return an empty list
     goto = {};
-
+    
     if isempty(block)
         return
     end
-
+    
     % Ensure block parameter is a valid From block
     try
         assert(strcmp(get_param(block, 'type'), 'block'));
@@ -30,6 +39,15 @@ function goto = findGotosInScopeRCR(obj, block, flag)
         return
     end
     
+    %
+    if ~isempty(obj.implicitMaps)
+        if obj.implicitMaps.f2g.isKey(block)
+            goto = obj.implicitMaps.f2g(block);
+            return
+        end
+    end
+    
+    %
     tag = get_param(block, 'GotoTag');
     level = get_param(block, 'parent');
     
@@ -62,7 +80,7 @@ function goto = findGotosInScopeRCR(obj, block, flag)
     end
     for i=1:length(candidateGotos)
         gotoParent = get_param(candidateGotos{i}, 'parent');
-        switch get_param(candidateGotos{i}, 'TagVisibility');
+        switch get_param(candidateGotos{i}, 'TagVisibility')
             case 'local'
                 if strcmp(fromParent, gotoParent)
                     % local gotos have highest priority
@@ -79,8 +97,16 @@ function goto = findGotosInScopeRCR(obj, block, flag)
                 %otherwise, find the correctly scoped visibility block for
                 %the goto and pick the corresponding goto
                 visibilityBlock = findVisibilityTagRCR(obj, block, flag);
-                goto = findGotoFromsInScopeRCR(obj, visibilityBlock, flag);
-                blocksToExclude = obj.sfMap(tag);
+                if isempty(visibilityBlock)
+                    goto = {};
+                else
+                    goto = findGotoFromsInScopeRCR(obj, visibilityBlock{1}, flag);
+                end
+                if obj.sfMap.isKey(tag)
+                    blocksToExclude = obj.sfMap(tag);
+                else
+                    blocksToExclude = {};
+                end
                 goto = setdiff(goto, blocksToExclude);
         end
     end
