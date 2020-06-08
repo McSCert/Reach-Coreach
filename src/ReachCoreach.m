@@ -963,7 +963,7 @@ classdef ReachCoreach < handle
                 while ~isempty(object.PortsToTraverseCo)
                     port = object.PortsToTraverseCo(end);
                     object.PortsToTraverseCo(end) = [];
-                        coreach(object, port)
+                    coreach(object, port)
                 end
                 % Add any iterators in the coreach to blocks coreached and
                 % their ports to list to traverse
