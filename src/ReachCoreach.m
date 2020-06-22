@@ -93,10 +93,9 @@ classdef ReachCoreach < handle
                 assert(ischar(RootSystemName));
                 assert(bdIsLoaded(RootSystemName));
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     'Invalid RootSystemName. Model corresponding ' ...
                     'to RootSystemName may not be loaded or name is invalid.'])
-                return
             end
             
             % 2) Ensure that the parameter given is the top level of the
@@ -104,10 +103,9 @@ classdef ReachCoreach < handle
             try
                 assert(strcmp(RootSystemName, bdroot(RootSystemName)))
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     'Invalid RootSystemName. Given RootSystemName is not ' ...
                     'the root level of its model.'])
-                return
             end
             
             % Initialize a new instance of ReachCoreach.
@@ -272,10 +270,9 @@ classdef ReachCoreach < handle
                 assert(ischar(color1))
                 assert(ischar(color2))
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' Invalid color(s). Accepted colors are ''red'', ''green'', ' ...
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
-                return
             end
             
             % Ensure that the colours selected are acceptable
@@ -285,10 +282,9 @@ classdef ReachCoreach < handle
                 assert(isempty(setdiff(color1, acceptedColors)))
                 assert(isempty(setdiff(color2, acceptedColors)))
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' Invalid color(s). Accepted colours are ''red'', ''green'', ' ...
                     '''blue'', ''cyan'', ''magenta'', ''yellow'', ''white'', and ''black''.'])
-                return
             end
             % Record current open system
             initialOpenSystem = gcs;
@@ -376,10 +372,9 @@ classdef ReachCoreach < handle
             try
                 assert(~isempty(object.ReachedObjects)||~isempty(object.CoreachedObjects))
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' There are no reached/coreached objects' ...
                     ' to slice.'])
-                return
             end
             
             % Record current open system
@@ -522,10 +517,9 @@ classdef ReachCoreach < handle
                 assert(ischar(object.RootSystemName));
                 assert(bdIsLoaded(object.RootSystemName));
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' Invalid RootSystemName. Model corresponding ' ...
                     'to RootSystemName may not be loaded or name is invalid.'])
-                return
             end
             
             % 2) Check that model M is unlocked
@@ -534,13 +528,11 @@ classdef ReachCoreach < handle
             %             catch E
             %                 if strcmp(E.identifier, 'MATLAB:assert:failed') || ...
             %                         strcmp(E.identifier, 'MATLAB:assertion:failed')
-            %                     disp(['Error using ' mfilename ':' newline ...
+            %                     error(['Error using ' mfilename ':' newline ...
             %                         ' File is locked.'])
-            %                     return
             %                 else
-            %                     disp(['Error using ' mfilename ':' newline ...
+            %                     error(['Error using ' mfilename ':' newline ...
             %                         ' Invalid RootSystemName.'])
-            %                     return
             %                 end
             %             end
             
@@ -548,9 +540,8 @@ classdef ReachCoreach < handle
             try
                 assert(iscell(selection));
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' Invalid cell argument "selection".'])
-                return
             end
             
             % Record current open system
@@ -760,19 +751,17 @@ classdef ReachCoreach < handle
                 assert(ischar(object.RootSystemName));
                 assert(bdIsLoaded(object.RootSystemName));
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' Invalid RootSystemName. Model corresponding ' ...
                     'to RootSystemName may not be loaded or name is invalid.'])
-                return
             end
             
             % Check that selection is of type 'cell'
             try
                 assert(iscell(selection));
             catch
-                disp(['Error using ' mfilename ':' newline ...
+                error(['Error using ' mfilename ':' newline ...
                     ' Invalid cell argument "selection".'])
-                return
             end
             
             % Record current open system
