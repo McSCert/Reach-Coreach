@@ -497,7 +497,7 @@ classdef ReachCoreach < handle
         end
         
         function reachAll(object, selection, selLines)
-            % REACHALL Reach from a selection of blocks.
+            % REACHALL Perform a reach operation on the blocks selected.
             %
             %   Inputs:
             %       object      ReachCoreach object.
@@ -562,8 +562,8 @@ classdef ReachCoreach < handle
                 end
                 selectionType = get_param(selection{i}, 'BlockType');
                 if strcmp(selectionType, 'SubSystem')
-                    % Get all outgoing interface from subsystem, and add
-                    % blocks to reach, as well as ports to the list of ports
+                    % Get all outgoing interface items from the subsystem, and add
+                    % blocks to reach, as well as outports to the list of ports
                     % to traverse
                     outBlocks = object.getInterfaceOut(selection{i});
                     for j = 1:length(outBlocks)
@@ -571,12 +571,32 @@ classdef ReachCoreach < handle
                         ports = get_param(outBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                    
+                    % Add all blocks within the subsystem into the list of items
+                    % already traced
                     moreBlocks = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
                     for j = 1:length(moreBlocks)
                         object.ReachedObjects(end + 1) = get_param(moreBlocks{j}, 'handle');
                     end
+                    
+                    % If it's a Simulink Function, find its matching
+                    % Function Caller blocks. Add the Callers to the list of items
+                    % traced, and add their outports to the list of items to
+                    % continue tracing from
+                    if isSimulinkFcn(selection{i})
+                        callers = matchSimFcn(selection{i});
+                        for j = 1:length(callers)
+                            object.ReachedObjects(end + 1) = get_param(callers{j}, 'handle');
+                            ports = get_param(callers{j}, 'PortHandles');
+                            object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                        end
+                    end
+                    
+                    % Add lines
                     selLines = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
                     object.ReachedObjects = [object.ReachedObjects selLines.'];
+                    
+                    % ?
                     morePorts = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
                     if iscolumn(morePorts)
                         morePorts = morePorts.';
@@ -585,6 +605,38 @@ classdef ReachCoreach < handle
                     portsToExclude = portsToExclude.Outport;
                     morePorts = setdiff(morePorts, portsToExclude);
                     object.TraversedPorts = [object.TraversedPorts morePorts];
+                    
+                elseif strcmp(selectionType, 'FunctionCaller')
+                    % Find the Simulink Function and add it and its contents to the reach list.
+                    % Add any outports that the Simulink Function may have to
+                    % the list of items to traverse.
+                    fcn = matchSimFcn(selection{i});
+                    if iscell(fcn) && length(fcn) > 1 % Should only be 1, but just in case, we check
+                        fcn = fcn{1};
+                    end
+                    object.ReachedObjects(end + 1) = get_param(fcn, 'handle');
+                    ports = get_param(fcn, 'PortHandles');
+                    object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    
+                    % Add contents
+                    % 1) Any outgoing implicit interface items to the subsystem
+                    outBlocks = object.getInterfaceOut(fcn);
+                    for j = 1:length(outBlocks)
+                        object.ReachedObjects(end + 1) = get_param(outBlocks{j}, 'handle');
+                        ports = get_param(outBlocks{j}, 'PortHandles');
+                        object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
+                    end
+                    
+                    % 2) Contained blocks
+                    moreBlocks = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                    for j = 1:length(moreBlocks)
+                        object.ReachedObjects(end + 1) = get_param(moreBlocks{j}, 'handle');
+                    end
+                    
+                    % 3) Contained lines
+                    lines = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                    object.ReachedObjects = [object.ReachedObjects lines.'];
+                    
                 elseif strcmp(selectionType, 'Outport')
                     portNum = get_param(selection{i}, 'Port');
                     parent = get_param(selection{i}, 'parent');
@@ -594,16 +646,18 @@ classdef ReachCoreach < handle
                         object.ReachedObjects(end + 1) = get_param(parent, 'handle');
                         object.PortsToTraverse(end + 1) = portSub;
                     end
+                    
                 elseif strcmp(selectionType, 'GotoTagVisibility')
-                    % Add goto and from blocks to reach, and ports to list to traverse
+                    % Add Goto and From blocks to reach, and ports to list to traverse
                     associatedBlocks = findGotoFromsInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(associatedBlocks)
                         object.ReachedObjects(end + 1) = get_param(associatedBlocks{j}, 'handle');
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                    
                 elseif strcmp(selectionType, 'DataStoreMemory')
-                    % Add read and write blocks to reach, and ports to list
+                    % Add Read and Write blocks to reach, and ports to list
                     % to traverse
                     associatedBlocks = findReadWritesInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(associatedBlocks)
@@ -611,8 +665,9 @@ classdef ReachCoreach < handle
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverse = [object.PortsToTraverse ports.Outport];
                     end
+                    
                 elseif strcmp(selectionType, 'DataStoreWrite')
-                    % Add read blocks to reach, and ports to list to traverse
+                    % Add Read blocks to reach, and ports to list to traverse
                     reads = findReadsInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(reads)
                         object.ReachedObjects(end + 1) = get_param(reads{j}, 'handle');
@@ -623,11 +678,13 @@ classdef ReachCoreach < handle
                     if ~isempty(mem)
                         object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'DataStoreRead')
                     mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
                         object.ReachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'Goto')
                     % Add from blocks to reach, and ports to list to traverse
                     froms = findFromsInScopeRCR(object, selection{i}, object.gtvFlag);
@@ -640,11 +697,13 @@ classdef ReachCoreach < handle
                     if ~isempty(tag)
                         object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'From')
                     tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
                         object.ReachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'BusCreator')
                     busInports = get_param(selection{i}, 'PortHandles');
                     busInports = busInports.Inport;
@@ -664,6 +723,7 @@ classdef ReachCoreach < handle
                         object.ReachedObjects = [object.ReachedObjects blockList];
                         object.PortsToTraverse = [object.PortsToTraverse exit];
                     end
+                    
                 elseif (strcmp(selectionType, 'EnablePort') || ...
                         strcmp(selectionType, 'ActionPort') || ...
                         strcmp(selectionType, 'TriggerPort') || ...
@@ -674,6 +734,7 @@ classdef ReachCoreach < handle
                     % of the listed block types is in the selection
                     object.reachEverythingInSub(get_param(selection{i}, 'parent'))
                 end
+                
                 % Add blocks to reach from selection, and their ports to the
                 % list to traverse
                 object.ReachedObjects(end + 1) = get_param(selection{i}, 'handle');
@@ -731,7 +792,7 @@ classdef ReachCoreach < handle
         end
         
         function coreachAll(object, selection, selLines)
-            % COREACHALL Coreach from a selection of blocks.
+            % COREACHALL Perform a coreach operation on the blocks selected.
             %
             %   Inputs:
             %       object      ReachCoreach object.
@@ -782,8 +843,8 @@ classdef ReachCoreach < handle
                 end
                 selectionType = get_param(selection{i}, 'BlockType');
                 if strcmp(selectionType, 'SubSystem')
-                    % Get all incoming interface to subsystem, and add
-                    % blocks to coreach, as well as ports to the list of ports
+                    % Get all incoming interface items to the subsystem, and add
+                    % blocks to coreach, as well as inports to the list of ports
                     % to traverse
                     inBlocks = object.getInterfaceIn(selection{i});
                     for j = 1:length(inBlocks)
@@ -791,20 +852,70 @@ classdef ReachCoreach < handle
                         ports = get_param(inBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
+                    
+                    % If it's a Simulink Function, find its matching
+                    % Function Caller blocks. Add the Callers to the list of items
+                    % traced, and add their inports to the list of items to
+                    % continue tracing from
+                    if isSimulinkFcn(selection{i})
+                        callers = matchSimFcn(selection{i});
+                        for j = 1:length(callers)
+                            object.ReachedObjects(end + 1) = get_param(callers{j}, 'handle');
+                            ports = get_param(callers{j}, 'PortHandles');
+                            object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                        end
+                    end
+
+                    % Add all blocks within the subsystem into the list of items
+                    % already traced
                     moreBlocks = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
                     for j = 1:length(moreBlocks)
                         object.CoreachedObjects(end + 1) = get_param(moreBlocks{j}, 'handle');
                     end
+                    
+                    % Add lines
                     lines = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
                     object.CoreachedObjects = [object.CoreachedObjects lines.'];
-                    morePorts = find_system(selection{i}, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
+               
+                elseif strcmp(selectionType, 'FunctionCaller')
+                    % Find the Simulink Function and add it and its contents to the coreach list.
+                    % Add any inports that the Simulink Function may have to
+                    % the list of items to traverse.
+                    fcn = matchSimFcn(selection{i});
+                    if iscell(fcn) && length(fcn) > 1 % Should only be 1, but just in case, we check
+                        fcn = fcn{1};
+                    end
+                    object.CoreachedObjects(end + 1) = get_param(fcn, 'handle');
+                    ports = get_param(fcn, 'PortHandles');
+                    object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    
+                    % Add contents
+                    % 1) Any incoming implicit interface items to the subsystem
+                    inBlocks = object.getInterfaceIn(fcn);
+                    for j = 1:length(inBlocks)
+                        object.CoreachedObjects(end + 1) = get_param(inBlocks{j}, 'handle');
+                        ports = get_param(inBlocks{j}, 'PortHandles');
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
+                    end
+                    
+                    % 2) Contained blocks
+                    moreBlocks = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                    for j = 1:length(moreBlocks)
+                        object.CoreachedObjects(end + 1) = get_param(moreBlocks{j}, 'handle');
+                    end
+                    
+                    % 3) Contained lines
+                    lines = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                    object.CoreachedObjects = [object.CoreachedObjects lines.'];
+                    morePorts = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'port');
                     if iscolumn(morePorts)
                         morePorts = morePorts.';
                     end
-                    portsSub = get_param(selection{i}, 'PortHandles');
+                    portsSub = get_param(fcn, 'PortHandles');
                     portsToExclude = [portsSub.Inport portsSub.Trigger portsSub.Enable portsSub.Ifaction];
                     morePorts = setdiff(morePorts, portsToExclude);
                     object.TraversedPortsCo = [object.TraversedPortsCo morePorts];
+                    
                 elseif strcmp(selectionType, 'Inport')
                     portNum = get_param(selection{i}, 'Port');
                     parent = get_param(selection{i}, 'parent');
@@ -814,8 +925,9 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects(end + 1) = get_param(parent, 'handle');
                         object.PortsToTraverseCo(end + 1) = portSub;
                     end
+                    
                 elseif strcmp(selectionType, 'GotoTagVisibility')
-                    % Add goto and from blocks to coreach, and ports to list to
+                    % Add Goto and From blocks to coreach, and ports to list to
                     % traverse
                     associatedBlocks = findGotoFromsInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(associatedBlocks)
@@ -823,8 +935,9 @@ classdef ReachCoreach < handle
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
+                    
                 elseif strcmp(selectionType, 'DataStoreMemory')
-                    % Add read and write blocks to coreach, and ports to list
+                    % Add Read and Write blocks to coreach, and ports to list
                     % to traverse
                     associatedBlocks = findReadWritesInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(associatedBlocks)
@@ -832,8 +945,9 @@ classdef ReachCoreach < handle
                         ports = get_param(associatedBlocks{j}, 'PortHandles');
                         object.PortsToTraverseCo = [object.PortsToTraverseCo ports.Inport];
                     end
+                    
                 elseif strcmp(selectionType, 'From')
-                    % Add goto blocks to coreach, and ports to list to
+                    % Add Goto blocks to coreach, and ports to list to
                     % traverse
                     gotos = findGotosInScopeRCR(object, selection{i}, object.gtvFlag);
                     for j = 1:length(gotos)
@@ -845,13 +959,15 @@ classdef ReachCoreach < handle
                     if ~isempty(tag)
                         object.CoreachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'Goto')
                     tag = findVisibilityTagRCR(object, selection{i}, object.gtvFlag);
                     if ~isempty(tag)
                         object.CoreachedObjects(end + 1) = get_param(tag{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'DataStoreRead')
-                    % Add write blocks to coreach, and ports to list to
+                    % Add Write blocks to coreach, and ports to list to
                     % traverse
                     writes = findWritesInScopeRCR(object, selection{i}, object.dsmFlag);
                     for j = 1:length(writes)
@@ -863,11 +979,13 @@ classdef ReachCoreach < handle
                     if ~isempty(mem)
                         object.CoreachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'DataStoreWrite')
                     mem = findDataStoreMemoryRCR(object, selection{i}, object.dsmFlag);
                     if ~isempty(mem)
                         object.CoreachedObjects(end + 1) = get_param(mem{1}, 'Handle');
                     end
+                    
                 elseif strcmp(selectionType, 'BusSelector')
                     busOutports = get_param(selection{i}, 'PortHandles');
                     busOutports = busOutports.Outport;
@@ -882,21 +1000,25 @@ classdef ReachCoreach < handle
                         object.CoreachedObjects = [object.CoreachedObjects blockList];
                         object.PortsToTraverseCo = [object.PortsToTraverseCo exit];
                     end
+                    
                 elseif strcmp(selectionType, 'TriggerPort')
                     parent = get_param(selection{i}, 'parent');
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                         'type', 'port', 'parent', parent, 'PortType', 'trigger');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
+                    
                 elseif strcmp(selectionType, 'EnablePort')
                     parent = get_param(selection{i}, 'parent');
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                         'type', 'port', 'parent', parent, 'PortType', 'enable');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
+                    
                 elseif strcmp(selectionType, 'ActionPort')
                     parent = get_param(selection{i}, 'parent');
                     portSub = find_system(get_param(parent, 'parent'), 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'SearchDepth', 1, 'FindAll', 'on', ...
                         'type', 'port', 'parent', parent, 'PortType', 'ifaction');
                     object.PortsToTraverseCo = [object.PortsToTraverseCo portSub];
+                    
                 elseif strcmp(selectionType, 'WhileIterator') || strcmp(selectionType, 'ForIterator') || strcmp(selectionType, 'ForEach')
                     toCoreach = getInterfaceOut(object, get_param(selection{i}, 'parent'));
                     for j = 1:length(toCoreach)
@@ -1127,7 +1249,7 @@ classdef ReachCoreach < handle
             %
             %   Inputs:
             %       object  ReachCoreach object.
-            %       port
+            %       port    Port handle.
             %
             %   Output:
             %       N/A
@@ -1288,7 +1410,7 @@ classdef ReachCoreach < handle
                                 end
                             end
                         end
-                        
+                     
                     case 'Outport'
                         % Handles the case where the next block is an
                         % outport. Provided the outport isn't at top level,
@@ -1433,6 +1555,41 @@ classdef ReachCoreach < handle
                             end
                         end
                         
+                    case 'FunctionCaller'
+                        % Find the Simulink Function and trace it.
+                        % Add any outports that the Simulink Function may have to
+                        % the list of items to traverse.
+                        
+                        % Add the corresponding Simulink Function to reached list
+                        fcn = matchSimFcn(nextBlocks(i));
+                        if iscell(fcn) && length(fcn) > 1 % Should only be 1, but just in case, we check
+                            fcn = fcn{1};
+                        end
+                        object.ReachedObjects(end + 1) = get_param(fcn, 'handle');
+                        
+                        % Add the Simulink Function's contained blocks and lines
+                        containedBlocks = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                        for j = 1:length(containedBlocks)
+                            object.ReachedObjects(end + 1) = get_param(containedBlocks{j}, 'handle');
+                        end
+                        
+                        containedLines = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                        object.ReachedObjects = [object.ReachedObjects containedLines.'];
+
+                        % Add the Simulink Function's outports to the list
+                        ports = get_param(fcn, 'PortHandles');
+                        outport = ports.Outport;
+                        if ~isempty(outport)
+                            object.PortsToTraverse = [object.PortsToTraverse outport];
+                        end
+                         
+                        % Add the outports for the Caller itself
+                        ports = get_param(nextBlocks(i), 'PortHandles');
+                        outports = ports.Outport;
+                        for j = 1:length(outports)
+                            object.PortsToTraverse(end + 1) = outports(j);
+                        end
+
                     otherwise
                         % Otherwise case, simply adds outports of block to
                         % the list of ports to traverse
@@ -1451,7 +1608,7 @@ classdef ReachCoreach < handle
             %
             %   Inputs:
             %       object  ReachCoreach object.
-            %       port
+            %       port    Port handle.
             %
             %   Outputs:
             %       N/A
@@ -1673,6 +1830,41 @@ classdef ReachCoreach < handle
                             for k = 1:length(inports)
                                 object.PortsToTraverseCo(end + 1) = inports(k);
                             end
+                        end
+                        
+                    case 'FunctionCaller'
+                        % Find the Simulink Function and trace it.
+                        % Add any inports that the Simulink Function may have to
+                        % the list of items to traverse.
+                        
+                        % Add the corresponding Simulink Function to reached list
+                        fcn = matchSimFcn(nextBlocks(i));
+                        if iscell(fcn) && length(fcn) > 1 % Should only be 1, but just in case, we check
+                            fcn = fcn{1};
+                        end
+                        object.CoreachedObjects(end + 1) = get_param(fcn, 'handle');
+                        
+                        % Add the Simulink Function's contained blocks and lines
+                        containedBlocks = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on');
+                        for j = 1:length(containedBlocks)
+                            object.CoreachedObjects(end + 1) = get_param(containedBlocks{j}, 'handle');
+                        end
+                        
+                        containedLines = find_system(fcn, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on', 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'type', 'line');
+                        object.CoreachedObjects = [object.CoreachedObjects containedLines.'];
+
+                        % Add the Simulink Function's outports to the list
+                        ports = get_param(fcn, 'PortHandles');
+                        inport = ports.Inport;
+                        if ~isempty(inport)
+                            object.PortsToTraverseCo = [object.PortsToTraverseCo inport];
+                        end
+                         
+                        % Add the outports for the Caller itself
+                        ports = get_param(nextBlocks(i), 'PortHandles');
+                        inports = ports.Inport;
+                        for j = 1:length(inports)
+                            object.PortsToTraverseCo(end + 1) = inports(j);
                         end
                         
                     otherwise
@@ -1948,7 +2140,7 @@ classdef ReachCoreach < handle
             %
             %   Inputs:
             %       object      ReachCoreach object.
-            %       subsystem
+            %       subsystem   
             %
             %   Output:
             %       blocks

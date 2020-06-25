@@ -1,0 +1,19 @@
+.../tools/Simulink/Tools/Utility/	
+	InputHandling/
+		inputToNumeric.m
+        inputToCell.m
+	
+.../tools/Simulink/Tools/SimulinkModule/src/
+        inRoot.m
+        isSimulinkFcn.m
+        matchSimFcn.m
+        Scope.m
+
+    CreateCaller/
+        getCallableFunctions.m
+        getPrototype.m
+
+    ChangeScope/
+        findCallers.m
+        getFcnScope.m
+
