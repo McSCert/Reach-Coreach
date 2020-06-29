@@ -1274,7 +1274,7 @@ classdef ReachCoreach < handle
             nextBlocks = get_param(line, 'DstBlockHandle');
             
             for i = 1:length(nextBlocks)
-                if (nextBlocks(i) == -1)
+                if nextBlocks(i) == -1
                     continue
                 end
                 % Add block to list of reached objects
@@ -1410,7 +1410,7 @@ classdef ReachCoreach < handle
                                 end
                             end
                         end
-                     
+                        
                     case 'Outport'
                         % Handles the case where the next block is an
                         % outport. Provided the outport isn't at top level,
@@ -1458,11 +1458,14 @@ classdef ReachCoreach < handle
                         
                         dstPort = get_param(line, 'DstPortHandle');
                         for j = 1:length(dstPort)
-                            signalName = get_param(line, 'Name');
-                            if isempty(signalName)
-                                portNum = get_param(dstPort(j), 'PortNumber');
-                                signalName = ['signal' num2str(portNum)];
-                            end
+                            busSignals = getBusCreatorSignals(nextBlocks(i));
+                            portNum = get_param(dstPort(j), 'PortNumber');
+                            signalName = busSignals(portNum);
+%                             signalName = getSignalName(line);
+%                             if isempty(signalName)
+%                                 portNum = get_param(dstPort(j), 'PortNumber');
+%                                 signalName = ['signal' num2str(portNum)];
+%                             end
                             if strcmp(get_param(get_param(dstPort(j), 'parent'), 'BlockType'), 'BusCreator')
                                 busPort = get_param(nextBlocks(i), 'PortHandles');
                                 busPort = busPort.Outport;
@@ -2447,16 +2450,17 @@ classdef ReachCoreach < handle
                         % Case where the exit of the current bused signal is
                         % found
                         blockList(end + 1) = next;
-                        inputs = get_param(next, 'LineHandles');
-                        inputs = inputs.Inport;
-                        inputs = get_param(inputs, 'Name');
-                        portNum = find(strcmp(signal, inputs));
-                        match = regexp(signal, '^signal[1-9]', 'match');
-                        if isempty(portNum)&&~isempty(match)
-                            portNum = regexp(match{1}, '[1-9]*$', 'match');
-                            portNum = str2num(portNum{1});
-                        else
-                            portNum = 1:length(inputs);
+                        inSignals = getBusCreatorSignals(next)';
+                        portNum = find(strcmp(signal, inSignals));
+%                         inputs = get_param(next, 'LineHandles');
+%                         inputs = inputs.Inport;
+%                         inputs = get_param(inputs, 'Name');
+%                         match = regexp(signal, '^signal[1-9]', 'match');
+%                         if isempty(portNum)&&~isempty(match)
+%                             portNum = regexp(match{1}, '[1-9]*$', 'match');
+%                             portNum = str2num(portNum{1});
+%                         else
+%                             portNum = 1:length(inSignals);
                         end
                         temp = get_param(next, 'PortHandles');
                         temp = temp.Inport;
