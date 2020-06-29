@@ -2461,7 +2461,7 @@ classdef ReachCoreach < handle
 %                             portNum = str2num(portNum{1});
 %                         else
 %                             portNum = 1:length(inSignals);
-                        end
+%                         end
                         temp = get_param(next, 'PortHandles');
                         temp = temp.Inport;
                         temp = temp(portNum);
