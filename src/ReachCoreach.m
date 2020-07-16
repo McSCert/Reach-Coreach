@@ -1108,7 +1108,7 @@ classdef ReachCoreach < handle
             end
         end
         
-        function findAllImplicitMappings(object, verbose)
+        function findAllImplicitMappings(object, verbose, cpool, coreNum)
             % FINDALLIMPLICITMAPPINGS Finds mappings from each block with
             % implicit connections to the blocks they connect with.
             % 
@@ -1117,7 +1117,7 @@ classdef ReachCoreach < handle
             %   verbose [Optional] Logical true to display progress updates in
             %           the command line.
             
-            if nargin < 2
+            if nargin < 4
                 verbose = false;
             end
             
@@ -1168,19 +1168,23 @@ classdef ReachCoreach < handle
             if verbose
                 disp('Step 2/7: Generating mapping from Gotos to other blocks.')
             end
-            for i = 1:length(scopedGotos)
+            for i = coreNum:cpool:length(scopedGotos)
                 b = scopedGotos{i};
                 object.implicitMaps.g2f(b) = findFromsInScopeRCR(object, b, object.gtvFlag);
                 object.implicitMaps.gf2v(b) = findVisibilityTagRCR(object, b, object.gtvFlag);
+                
+%                 if verbose
+%                     disp(['Step 2 - Done scope #: ' ,num2str(i), ' of ' ,num2str(length(scopedGotos))]);
+%                 end
             end
             
             if verbose
                 disp('Step 3/7: Generating mapping from Froms to other blocks.')
             end
             object.implicitMaps.f2g = flipMap(object.implicitMaps.g2f);
-            for i = 1:length(scopedFroms)
+            for i = coreNum:cpool:length(scopedFroms)
                 b = scopedFroms{i};
-%                 object.implicitMaps.f2g(b) = findGotosInScopeRCR(object, b, object.gtvFlag);
+                object.implicitMaps.f2g(b) = findGotosInScopeRCR(object, b, object.gtvFlag);
                 object.implicitMaps.gf2v(b) = findVisibilityTagRCR(object, b, object.gtvFlag);
             end
             
@@ -1196,7 +1200,7 @@ classdef ReachCoreach < handle
             if verbose
                 disp('Step 5/7: Generating mapping from Data Store Reads to other blocks.')
             end
-            for i = 1:length(reads)
+            for i = coreNum:cpool:length(reads)
                 b = reads{i};
                 object.implicitMaps.r2w(b) = findWritesInScopeRCR(object, b, object.dsmFlag);
                 object.implicitMaps.rw2m(b) = findDataStoreMemoryRCR(object, b, object.dsmFlag);
@@ -1206,7 +1210,7 @@ classdef ReachCoreach < handle
                 disp('Step 6/7: Generating mapping from Data Store Writes to other blocks.')
             end
             object.implicitMaps.w2r = flipMap(object.implicitMaps.r2w);
-            for i = 1:length(writes)
+            for i = coreNum:cpool:length(writes)
                 b = writes{i};
 %                 object.implicitMaps.w2r(b) = findReadsInScopeRCR(object, b, object.dsmFlag);
                 object.implicitMaps.rw2m(b) = findDataStoreMemoryRCR(object, b, object.dsmFlag);
