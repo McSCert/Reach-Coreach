@@ -7,3 +7,5 @@ Tracks and highlights data flow and control flow in a Simulink model. The tool i
 ## User Guide
 
 For installation and other information, please see the [User Guide](doc/ReachCoreach_UserGuide.pdf).
+
+[![View Reach/Coreach Tool on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/51180-reach-coreach-tool)
