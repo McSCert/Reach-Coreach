@@ -3,16 +3,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % Packages & Macros
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{colortbl}
-\usepackage{datetime}
-	\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+% For including graphics
 \usepackage{graphicx}
+
+% For title page
+\usepackage{datetime}
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+% For supporting linking
 \usepackage{hyperref}
-\hypersetup{%
-  colorlinks = true,
-  linkcolor  = blue
-}
-\hypersetup{colorlinks,urlcolor=blue}
+\hypersetup{colorlinks,urlcolor=blue,linkcolor=blue,anchorcolor=blue,citecolor=blue}
+
+% For table colouring (in command line tables)
+\usepackage{colortbl}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 % Tool-Specific Macros
@@ -73,6 +77,10 @@
 \end{figure}
 
 \newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table of Contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tableofcontents
 \newpage
 
@@ -95,7 +103,7 @@ The tool has many uses:
 \end{itemize}
 
 % Is there more information?
-\subsection*{More Information}
+\subsection{More Information}
 For more information on the tool and how it can be used in a model-based development with Simulink, please refer to the following papers:
 
 \vspace{1em}
