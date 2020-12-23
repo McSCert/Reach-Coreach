@@ -1789,7 +1789,7 @@ classdef ReachCoreach < handle
                         portNum = get_param(srcPort, 'PortNumber');
                         expressions = get_param(nextBlocks(i), 'ElseIfExpressions');
                         if ~isempty(expressions)
-                            expressions = regexp(expressions, ', ', 'split');
+                            expressions = regexp(expressions, ', *', 'split');
                             expressions = [{get_param(nextBlocks(i), 'IfExpression')} expressions];
                         else
                             expressions = {};
@@ -1797,28 +1797,32 @@ classdef ReachCoreach < handle
                         end
                         if portNum > length(expressions)
                             % Else case
-                            ifPorts = get_param(nextBlocks(i), 'PortHandles');
-                            ifPorts = ifPorts.Inport;
-                            condsToCoreach = zeros(1, length(ifPorts));
-                            for j = 1:length(expressions)
-                                conds = regexp(expressions{j}, 'u[1-9]+', 'match');
-                                for k = 1:length(conds)
-                                    c = conds{k};
-                                    condsToCoreach(str2num(c(2:end))) = 1;
-                                end
-                                
-                            end
-                            object.PortsToTraverseCo = [object.PortsToTraverseCo ifPorts(logical(condsToCoreach))];
+                            limit = portNum - 1;
                         else
-                            conditions = regexp(expressions{portNum}, 'u[1-9]+', 'match');
-                            for j = 1:length(conditions)
-                                cond = conditions{j};
-                                cond = cond(2:end);
-                                ifPorts = get_param(nextBlocks(i), 'PortHandles');
-                                ifPorts = ifPorts.Inport;
-                                object.PortsToTraverseCo(end + 1) = ifPorts(str2num(cond));
-                            end
+                            limit = portNum;
                         end
+                        ifPorts = get_param(nextBlocks(i), 'PortHandles');
+                        ifPorts = ifPorts.Inport;
+                        condsToCoreach = zeros(1, length(ifPorts));
+                        for j = 1:limit
+                            conds = regexp(expressions{j}, 'u[1-9][0-9]*', 'match');
+                            for k = 1:length(conds)
+                                c = conds{k};
+                                condsToCoreach(str2num(c(2:end))) = 1;
+                            end
+
+                        end
+                        object.PortsToTraverseCo = [object.PortsToTraverseCo ifPorts(logical(condsToCoreach))];
+%                         else
+%                             conditions = regexp(expressions{portNum}, 'u[1-9][0-9]*', 'match');
+%                             for j = 1:length(conditions)
+%                                 cond = conditions{j};
+%                                 cond = cond(2:end);
+%                                 ifPorts = get_param(nextBlocks(i), 'PortHandles');
+%                                 ifPorts = ifPorts.Inport;
+%                                 object.PortsToTraverseCo(end + 1) = ifPorts(str2num(cond));
+%                             end
+%                         end
                     case 'ForIterator'
                         toCoreach = getInterfaceOut(object, get_param(nextBlocks(i), 'parent'));
                         for j = 1:length(toCoreach)
@@ -1899,7 +1903,16 @@ classdef ReachCoreach < handle
             
             iterators = {};
             candidates = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'WhileIterator');
-            candidates = [candidates find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForIterator')];
+            tmp = find_system(object.RootSystemName, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'BlockType', 'ForIterator');
+            
+            if iscolumn(candidates)
+                candidates = candidates';
+            end
+            if iscolumn(tmp)
+                tmp = tmp';
+            end
+            
+            candidates = [candidates tmp];
             for i = 1:length(candidates)
                 system = get_param(candidates{i}, 'parent');
                 sysObjects = find_system(system, 'LookUnderMasks', 'all', 'FollowLinks', 'on', 'FindAll', 'on');
