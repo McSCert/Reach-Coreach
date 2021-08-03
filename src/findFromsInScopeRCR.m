@@ -31,8 +31,8 @@ function froms = findFromsInScopeRCR(obj, block, flag)
         blockType = get_param(block, 'BlockType');
         assert(strcmp(blockType, 'Goto'));
     catch
-        disp(['Error using ' mfilename ':' char(10) ...
-            ' Block parameter is not a Goto block.' char(10)])
+        disp(['Error using ' mfilename ':' newline ...
+            ' Block parameter is not a Goto block.' newline])
         help(mfilename)
         froms = {};
         return
@@ -69,11 +69,20 @@ function froms = findFromsInScopeRCR(obj, block, flag)
     scopedTags = find_system(bdroot(block), 'FollowLinks', 'on', ...
         'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
     
+    if isempty(scopedTags)
+        scopedTags = find_system(bdroot(block), 'LookUnderMasks','on', 'FollowLinks', 'on', ...
+        'BlockType', 'GotoTagVisibility', 'GotoTag', tag);
+    end
+    
     % If there are no corresponding tags, Goto is assumed to be
     % local, and all local Froms corresponding to the tag are found
     if strcmp(tagVis, 'local')
         froms = find_system(level, 'FollowLinks', 'on', 'SearchDepth', 1, ...
             'BlockType', 'From', 'GotoTag', tag);
+        if isempty(scopedTags)
+            froms = find_system(level, 'LookUnderMasks','on', 'FollowLinks', 'on', 'SearchDepth', 1, ...
+                'BlockType', 'From', 'GotoTag', tag);
+        end
         return
     elseif strcmp(tagVis, 'scoped')
         visibilityBlock = findVisibilityTagRCR(obj, block, flag);

@@ -32,8 +32,8 @@ function goto = findGotosInScopeRCR(obj, block, flag)
         blockType = get_param(block, 'BlockType');
         assert(strcmp(blockType, 'From'));
     catch
-        disp(['Error using ' mfilename ':' char(10) ...
-            ' Block parameter is not a From block.' char(10)])
+        disp(['Error using ' mfilename ':' newline ...
+            ' Block parameter is not a From block.' newline])
         help(mfilename)
         goto = {};
         return
@@ -66,6 +66,12 @@ function goto = findGotosInScopeRCR(obj, block, flag)
     
     goto = find_system(get_param(block, 'parent'),'SearchDepth', 1,  ...
         'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
+    
+    if isempty(goto)
+        goto = find_system(get_param(block, 'parent'),'LookUnderMasks','on','SearchDepth', 1,  ...
+        'FollowLinks', 'on', 'BlockType', 'Goto', 'GotoTag', tag, 'TagVisibility', 'local');
+    end
+    
     if ~isempty(goto)
         return
     end

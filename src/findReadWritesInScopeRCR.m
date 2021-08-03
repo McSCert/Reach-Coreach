@@ -33,8 +33,8 @@ function blockList = findReadWritesInScopeRCR(obj, block, flag)
         blockType = get_param(block, 'BlockType');
         assert(strcmp(blockType, 'DataStoreMemory'));
     catch
-        disp(['Error using ' mfilename ':' char(10) ...
-            ' Block parameter is not a Data Store Memory block.' char(10)])
+        disp(['Error using ' mfilename ':' newline ...
+            ' Block parameter is not a Data Store Memory block.' newline])
         help(mfilename)
         blockList = {};
         return
