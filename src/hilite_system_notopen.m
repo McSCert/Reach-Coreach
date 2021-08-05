@@ -57,11 +57,11 @@ function hilite_system_notopen(sys,hilite,varargin)
 %   scalar --> vector of length 2 with repeate of scalar (a hack, yes, but
 %              it does make things simpler...)
 %
-if ischar(sys),
+if ischar(sys)
   sys = { sys, sys };
-elseif iscell(sys) && (length(sys) == 1),
+elseif iscell(sys) && (length(sys) == 1)
   sys = { cell2mat(sys(1)), cell2mat(sys(1)) };
-elseif isreal(sys) && (length(sys) == 1),
+elseif isreal(sys) && (length(sys) == 1)
   sys = [sys sys];
 end
 
@@ -79,7 +79,7 @@ ports = find(strcmp(get_param(sys,'type'),'port'));
 if(~isempty(ports))
     portLines =  get_param(sys(ports),'Line');
     if(~eq(portLines{1}, -1) && ~eq(portLines{2},-1))
-        if iscell(portLines),
+        if iscell(portLines)
           sys(ports) = [ portLines{:} ];
         else
           sys(ports) = portLines;
@@ -104,7 +104,7 @@ sys(mdls) = [];
 %
 % Set the HiliteAncestors property for each of the blocks
 %
-if nargin == 1,
+if nargin == 1
   hilite = 'on';
 end
 
@@ -113,7 +113,7 @@ hiliteArgs = { 'HiliteAncestors', hilite };
 %
 % For each 'sys', set the HiliteAncestors property
 %
-for i = 1:length(sys),
+for i = 1:length(sys)
   set_param(sys(i), hiliteArgs{:},varargin{:});
 end
 
